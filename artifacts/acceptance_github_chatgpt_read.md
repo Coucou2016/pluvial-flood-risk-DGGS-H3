@@ -24,7 +24,8 @@
 
 ## Pushed commit
 
-Recorded after push in this session (see git log / return block). Prior HEAD before this push: `e0331fa`.
+**SHA:** `dbc46f83ee6a68451bb5338d471fb5f2044ba18b` (`dbc46f8`) on `origin/master`  
+Prior HEAD: `e0331fa`. Push used local proxy `127.0.0.1:1099` (no force-push).
 
 ## GitHub URLs for ChatGPT
 
