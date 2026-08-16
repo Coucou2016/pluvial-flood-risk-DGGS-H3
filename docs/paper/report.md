@@ -5,7 +5,7 @@
 **手稿对照：** `docs/paper/manuscript.md`  
 **数值基线：** 仅来自 `outputs/` 与 `models/nyc_smoke/` 的 live 产物；缺则标 **待补充**  
 **GitHub（已公开，勿重复 create）：** https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3  
-**ChatGPT 粘贴包：** `artifacts/chatgpt_paste_R1.md`–`R5.md`（浏览器 MCP 自动化仍阻塞；人工粘贴）
+**ChatGPT 公开 URL 索引：** `artifacts/chatgpt_review_index.md`（blob + raw）；短粘贴包 `artifacts/chatgpt_paste_github_urls.md`；五轮正文 `artifacts/chatgpt_paste_R1.md`–`R5.md`（浏览器 MCP 仍无法保持 tab；请人工粘贴 URL 让 ChatGPT **fetch/read**）
 
 ---
 
@@ -61,7 +61,7 @@
 
 - **主结构：** IJDRR / 应用灾害风险期刊骨架（Intro → Related → Data → Methods → Results → Discussion → Conclusions）。  
 - **主张纪律：** nature-writing / Nature claim discipline——证据 → 边界；动词用 *show / indicate / suggest*；禁止把 LM smoke 写成全市产品。  
-- **文献顾问：** 目标会话 https://chatgpt.com/c/6a8086e4-3a30-83ea-960b-cde100e0f3b2 ；五轮粘贴包：`artifacts/chatgpt_paste_R1.md`–`R5.md`。`cursor-ide-browser` 重试后仍无法保持 tab（`No browser tab available`）；执行侧独立 WebSearch 成熟化手稿与 `artifacts/literature_architecture_conclusions.md`。
+- **文献顾问：** 目标会话 https://chatgpt.com/c/6a8086e4-3a30-83ea-960b-cde100e0f3b2 ；公开仓库 URL 索引：`artifacts/chatgpt_review_index.md`（raw.githubusercontent.com 供 ChatGPT 读取）。`cursor-ide-browser` 再次失败（`No browser tab available` / view 瞬时消失）；执行侧独立 WebSearch 继续成熟化手稿（含 Sun/Hu spatial CV 作者校正）与 `artifacts/literature_architecture_conclusions.md`。
 
 ---
 

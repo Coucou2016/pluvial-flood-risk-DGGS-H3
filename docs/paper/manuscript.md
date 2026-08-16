@@ -3,7 +3,7 @@
 **Working manuscript (methods / IJDRR-shaped)**  
 **Status:** Matured draft filled only from live artifacts under `outputs/` and `models/nyc_smoke/`. Gaps marked 待补充.  
 **Public code/docs:** https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3  
-**Advisor chat (manual paste packages):** https://chatgpt.com/c/6a8086e4-3a30-83ea-960b-cde100e0f3b2 · `artifacts/chatgpt_paste_R1.md`–`R5.md`  
+**Advisor chat (manual paste / URL-read):** https://chatgpt.com/c/6a8086e4-3a30-83ea-960b-cde100e0f3b2 · public review index `artifacts/chatgpt_review_index.md` · paste packages `artifacts/chatgpt_paste_R1.md`–`R5.md`  
 **Axes (nature-writing):** `task=manuscript`, `paper_type=methods`, `language=en`, `journal=generic` (IJDRR-compatible structure + Nature claim discipline).
 
 **Terminology ledger**
@@ -45,7 +45,7 @@ This manuscript therefore asks: **can an open multi-source label stack on H3 sup
 
 **Hexagonal DGGS flood analytics.** Li et al. (2022) use an ISEA3H hexagonal DGGS as a multi-scale fabric for flood mapping under climate scenarios, supporting resolution-consistent predictors without relying on insurance labels. That line of work motivates DGGS as an analysis substrate; our contribution is an open-label **learning and evaluation protocol** on Uber H3 rather than climate-scenario inundation mapping alone.
 
-**Spatial cross-validation.** GeoAI practice emphasises block / GroupKFold CV because random folds inflate scores under spatial autocorrelation (Hu et al., GeoAI Handbook spatial CV chapter). Flood susceptibility studies increasingly adopt spatial holdouts for the same reason. We instantiate blocking with coarse H3 parent IDs.
+**Spatial cross-validation.** GeoAI practice emphasises block / GroupKFold CV because random folds inflate scores under spatial autocorrelation (Sun, Hu, Lakhanpal & Zhou, 2023, *Handbook of Geospatial Artificial Intelligence*, spatial CV chapter). Flood susceptibility studies increasingly adopt spatial holdouts for the same reason. We instantiate blocking with coarse H3 parent IDs (a grid-/geo-attribute-style block holdout on H3 parents).
 
 **Urban pluvial ML susceptibility.** City studies map susceptibility from DEM, land cover, and drainage proxies with classical ML (e.g. Bersabe & Jun, 2025, Seoul). Fewer combine open labels, H3 nesting, adaptive refinement, and rainfall-conditioned index honesty in one reproducible pipeline with blocked CV as the primary metric.
 
@@ -222,7 +222,7 @@ Public repository (code, configs, tests, paper docs, small CSV/JSON outputs; lar
 1. Svellingen, W., Torgersen, G., Bruland, O. & Muthanna, T. Scalable pluvial flood risk assessment: A data-driven framework integrating machine learning (ML) and discrete global grid systems (DGGS H3). *Int. J. Disaster Risk Reduction* **137** (2026). https://doi.org/10.1016/j.ijdrr.2026.106091  
 2. Svellingen, W. et al. Indexing areas vulnerable to pluvial floods—Using Machine Learning and H3 Hexagonal Grid System. *SSRN* (preprint). https://doi.org/10.2139/ssrn.5875380  
 3. Li, M., McGrath, H. & Stefanakis, E. Multi-Scale Flood Mapping under Climate Change Scenarios in Hexagonal Discrete Global Grids. *ISPRS Int. J. Geo-Inf.* **11**, 627 (2022). https://doi.org/10.3390/ijgi11120627  
-4. Hu, Y. et al. Spatial cross-validation for GeoAI. In *Handbook on Geospatial Artificial Intelligence* (chapter PDF). https://www.acsu.buffalo.edu/~yhu42/papers/2023_GeoAIHandbook_SpatialCV.pdf  
+4. Sun, K., Hu, Y., Lakhanpal, G. & Zhou, R. Z. Spatial cross-validation for GeoAI. In Gao, S., Hu, Y. & Li, W. (eds) *Handbook of Geospatial Artificial Intelligence* (Taylor & Francis, 2023). Chapter PDF: https://www.acsu.buffalo.edu/~yhu42/papers/2023_GeoAIHandbook_SpatialCV.pdf  
 5. Bersabe, J. T. & Jun, B.-W. The Machine Learning-Based Mapping of Urban Pluvial Flood Susceptibility in Seoul Integrating Flood Conditioning Factors and Drainage-Related Data. *ISPRS Int. J. Geo-Inf.* **14**, 57 (2025). https://doi.org/10.3390/ijgi14020057  
 
 Additional venue-specific references 待补充 after advisor web-search replies are pasted back (`artifacts/chatgpt_paste_R1.md`).
