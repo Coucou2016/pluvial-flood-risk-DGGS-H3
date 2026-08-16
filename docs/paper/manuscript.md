@@ -19,7 +19,7 @@
 
 ## Abstract
 
-Urban pluvial flood screening increasingly relies on machine learning and multi-resolution grids, yet many operational indices remain tied to proprietary insurance labels and evaluation protocols that ignore spatial leakage. Building on the H3 DGGS framing popularised for scalable pluvial mapping, we develop an **open-label** hexagonal learning protocol for a Lower Manhattan pilot: multi-source public flood indicators are joined to H3 cells, gradient-boosting models are assessed with **H3-block spatial cross-validation**, scale-loss is quantified with a Jaccard/F1 hotspot ladder, and an **adaptive** refinement stage screens parents using trained cell scores. We define `PFI_h(c,r)` explicitly as a rainfall-conditioned hex flood probability/index — a model output, not feature importance and not the proprietary PFIb product. On the live open-data pilot table (`n=141` cells; open-data assembly), spatial CV accuracy was **0.784 ± 0.069** (5 folds) with mean F1 **0.866**. Adaptive refinement retained about **57%** of uniform-fine cell count relative to an R11 reference while expanding high-score parents. We do **not** claim citywide skill, PFIb reproduction, or radar rainfall: event rainfall remains a synthetic constant hook, and current scenario tables show **no within-cell `PFI_h` change across rainfall intensities** (待补充). Oslo synthetic runs remain appendix-only pipeline QA.
+Urban pluvial flood screening increasingly relies on machine learning and multi-resolution grids, yet many operational indices remain tied to proprietary insurance labels and evaluation protocols that ignore spatial leakage. Building on the H3 DGGS framing popularised for scalable pluvial mapping, we present an **open-label** hexagonal **learning protocol** for a Lower Manhattan pilot: multi-source public flood indicators are joined to H3 cells, gradient-boosting models are assessed with **H3-block spatial cross-validation**, scale-loss is quantified with a Jaccard/F1 hotspot ladder, and an **adaptive** refinement stage screens parents using trained cell scores. We define `PFI_h(c,r)` explicitly as a rainfall-conditioned hex flood probability/index — a model output, not feature importance and not the proprietary PFIb product. On the live open-data pilot table (`n=141` cells; open-data assembly), spatial CV accuracy was **0.784 ± 0.069** (5 folds) with mean F1 **0.866**; continuous-risk R² under the same folds was near zero (**0.030 ± 0.343**) and is not claimed as skill. Adaptive refinement used about **57%** as many cells as a uniform R11 grid while refining high-score parents — a **cell-count** comparison only. We do **not** claim citywide skill, PFIb reproduction, radar rainfall, or rainfall-conditioned discrimination: event rainfall remains a synthetic constant hook, and scenario tables show **no within-cell `PFI_h` change across rainfall intensities** (待补充). Oslo synthetic runs remain appendix-only pipeline QA.
 
 ---
 
@@ -140,7 +140,7 @@ All numbers below are copied from the live Lower Manhattan open-data pilot (`n_c
 
 Per-fold accuracy/F1: Fold0 0.755 / 0.850; Fold1 0.760 / 0.850; Fold2 0.773 / 0.872; Fold3 0.714 / 0.813; Fold4 0.917 / 0.944.
 
-**Reading.** Mean blocked accuracy near 0.78 indicates that an open-label H3 table can be trained under spatial holdout on this pilot bbox. Fold4’s high accuracy is a single-block outcome on small test counts and must not be generalised to citywide skill. Random-split accuracy (0.690) remains diagnostic only and is **not** the primary claim.
+**Reading.** Mean blocked classification accuracy near 0.78 indicates that an open-label H3 table **can be fit and evaluated** under spatial holdout on this pilot bbox; it does **not** establish operational citywide skill. Fold4 accuracy (0.917) coincides with a small test set (`n_test=24`, two blocks) and must not be cherry-picked. Continuous-risk R² (0.030 ± 0.343) is weak and is reported only for completeness. Random-split accuracy (0.690) remains diagnostic only and is **not** the primary claim.
 
 ### 6.2 Scale-loss Jaccard ladder (open labels)
 
@@ -155,7 +155,7 @@ Fine resolution R10, hotspot quantile 0.9:
 | 9 | max | 1.000 | 1.000 |
 | 9 | p90 | 0.977 | 0.988 |
 
-**Reading.** Mean parent rollup at R8 loses most fine hotspots (Jaccard 0.167), illustrating scale smoothing; max/p90 retain extrema by construction. These values are open-label diagnostics on this bbox — **not** a reproduction of Svellingen et al. 0.14.
+**Reading.** Under mean aggregation, parent rollup at R8 yields Jaccard **0.167** with fine R10 hotspot parents, which is **consistent with** strong scale smoothing on this open-label stack. Max/p90 retain extrema by construction (Jaccard 1.0 at R8) and therefore should not be narrated as “no scale loss.” These diagnostics are **not** a reproduction of Svellingen et al.’s PFIb Jaccard ≈ 0.14 (different labels, resolutions, and hotspot definitions).
 
 ### 6.3 Adaptive vs fixed / uniform fine
 
@@ -169,7 +169,7 @@ Fine resolution R10, hotspot quantile 0.9:
 | n_parents_refined | 79 |
 | score_quantile | 0.8 |
 
-Adaptive mixed grids use fewer cells than uniform R11 (~57%) while refining 79/141 coarse parents. This is a **cell-count** efficiency statement on the pilot table, not a verified compute-time saving at city scale.
+Adaptive mixed grids use fewer cells than uniform R11 (~57%) while refining 79/141 coarse parents. This statement concerns **cell counts only**. We do **not** report wall-clock runtime, memory, or city-scale cost savings from this pilot.
 
 ### 6.4 Rainfall scenarios (`PFI_h`)
 
@@ -185,11 +185,11 @@ Open-data assembly: n_cells=141; n_coastal=31; n_pluvial=71; n_both=23; n_coasta
 
 ## 7 Discussion
 
-The LM pilot shows that an open-label H3 table can be trained and evaluated with blocked CV, that mean rollups can erase fine hotspots (scale-loss), and that trained-score adaptive refinement reduces uniform-fine cell count. These results support **protocol credibility** under stated boundaries, not product-ready city maps.
+The LM pilot **indicates** that an open-label H3 table can be trained and evaluated with blocked CV, that mean rollups can erase fine hotspots (scale-loss), and that trained-score adaptive refinement reduces uniform-fine **cell count**. These results support **protocol credibility** under stated boundaries, not product-ready city maps and not rainfall-responsive screening under the current synthetic rainfall hook.
 
-Relative to Svellingen et al. (2026), the dialogue is conceptual: they aggregate a proprietary building index (PFIb) into H3 for scalable communication; we learn on public labels with spatial holdouts and an explicit non-PFIb `PFI_h(c,r)`. Our open-label Jaccard mean R10→R8 (0.167) should **not** be narrated as matching their PFIb Jaccard ≈ 0.14 — different labels, resolutions, and hotspot definitions.
+Relative to Svellingen et al. (2026), the dialogue is conceptual: they aggregate a proprietary building index (PFIb) into H3 for scalable communication; we learn on public labels with spatial holdouts and an explicit non-PFIb `PFI_h(c,r)`. Our open-label Jaccard mean R10→R8 (0.167) should **not** be narrated as matching their PFIb Jaccard ≈ 0.14 — different labels, resolutions, and hotspot definitions. Proximity of 0.167 to 0.14 is coincidental and must not be used as validation.
 
-Limitations dominate external validity: small extent (`n=141`), label bias (311 reporting), tidal hydro proxy, synthetic rainfall, flat scenario `PFI_h`, no FloodNet holdout, and no workflow schematic figure (Figure 1 待补充). Random-split accuracy must not displace spatial CV in claims. Fold-level variance (including Fold4) further warns against over-interpreting a single pilot run.
+Limitations dominate external validity: small extent (`n=141`), label bias (311 reporting), tidal hydro proxy, synthetic rainfall, flat scenario `PFI_h` (within-cell range = 0), weak continuous-risk R², no FloodNet holdout, and no workflow schematic figure (Figure 1 待补充). Random-split accuracy must not displace spatial CV in claims. Fold-level variance (including Fold4 on `n_test=24`) further warns against over-interpreting a single pilot run.
 
 **What would close key gaps (completion criteria):** (i) ingest observed event rainfall with non-synthetic provenance; (ii) non-flat scenarios — within-cell `PFI_h` range > 0 across rainfall intensities on the same static \(X_c\); (iii) expanded bbox / citywide profile with the same spatial CV protocol; (iv) FloodNet held-out validation when a non-empty layer exists.
 
