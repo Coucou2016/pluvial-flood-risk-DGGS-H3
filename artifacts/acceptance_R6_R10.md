@@ -29,7 +29,7 @@
 | R7 | `e7f8985` | Related-work polish; honest novelty |
 | R8 | `2c133b7` | Results honesty vs live metrics |
 | R9 | `0f566e0` | Discussion structure; figure captions |
-| R10 | *(this commit)* | Full polish; README abstract; acceptance; HTML |
+| R10 | d7d51a2 | Full polish; README abstract; acceptance; HTML |
 
 Baseline before batch: `2836ddb`.
 
