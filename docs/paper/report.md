@@ -5,7 +5,7 @@
 **手稿对照：** `docs/paper/manuscript.md`  
 **数值基线：** 仅来自 `outputs/` 与 `models/nyc_smoke/` 的 live 产物；缺则标 **待补充**  
 **GitHub（已公开，勿重复 create）：** https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3  
-**ChatGPT 公开 URL 索引：** `artifacts/chatgpt_review_index.md`（blob + raw）；短粘贴包 `artifacts/chatgpt_paste_github_urls.md`；五轮正文 `artifacts/chatgpt_paste_R1.md`–`R5.md`（浏览器 MCP 仍无法保持 tab；请人工粘贴 URL 让 ChatGPT **fetch/read**）
+**ChatGPT 公开 URL 索引：** `artifacts/chatgpt_review_index.md`（blob + raw）；短粘贴包 `artifacts/chatgpt_paste_github_urls_R6_R10.md`；R6–R10 正文 `artifacts/chatgpt_paste_R6.md`–`R10.md`（另保留 R1–R5）。**Paper/report 边界（R6）：** 手稿 `manuscript.md` 已剥离本地路径与 Cursor/ChatGPT 过程；本报告保留路径、复现与来龙去脉。
 
 ---
 
@@ -313,6 +313,17 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 | 工作流图 F1 schematic | 待补充 |
 | ChatGPT web-search 顾问回复 | 待人工粘贴 / 浏览器 MCP |
 | GitHub 远程仓库 | **已公开** https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3（勿重复 `gh repo create`；勿 force-push） |
+
+### 8.1 Paper vs report boundary (R6 audit)
+
+| Belongs in **paper** (`manuscript.md`) | Belongs in **report** (this file) |
+|----------------------------------------|-----------------------------------|
+| Academic claims, methods narrative, live numbers with honest bounds | Local paths (`outputs/`, `models/nyc_smoke/`, configs) |
+| Figure captions without repo-relative paths | Reproducibility commands, pytest gates, ChatGPT round process |
+| Public GitHub URL + data availability | Cursor/ChatGPT collaboration logs, paste packages |
+| 待补充 scientific gaps | 来龙去脉, download dates, machine-local session notes |
+
+R6 applied: stripped advisor-chat URLs, nature-writing axes metadata, and `outputs/` / `models/nyc_smoke/` path literals from the manuscript body; retained those details here.
 
 ---
 
