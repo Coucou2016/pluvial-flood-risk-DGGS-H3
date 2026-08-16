@@ -16,7 +16,7 @@
 | Deep report | `docs/paper/report.md` / `report.html` / `report.pdf` (+ root copies) |
 | Tests | See gates below |
 | GitHub URL | https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3 |
-| Push status | Baseline already on `origin/master`; this round may push matured docs (no force-push; no `gh repo create`) |
+| Push status | **Pushed** this round: `9b58c18` → `origin/master` (no force-push; no `gh repo create`) |
 | Force-push | **Not used** |
 | Deploy / migration / production | **None** |
 
