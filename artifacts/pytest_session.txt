@@ -20,4 +20,4 @@ tests/test_scenarios.py::test_scenarios_vary_rainfall_not_static_hash
     emit_validation_warnings(issues)
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-57 passed, 1 skipped, 10 warnings in 45.29s
+57 passed, 1 skipped, 10 warnings in 43.79s

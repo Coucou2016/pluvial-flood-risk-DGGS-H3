@@ -2,11 +2,12 @@
 
 **Paste into:** https://chatgpt.com/c/6a8086e4-3a30-83ea-960b-cde100e0f3b2  
 **Or new chat title:** `paper architecture literature`  
-**Rules for advisor:** TEXT only — no ZIP/uploads. Please **enable web search**.
+**Rules for advisor:** TEXT only — no ZIP/uploads. Please **enable web search**.  
+**Public GitHub (please read):** https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3
 
 ---
 
-Please enable **web search** and help us design a paper (not a coding plan).
+Please enable **web search**, open/read the public GitHub repo above (code + `docs/paper/`), and help us design a paper (not a coding plan).
 
 ## Locked positioning (do not drift)
 - Open multi-source flood labels (DEP stormwater, 311, USGS Ida HWM) — **not** proprietary PFIb.
