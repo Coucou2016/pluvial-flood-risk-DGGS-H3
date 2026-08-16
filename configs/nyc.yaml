@@ -1,0 +1,81 @@
+# NYC / Manhattan — paper main study (open labels, spatial CV, adaptive H3)
+#
+# This config does NOT reproduce 7Analytics PFIb. Labels are public multi-source
+# layers (DEP stormwater, 311, USGS Ida HWM) when present under data/raw/nyc/.
+# If those files are missing, scripts/build_nyc_h3.py writes schema fixtures and
+# tags assembly_mode=fixture — fixture metrics are not scientific results.
+#
+# Live fetch (Lower Manhattan bbox subset): python scripts\download_nyc_data.py
+# or .\scripts\download_nyc_data_stub.ps1  — see data/raw/nyc/DOWNLOAD_MANIFEST.json
+#
+# Oslo (configs/demo_oslo.yaml) is transfer / appendix only.
+
+name: nyc_manhattan
+study_role: main
+data_provenance: opendata_or_fixture
+# assembly_mode in YAML is a default; build_nyc_h3.py overwrites to opendata|fixture from disk.
+assembly_mode: opendata
+
+# Extents (EPSG:4326). Default smoke uses `smoke` profile (fast). Paper tables
+# use `lower_manhattan`. `manhattan_expanded` needs a separate download (--bbox-profile);
+# do not use it for pluvial-nyc-smoke.
+bbox_profiles:
+  smoke: [-74.02, 40.70, -73.98, 40.74]
+  lower_manhattan: [-74.02, 40.70, -73.97, 40.76]
+  # Midtown-south / Financial-District-northward expansion (optional; larger DEM fetch)
+  manhattan_expanded: [-74.03, 40.68, -73.94, 40.80]
+bbox: [-74.02, 40.70, -73.97, 40.76]
+smoke_bbox: [-74.02, 40.70, -73.98, 40.74]
+default_build_profile: lower_manhattan
+default_smoke_profile: smoke
+resolution: 9
+random_seed: 42
+
+# Optional FloodNet point enrichment (opt-in). Prefer held-out sensor validation when
+# coverage exists; do not treat sensors as interchangeable with DEP/311/HWM by default.
+labels:
+  include_floodnet: false
+
+rainfall_mm_h: 40.0
+rainfall_scenarios:
+  - name: moderate
+    mm_h: 25
+  - name: heavy
+    mm_h: 40
+  - name: ida_like
+    mm_h: 75
+  - name: extreme
+    mm_h: 100
+
+spatial_cv:
+  k_ring: 2
+  n_folds: 5
+
+diagnostics:
+  # Ladder uses fine_res for hotspot definition; train table may stay at `resolution`.
+  # fine_res>=10 enables paper-style R10→R9/R8 pairs (open labels — not Svellingen PFIb 0.14).
+  # Smoke: points @ R10 + parent-inherited polygon scores (DEP direct overlay at R10 is too slow).
+  resolutions: [8, 9, 10]
+  fine_res: 10
+  hotspot_quantile: 0.9
+
+adaptive:
+  coarse_res: 9
+  fine_res: 11
+  risk_quantile: 0.8
+  uncertainty_min: 0.7
+  expand_neighbors: 1
+
+paths:
+  raw_dir: data/raw/nyc
+  dem: data/raw/nyc/dem.tif
+  impervious: data/raw/nyc/impervious.tif
+  buildings: data/raw/nyc/building_footprints.geojson
+  hydro: data/raw/nyc/hydro_streams.geojson
+  flood_polygons: data/raw/nyc/dep_stormwater_flood.geojson
+  flood_points:
+    - data/raw/nyc/flooding_311.geojson
+    - data/raw/nyc/usgs_ida_hwm.geojson
+  coastal: data/raw/nyc/fema_sandy.geojson  # negative control, not a training label
+  event_rainfall: data/raw/nyc/event_rainfall.tif  # optional event grid hook
+  floodnet: data/raw/nyc/floodnet_sensors.geojson  # optional; joined only if non-empty

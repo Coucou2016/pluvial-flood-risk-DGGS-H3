@@ -1,0 +1,19 @@
+.F......                                                                 [100%]
+================================== FAILURES ===================================
+________________ test_nyc_smoke_adaptive_block_order_in_source ________________
+tests\test_nyc_adaptive_pfi.py:62: in test_nyc_smoke_adaptive_block_order_in_source
+    assert body.index("run_training") < body.index("run_adaptive_refinement")
+E   assert 4776 < 429
+E    +  where 4776 = <built-in method index of str object at 0x0000018274A9EB60>('run_training')
+E    +    where <built-in method index of str object at 0x0000018274A9EB60> = 'def nyc_smoke_test(\n    config_path: Path | None = None,\n    use_fixtures: bool = True,\n) -> dict:\n    """\n    M...ixtures\n            else "opendata table assembled; still requires spatial CV + documented labels"\n        ),\n    }'.index
+E    +  and   429 = <built-in method index of str object at 0x0000018274A9EB60>('run_adaptive_refinement')
+E    +    where <built-in method index of str object at 0x0000018274A9EB60> = 'def nyc_smoke_test(\n    config_path: Path | None = None,\n    use_fixtures: bool = True,\n) -> dict:\n    """\n    M...ixtures\n            else "opendata table assembled; still requires spatial CV + documented labels"\n        ),\n    }'.index
+============================== warnings summary ===============================
+tests/test_nyc_adaptive_pfi.py::test_adaptive_uses_trained_pfi_h_columns
+  E:\Projects\20260522-pluvial-flood-risk-DGGS-H3\src\pluvial_flood_risk\pipeline.py:64: UserWarning: All labels are synthetic - metrics measure fit to a demo formula, not real flood observations.
+    emit_validation_warnings(issues)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_nyc_adaptive_pfi.py::test_nyc_smoke_adaptive_block_order_in_source
+1 failed, 7 passed, 1 warning in 11.79s

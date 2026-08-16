@@ -1,0 +1,23 @@
+.............................s............................               [100%]
+============================== warnings summary ===============================
+tests/test_figures.py::test_plot_jaccard_ladder
+tests/test_figures.py::test_plot_jaccard_ladder
+tests/test_figures.py::test_plot_jaccard_ladder
+tests/test_figures.py::test_plot_jaccard_ladder
+tests/test_figures.py::test_plot_jaccard_ladder
+tests/test_figures.py::test_plot_jaccard_ladder
+  E:\Projects\20260522-pluvial-flood-risk-DGGS-H3\.venv\Lib\site-packages\scienceplots\styles_discovery.py:31: MatplotlibDeprecationWarning: The read_style_directory function was deprecated in Matplotlib 3.11 and will be removed in 3.13.
+    new_stylesheets = read_style_directory(folder)
+
+tests/test_figures.py::test_plot_jaccard_ladder
+  E:\Projects\20260522-pluvial-flood-risk-DGGS-H3\.venv\Lib\site-packages\scienceplots\__init__.py:24: MatplotlibDeprecationWarning: The update_nested_dict function was deprecated in Matplotlib 3.11 and will be removed in 3.13.
+    update_nested_dict(plt.style.library, stylesheets)
+
+tests/test_nyc_adaptive_pfi.py::test_adaptive_uses_trained_pfi_h_columns
+tests/test_pipeline_smoke.py::test_smoke_test_runs
+tests/test_scenarios.py::test_scenarios_vary_rainfall_not_static_hash
+  E:\Projects\20260522-pluvial-flood-risk-DGGS-H3\src\pluvial_flood_risk\pipeline.py:64: UserWarning: All labels are synthetic - metrics measure fit to a demo formula, not real flood observations.
+    emit_validation_warnings(issues)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+57 passed, 1 skipped, 10 warnings in 45.29s

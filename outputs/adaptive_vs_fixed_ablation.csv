@@ -1,0 +1,2 @@
+ablation,score_col,n_fixed_coarse,n_adaptive_mixed,cell_count_ratio_vs_fixed,note,adaptive_coarse_res,adaptive_fine_res,adaptive_n_coarse,adaptive_n_parents_refined,adaptive_n_adaptive,adaptive_score_quantile,adaptive_expand_k,adaptive_uncertainty_min,adaptive_n_uniform_fine,adaptive_cell_count_ratio
+adaptive_vs_fixed_h3,PFI_h,141,3933,27.893617021276597,Fixed = keep all coarse cells; adaptive = refine high-score parents to fine_res. Hotspot recall vs uniform fine is under adaptive_* keys when estimated.,9,11,141,79,3933,0.8,1,0.7,6909.0,0.5692574902301346

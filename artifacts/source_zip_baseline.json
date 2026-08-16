@@ -1,0 +1,13 @@
+{
+  "zip_bytes": 310216,
+  "includes_e2_jaccard_fine": true,
+  "includes_p7_adaptive_pfi": true,
+  "secret_scan": "PASS",
+  "sha256": "1D7B67BCAAF95DC935E7987482F42E4B94D7E47DCBD4F374BE1F333E56818C7B",
+  "created_utc": "2026-08-15T15:46:41.8494962Z",
+  "zip_path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\artifacts\\pluvial_h3_paper_audit_src_20260815_234637.zip",
+  "workspace": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3",
+  "zip_name": "pluvial_h3_paper_audit_src_20260815_234637.zip",
+  "git_repo": false,
+  "git_head": null
+}

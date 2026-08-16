@@ -1,0 +1,27 @@
+{
+  "created_utc": "2026-08-16T06:36:48.951272+00:00",
+  "random_seed": 42,
+  "data_provenance": "observed",
+  "h3_version": "4.4.2",
+  "sklearn_version": "1.8.0",
+  "framework": "pluvial-flood-risk-dggs-h3",
+  "framework_version": "0.1.0",
+  "n_cells": 141,
+  "metrics": {
+    "random_split_val_accuracy": 0.6896551724137931,
+    "random_split_val_r2": -0.2827840035192255,
+    "val_accuracy": 0.6896551724137931,
+    "val_r2": -0.2827840035192255,
+    "spatial_cv_n_folds": 5.0,
+    "spatial_cv_n_blocks": 7.0,
+    "spatial_cv_accuracy_mean": 0.783756338899196,
+    "spatial_cv_accuracy_std": 0.06927971658224912,
+    "spatial_cv_r2_mean": 0.03033337150296107,
+    "spatial_cv_r2_std": 0.34284065400153046,
+    "spatial_cv_f1_mean": 0.8657478632478632,
+    "spatial_cv_mae_mean": 0.3321817837792859,
+    "spatial_cv_fold_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_smoke\\spatial_cv_folds.csv"
+  },
+  "spatial_cv_k": 2,
+  "spatial_cv_folds": 5
+}

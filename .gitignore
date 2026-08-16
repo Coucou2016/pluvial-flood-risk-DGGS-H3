@@ -1,0 +1,51 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+.env
+*.joblib
+.pytest_cache/
+.mypy_cache/
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/**/*.md
+!data/raw/**/*.txt
+data/processed/*
+!data/processed/.gitkeep
+outputs/*
+!outputs/.gitkeep
+!outputs/*.csv
+!outputs/*.json
+!outputs/*.png
+models/*
+!models/.gitkeep
+!models/nyc_smoke/
+models/nyc_smoke/*.joblib
+# Keep tiny test rasters; ignore large user downloads
+data/raw/**/*.tif
+data/raw/**/*.tiff
+data/raw/**/*.geojson
+!tests/fixtures/**
+# Local tooling / bulky audit packs (not source of truth)
+.chrome_pdf_profile/
+.chrome_pdf_profile2/
+artifacts/.chrome_pdf_profile*/
+artifacts/*.zip
+artifacts/cdp_payload.json
+artifacts/chatgpt_paste_payload.*
+artifacts/inject_composer.js
+*.parquet
+outputs/*.parquet
+outputs/*.geojson
+outputs/_bench.*
+outputs/adaptive_screen/
+outputs/*.txt
+models/*.joblib
+models/run_metadata.json
+# Root report copies are regenerated; prefer docs/paper/ as canonical
+# (still commit root copies for convenience — keep them)
+
