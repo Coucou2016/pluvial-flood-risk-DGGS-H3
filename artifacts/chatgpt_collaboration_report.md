@@ -57,7 +57,7 @@ outputs/negative_control.json
 | `gh` on PATH | MSI silent install unclear; **portable** `gh` 2.97.0 extracted under `%TEMP%\gh_cli\bin\gh.exe` |
 | `gh auth status` | **Not logged in** — no `GH_TOKEN` / `GITHUB_TOKEN` |
 | `gh repo create` / push | **Stopped** per policy (auth missing) |
-| Local `git init` + commit of code/docs | Proceeding (see acceptance report for commit hash) |
+| Local `git init` + commit of code/docs | **Done** — commit `e6100bc` on `master` (118 files). No remote. |
 | Excluded from intended push | `data/raw` rasters/geojson (~63.5 MB); `*.joblib`; large `*.parquet`/`*.geojson` under outputs; `.venv`; audit ZIPs; chrome PDF profiles; inject/CDP payloads |
 
 **User action for GitHub:** run `gh auth login` (or set `GH_TOKEN`), then:
