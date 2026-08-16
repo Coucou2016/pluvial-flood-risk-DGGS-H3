@@ -7,6 +7,12 @@ Data-driven framework aligned with:
 
 This repository implements an H3-indexed pluvial workflow: per-cell features, ML (classification + continuous risk), Parquet/GeoJSON exports, and **spatially honest** H3-block cross-validation.
 
+## Academic manuscript (paper path)
+
+Working methods manuscript (IJDRR-shaped; open labels ≠ PFIb): [`docs/paper/manuscript.md`](docs/paper/manuscript.md) · HTML [`docs/paper/manuscript.html`](docs/paper/manuscript.html).
+
+**Abstract (pilot evidence only).** We present an open-label H3 learning protocol for a Lower Manhattan pilot (`n=141`): public flood indicators, H3-block spatial CV (accuracy **0.784 ± 0.069**, F1 **0.866**), open-label scale-loss Jaccard (mean R10→R8 **0.167**), adaptive cell-count screening (adaptive/uniform ≈ **0.569**), and a binding rainfall-conditioned `PFI_h(c,r)` definition. We do **not** claim citywide skill, PFIb reproduction, radar rainfall, or rainfall discrimination (current within-cell scenario range = **0**; 待补充). Process detail: [`docs/paper/report.md`](docs/paper/report.md).
+
 ## Paper path vs demo path
 
 **Main paper positioning** (do not drift): vs Svellingen et al. 2026 IJDRR (PFIb→H3 aggregation, Jaccard ~0.14 at R13 vs R10, NYC, proprietary insurance labels):

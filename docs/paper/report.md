@@ -5,7 +5,7 @@
 **手稿对照：** `docs/paper/manuscript.md`  
 **数值基线：** 仅来自 `outputs/` 与 `models/nyc_smoke/` 的 live 产物；缺则标 **待补充**  
 **GitHub（已公开，勿重复 create）：** https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3  
-**ChatGPT 公开 URL 索引：** `artifacts/chatgpt_review_index.md`（blob + raw）；短粘贴包 `artifacts/chatgpt_paste_github_urls_R6_R10.md`；R6–R10 正文 `artifacts/chatgpt_paste_R6.md`–`R10.md`（另保留 R1–R5）。**Paper/report 边界（R6）：** 手稿 `manuscript.md` 已剥离本地路径与 Cursor/ChatGPT 过程；本报告保留路径、复现与来龙去脉。
+**ChatGPT 公开 URL 索引：** `artifacts/chatgpt_review_index.md`（blob + raw）；短粘贴包 `artifacts/chatgpt_paste_github_urls_R6_R10.md`；R6–R10 正文 `artifacts/chatgpt_paste_R6.md`–`R10.md`（另保留 R1–R5）。**Paper/report 边界（R6）：** 手稿 `manuscript.md` 已剥离本地路径与 Cursor/ChatGPT 过程；本报告保留路径、复现与来龙去脉。验收：`artifacts/acceptance_R6_R10.md`。
 
 ---
 

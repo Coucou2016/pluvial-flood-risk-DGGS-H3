@@ -212,7 +212,7 @@ Random-split accuracy must not displace spatial CV in claims. Fold-level varianc
 
 ## 8 Conclusions
 
-We present a reproducible open-label H3+ML protocol with spatial block CV, scale-loss diagnostics, adaptive refinement, and an explicit non-PFIb `PFI_h(c,r)` definition. Live Lower Manhattan pilot metrics support pipeline credibility under stated boundaries. Next: observed event rainfall, non-degenerate rainfall response, expanded bbox / citywide profile, and FloodNet validation — all 待补充.
+We present a reproducible open-label H3+ML **protocol** — spatial block CV, scale-loss diagnostics, adaptive cell-count refinement, and an explicit non-PFIb `PFI_h(c,r)` definition — evaluated on a Lower Manhattan open-data pilot. Live metrics support pipeline credibility under the stated boundaries and do not establish citywide operational skill. Observed event rainfall, non-degenerate rainfall response, expanded spatial extent, and FloodNet validation remain 待补充.
 
 ---
 

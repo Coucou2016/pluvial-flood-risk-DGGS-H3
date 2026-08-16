@@ -31,7 +31,7 @@ a { color: var(--accent); }
 <body>
 <div class="wrap">
 <div class="banner">
-自包含报告 · Base64 内嵌图 · 内联 CSS · 无 CDN · 生成 2026-08-16 11:28 UTC · framework 0.1.0 ·
+自包含报告 · Base64 内嵌图 · 内联 CSS · 无 CDN · 生成 2026-08-16 17:35 UTC · framework 0.1.0 ·
 n_cells=141 · 数值仅来自 outputs/ 与 models/nyc_smoke/ · 非 PFIb · LM≠citywide
 </div>
 <h1>研究报告 / Research Report（深度自包含对照稿）</h1>
@@ -40,7 +40,7 @@ n_cells=141 · 数值仅来自 outputs/ 与 models/nyc_smoke/ · 非 PFIb · LM�
 <p><strong>手稿对照：</strong> <code>docs/paper/manuscript.md</code>  </p>
 <p><strong>数值基线：</strong> 仅来自 <code>outputs/</code> 与 <code>models/nyc_smoke/</code> 的 live 产物；缺则标 <strong>待补充</strong>  </p>
 <p><strong>GitHub（已公开，勿重复 create）：</strong> https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3  </p>
-<p><strong>ChatGPT 粘贴包：</strong> <code>artifacts/chatgpt_paste_R1.md</code>–<code>R5.md</code>（浏览器 MCP 自动化仍阻塞；人工粘贴）</p>
+<p><strong>ChatGPT 公开 URL 索引：</strong> <code>artifacts/chatgpt_review_index.md</code>（blob + raw）；短粘贴包 <code>artifacts/chatgpt_paste_github_urls_R6_R10.md</code>；R6–R10 正文 <code>artifacts/chatgpt_paste_R6.md</code>–<code>R10.md</code>（另保留 R1–R5）。<strong>Paper/report 边界（R6）：</strong> 手稿 <code>manuscript.md</code> 已剥离本地路径与 Cursor/ChatGPT 过程；本报告保留路径、复现与来龙去脉。验收：<code>artifacts/acceptance_R6_R10.md</code>。</p>
 <hr/>
 <h2 id="术语总表-terminology-ledger-首次出现均给出括号释义">术语总表 Terminology ledger（首次出现均给出括号释义）</h2>
 <table>
@@ -80,7 +80,7 @@ n_cells=141 · 数值仅来自 outputs/ 与 models/nyc_smoke/ · 非 PFIb · LM�
 <ul>
 <li><strong>主结构：</strong> IJDRR / 应用灾害风险期刊骨架（Intro → Related → Data → Methods → Results → Discussion → Conclusions）。  </li>
 <li><strong>主张纪律：</strong> nature-writing / Nature claim discipline——证据 → 边界；动词用 *show / indicate / suggest*；禁止把 LM smoke 写成全市产品。  </li>
-<li><strong>文献顾问：</strong> 目标会话 https://chatgpt.com/c/6a8086e4-3a30-83ea-960b-cde100e0f3b2 ；五轮粘贴包：<code>artifacts/chatgpt_paste_R1.md</code>–<code>R5.md</code>。<code>cursor-ide-browser</code> 重试后仍无法保持 tab（<code>No browser tab available</code>）；执行侧独立 WebSearch 成熟化手稿与 <code>artifacts/literature_architecture_conclusions.md</code>。</li>
+<li><strong>文献顾问：</strong> 目标会话 https://chatgpt.com/c/6a8086e4-3a30-83ea-960b-cde100e0f3b2 ；公开仓库 URL 索引：<code>artifacts/chatgpt_review_index.md</code>（raw.githubusercontent.com 供 ChatGPT 读取）。<code>cursor-ide-browser</code> 再次失败（<code>No browser tab available</code> / view 瞬时消失）；执行侧独立 WebSearch 继续成熟化手稿（含 Sun/Hu spatial CV 作者校正）与 <code>artifacts/literature_architecture_conclusions.md</code>。</li>
 </ul>
 <hr/>
 <h2 id="3-数据与方法-data-methods">3. 数据与方法 Data &amp; Methods</h2>
@@ -283,6 +283,15 @@ n_cells=141 · 数值仅来自 outputs/ 与 models/nyc_smoke/ · 非 PFIb · LM�
 <tr><td>ChatGPT web-search 顾问回复</td><td>待人工粘贴 / 浏览器 MCP</td></tr>
 <tr><td>GitHub 远程仓库</td><td><strong>已公开</strong> https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3（勿重复 <code>gh repo create</code>；勿 force-push）</td></tr>
 </table>
+<h3>8.1 Paper vs report boundary (R6 audit)</h3>
+<table>
+<tr><th>Belongs in <strong>paper</strong> (<code>manuscript.md</code>)</th><th>Belongs in <strong>report</strong> (this file)</th></tr>
+<tr><td>Academic claims, methods narrative, live numbers with honest bounds</td><td>Local paths (<code>outputs/</code>, <code>models/nyc_smoke/</code>, configs)</td></tr>
+<tr><td>Figure captions without repo-relative paths</td><td>Reproducibility commands, pytest gates, ChatGPT round process</td></tr>
+<tr><td>Public GitHub URL + data availability</td><td>Cursor/ChatGPT collaboration logs, paste packages</td></tr>
+<tr><td>待补充 scientific gaps</td><td>来龙去脉, download dates, machine-local session notes</td></tr>
+</table>
+<p>R6 applied: stripped advisor-chat URLs, nature-writing axes metadata, and <code>outputs/</code> / <code>models/nyc_smoke/</code> path literals from the manuscript body; retained those details here.</p>
 <hr/>
 <h2 id="9-产物路径清单">9. 产物路径清单</h2>
 <table>
