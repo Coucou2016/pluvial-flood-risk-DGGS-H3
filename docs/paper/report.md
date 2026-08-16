@@ -4,7 +4,8 @@
 **PDF：** `docs/paper/report.pdf`（Chrome headless；HTML 为规范源）  
 **手稿对照：** `docs/paper/manuscript.md`  
 **数值基线：** 仅来自 `outputs/` 与 `models/nyc_smoke/` 的 live 产物；缺则标 **待补充**  
-**Git：** 本轮将尝试本地 `git init` + 结构化代码/文档提交；GitHub 推送依赖 `gh auth`（见协作报告）
+**GitHub（已公开，勿重复 create）：** https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3  
+**ChatGPT 粘贴包：** `artifacts/chatgpt_paste_R1.md`–`R5.md`（浏览器 MCP 自动化仍阻塞；人工粘贴）
 
 ---
 
@@ -60,7 +61,7 @@
 
 - **主结构：** IJDRR / 应用灾害风险期刊骨架（Intro → Related → Data → Methods → Results → Discussion → Conclusions）。  
 - **主张纪律：** nature-writing / Nature claim discipline——证据 → 边界；动词用 *show / indicate / suggest*；禁止把 LM smoke 写成全市产品。  
-- **文献顾问：** 目标会话 https://chatgpt.com/c/6a8086e4-3a30-83ea-960b-cde100e0f3b2 ；brief：`artifacts/chatgpt_literature_brief.md`。本会话 **无** `cursor-ide-browser` MCP，无法代为粘贴；执行侧已用独立 WebSearch 更新 `artifacts/literature_architecture_conclusions.md`。
+- **文献顾问：** 目标会话 https://chatgpt.com/c/6a8086e4-3a30-83ea-960b-cde100e0f3b2 ；五轮粘贴包：`artifacts/chatgpt_paste_R1.md`–`R5.md`。`cursor-ide-browser` 重试后仍无法保持 tab（`No browser tab available`）；执行侧独立 WebSearch 成熟化手稿与 `artifacts/literature_architecture_conclusions.md`。
 
 ---
 
@@ -311,7 +312,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 | Oslo / fixture ≠ science | 锁定 |
 | 工作流图 F1 schematic | 待补充 |
 | ChatGPT web-search 顾问回复 | 待人工粘贴 / 浏览器 MCP |
-| GitHub 远程仓库 | 见协作报告：`gh` 未登录则阻塞 push |
+| GitHub 远程仓库 | **已公开** https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3（勿重复 `gh repo create`；勿 force-push） |
 
 ---
 

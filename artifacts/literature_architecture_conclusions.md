@@ -3,9 +3,9 @@
 **Date:** 2026-08-16 (GitHub push round)  
 **ChatGPT URL (intended):** https://chatgpt.com/c/6a8086e4-3a30-83ea-960b-cde100e0f3b2  
 **Public GitHub (verified):** https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3  
-**Browser MCP status:** `cursor-ide-browser` is listed, but **automation failed** — new tabs get `viewId` then immediately vanish (`Tab 0 not found` / `Browser view not found` / `No browser tab available`). Could not paste brief, enable web search, or confirm ChatGPT GitHub-read.  
+**Browser MCP status:** Careful retry still fails (`No browser tab available`). Manual paste packages: `artifacts/chatgpt_paste_R1.md`–`R5.md`.  
 **Web-search advisor reply captured from ChatGPT:** **No**  
-**Independent WebSearch (executor, this round):** **Yes** — Svellingen IJDRR DOI + 7Analytics summary; GeoML GroupKFold / spatial leakage pages; R `blockCV` vignette.
+**Independent WebSearch (executor):** **Yes** — Svellingen IJDRR DOI; Li et al. ISEA3H IJGI; Hu GeoAI spatial CV PDF; Bersabe & Jun Seoul IJGI; GeoML GroupKFold pages.
 
 ## Architecture verdict (executor judgment)
 

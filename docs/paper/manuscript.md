@@ -1,9 +1,9 @@
 # Beyond aggregating a building index: spatially honest, event-conditioned pluvial flood learning on adaptive H3 grids
 
 **Working manuscript (methods / IJDRR-shaped)**  
-**Status:** Draft filled only from live artifacts under `outputs/` and `models/nyc_smoke/`. Gaps marked 待补充.  
-**Git baseline:** local `git init` authorized 2026-08-16 for code/docs publish; remote URL pending `gh auth login` (see `artifacts/chatgpt_collaboration_report.md`).  
-**Advisor chat:** https://chatgpt.com/c/6a8086e4-3a30-83ea-960b-cde100e0f3b2 (web-search reply still pending — browser MCP absent).  
+**Status:** Matured draft filled only from live artifacts under `outputs/` and `models/nyc_smoke/`. Gaps marked 待补充.  
+**Public code/docs:** https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3  
+**Advisor chat (manual paste packages):** https://chatgpt.com/c/6a8086e4-3a30-83ea-960b-cde100e0f3b2 · `artifacts/chatgpt_paste_R1.md`–`R5.md`  
 **Axes (nature-writing):** `task=manuscript`, `paper_type=methods`, `language=en`, `journal=generic` (IJDRR-compatible structure + Nature claim discipline).
 
 **Terminology ledger**
@@ -41,13 +41,13 @@ This manuscript therefore asks: **can an open multi-source label stack on H3 sup
 
 ## 2 Related work
 
-**Insurance / claims-driven pluvial indices.** Svellingen et al. (2026, IJDRR) operationalise PFIb through H3 aggregation and document multi-resolution hotspot loss. We cite this as the closest H3+pluvial precedent and as the claim boundary we refuse to cross (no PFIb).
+**Insurance / claims-driven pluvial indices.** Svellingen et al. (2026, IJDRR) operationalise PFIb through H3 aggregation and document multi-resolution hotspot loss. We cite this as the closest H3+pluvial precedent and as the claim boundary we refuse to cross (no PFIb). A related SSRN preprint frames the same H3 indexing narrative (Svellingen et al., SSRN).
 
-**DGGS flood analytics.** Hexagonal DGGS frameworks have been used for multi-scale flood risk under climate scenarios (e.g. ISEA3H studies), supporting the idea of a resolution-consistent spatial fabric for heterogeneous geospatial predictors.
+**Hexagonal DGGS flood analytics.** Li et al. (2022) use an ISEA3H hexagonal DGGS as a multi-scale fabric for flood mapping under climate scenarios, supporting resolution-consistent predictors without relying on insurance labels. That line of work motivates DGGS as an analysis substrate; our contribution is an open-label **learning and evaluation protocol** on Uber H3 rather than climate-scenario inundation mapping alone.
 
-**Spatial cross-validation.** GeoAI practice emphasises block / GroupKFold CV because random folds inflate scores under spatial autocorrelation. Flood susceptibility repositories increasingly adopt spatial holdouts for the same reason.
+**Spatial cross-validation.** GeoAI practice emphasises block / GroupKFold CV because random folds inflate scores under spatial autocorrelation (Hu et al., GeoAI Handbook spatial CV chapter). Flood susceptibility studies increasingly adopt spatial holdouts for the same reason. We instantiate blocking with coarse H3 parent IDs.
 
-**Urban pluvial ML susceptibility.** Many city studies map susceptibility from DEM, land cover, and drainage proxies with classical ML; fewer combine open labels, H3 nesting, adaptive refinement, and rainfall-conditioned index honesty in one reproducible pipeline.
+**Urban pluvial ML susceptibility.** City studies map susceptibility from DEM, land cover, and drainage proxies with classical ML (e.g. Bersabe & Jun, 2025, Seoul). Fewer combine open labels, H3 nesting, adaptive refinement, and rainfall-conditioned index honesty in one reproducible pipeline with blocked CV as the primary metric.
 
 ---
 
@@ -138,6 +138,8 @@ From `models/nyc_smoke/run_metadata.json`:
 
 Per-fold accuracy/F1 (`spatial_cv_folds.csv`): Fold0 0.755 / 0.850; Fold1 0.760 / 0.850; Fold2 0.773 / 0.872; Fold3 0.714 / 0.813; Fold4 0.917 / 0.944.
 
+**Reading.** Mean blocked accuracy near 0.78 indicates that an open-label H3 table can be trained under spatial holdout on this pilot bbox. Fold4’s high accuracy is a single-block outcome on small `n_test` and must not be generalised to citywide skill. Random-split accuracy (0.690) remains diagnostic only and is **not** the primary claim.
+
 ### 6.2 Scale-loss Jaccard ladder (open labels)
 
 From `outputs/jaccard_by_resolution.csv` (fine_res=10, hotspot_quantile=0.9):
@@ -167,12 +169,12 @@ From `outputs/adaptive_vs_fixed_ablation.csv` (one row):
 | adaptive_n_parents_refined | 79 |
 | adaptive_score_quantile | 0.8 |
 
-Adaptive mixed grids use fewer cells than uniform R11 (~57%) while refining 79/141 coarse parents.
+Adaptive mixed grids use fewer cells than uniform R11 (~57%) while refining 79/141 coarse parents. This is a **cell-count** efficiency statement on the smoke table, not a verified compute-time saving at city scale.
 
 ### 6.4 Rainfall scenarios (`PFI_h`)
 
 `outputs/pfi_h_scenarios.csv`: 141 cells × scenarios {moderate 25, heavy 40, ida_like 75, extreme 100 mm/h}; `rainfall_source=event_raster`; `assembly_mode=opendata`.  
-**Observed:** mean `PFI_h` ≈ 0.803 for every scenario; **within-cell range across scenarios = 0**.  
+**Observed:** mean `PFI_h` ≈ **0.802888** for every scenario; **within-cell range across scenarios = 0**.  
 **Interpretation:** the current smoke artifact does **not** demonstrate rainfall-conditioned discrimination. Treat scenario maps as schema/QA until the predict path / feature set yields non-zero response (待补充). Definition of `PFI_h(c,r)` remains binding for future runs.
 
 ### 6.5 Sandy negative control
@@ -183,7 +185,13 @@ From `outputs/negative_control.json` (`assembly_mode=opendata`): n_cells=141; n_
 
 ## 7 Discussion
 
-The LM smoke shows that an open-label H3 table can be trained and evaluated with blocked CV, that mean rollups can erase fine hotspots (scale-loss), and that trained-score adaptive refinement reduces uniform-fine cell count. Limitations dominate external validity: small extent, label bias (311 reporting), tidal hydro proxy, synthetic rainfall, flat scenario `PFI_h`, and no FloodNet holdout. Random-split accuracy must not displace spatial CV in claims. Comparison to Svellingen et al. is conceptual (open vs proprietary; learning vs aggregate-only narrative), not numeric Jaccard matching.
+The LM smoke shows that an open-label H3 table can be trained and evaluated with blocked CV, that mean rollups can erase fine hotspots (scale-loss), and that trained-score adaptive refinement reduces uniform-fine cell count. These results support **protocol credibility** under stated boundaries, not product-ready city maps.
+
+Relative to Svellingen et al. (2026), the dialogue is conceptual: they aggregate a proprietary building index (PFIb) into H3 for scalable communication; we learn on public labels with spatial holdouts and an explicit non-PFIb `PFI_h(c,r)`. Our open-label Jaccard mean R10→R8 (0.167) should **not** be narrated as matching their PFIb Jaccard ≈ 0.14 — different labels, resolutions, and hotspot definitions.
+
+Limitations dominate external validity: small extent (`n=141`), label bias (311 reporting), tidal hydro proxy, synthetic rainfall, flat scenario `PFI_h`, no FloodNet holdout, and no workflow schematic figure (F1 待补充). Random-split accuracy must not displace spatial CV in claims. Fold-level variance (including Fold4) further warns against over-interpreting a single smoke run.
+
+**What would close key gaps (completion criteria):** (i) I2 — ingest observed event rainfall with non-`event_raster` provenance; (ii) non-flat scenarios — within-cell `PFI_h` range > 0 across rainfall intensities on the same static \(X_c\); (iii) expanded bbox / citywide profile with the same spatial CV protocol; (iv) FloodNet held-out validation when a non-empty layer exists.
 
 ---
 
@@ -193,14 +201,28 @@ We present a reproducible open-label H3+ML protocol with spatial block CV, scale
 
 ---
 
+## Figure captions
+
+**Figure 2. Scale-loss Jaccard ladder (open labels).** Jaccard and F1 between fine R10 hotspot parents and coarse R8/R9 hotspots under mean/max/p90 aggregation (`outputs/jaccard_by_resolution.csv`). Mean R8 Jaccard ≈ 0.167 illustrates smoothing; do **not** equate to Svellingen et al. PFIb Jaccard ≈ 0.14. Source figure: `docs/paper/figures/jaccard_by_resolution.png`.
+
+**Figure 3. Adaptive vs uniform fine cell counts.** Fixed coarse (R9), adaptive mixed, and uniform fine (R11) cell counts from `outputs/adaptive_vs_fixed_ablation.csv` (adaptive/uniform ≈ 0.569). Cell-count efficiency only; not citywide runtime proof. Source: `docs/paper/figures/adaptive_ablation.png`.
+
+**Figure 4. Spatial H3-block CV fold metrics.** Per-fold accuracy and F1 from `models/nyc_smoke/spatial_cv_folds.csv` on the LM smoke table (`n=141`). Primary claim uses mean ± std across folds; individual high folds are not citywide skill. Source: `docs/paper/figures/spatial_cv_folds.png`.
+
+**Figure 1 (workflow schematic).** 待补充.
+
+---
+
 ## Data and code availability
 
-Code: this repository (`pluvial-flood-risk-dggs-h3` v0.1.0). Intended GitHub name `pluvial-flood-risk-DGGS-H3` after auth (large `data/raw` rasters/geojson excluded from publish). Citable smoke metadata: `models/nyc_smoke/run_metadata.json`. Layer provenance: `data/raw/nyc/DOWNLOAD_MANIFEST.json`, `data/raw/DATA_SOURCES.md`. Demo/Oslo paths are QA only. Deep process report: `docs/paper/report.md` / `report.html`.
+Public repository (code, configs, tests, paper docs, small CSV/JSON outputs; large rasters/geojson, `*.joblib`, and large parquet excluded): https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3 (`pluvial-flood-risk-dggs-h3` v0.1.0). Citable smoke metadata: `models/nyc_smoke/run_metadata.json`. Layer provenance: `data/raw/nyc/DOWNLOAD_MANIFEST.json`, `data/raw/DATA_SOURCES.md`. Demo/Oslo paths are QA only. Deep process report: `docs/paper/report.md` / `report.html`.
 
 ## References (selected)
 
-1. Svellingen, W., Torgersen, G., Bruland, O. & Muthanna, T. Scalable pluvial flood risk assessment: A data-driven framework integrating machine learning (ML) and discrete global grid systems (DGGS H3). *Int. J. Disaster Risk Reduction* (2026). https://doi.org/10.1016/j.ijdrr.2026.106091  
-2. Multi-scale flood mapping under climate change scenarios in hexagonal DGGS (IJGI literature cluster; see innovation note).  
-3. Spatial cross-validation practice in GeoAI (block / GroupKFold; handbook and community guides).  
+1. Svellingen, W., Torgersen, G., Bruland, O. & Muthanna, T. Scalable pluvial flood risk assessment: A data-driven framework integrating machine learning (ML) and discrete global grid systems (DGGS H3). *Int. J. Disaster Risk Reduction* **137** (2026). https://doi.org/10.1016/j.ijdrr.2026.106091  
+2. Svellingen, W. et al. Indexing areas vulnerable to pluvial floods—Using Machine Learning and H3 Hexagonal Grid System. *SSRN* (preprint). https://doi.org/10.2139/ssrn.5875380  
+3. Li, M., McGrath, H. & Stefanakis, E. Multi-Scale Flood Mapping under Climate Change Scenarios in Hexagonal Discrete Global Grids. *ISPRS Int. J. Geo-Inf.* **11**, 627 (2022). https://doi.org/10.3390/ijgi11120627  
+4. Hu, Y. et al. Spatial cross-validation for GeoAI. In *Handbook on Geospatial Artificial Intelligence* (chapter PDF). https://www.acsu.buffalo.edu/~yhu42/papers/2023_GeoAIHandbook_SpatialCV.pdf  
+5. Bersabe, J. T. & Jun, B.-W. The Machine Learning-Based Mapping of Urban Pluvial Flood Susceptibility in Seoul Integrating Flood Conditioning Factors and Drainage-Related Data. *ISPRS Int. J. Geo-Inf.* **14**, 57 (2025). https://doi.org/10.3390/ijgi14020057  
 
-Additional citations 待补充 after ChatGPT web-search reply is pasted back.
+Additional venue-specific references 待补充 after advisor web-search replies are pasted back (`artifacts/chatgpt_paste_R1.md`).
