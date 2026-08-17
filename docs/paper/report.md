@@ -18,7 +18,7 @@
 | DGGS（离散全球网格） | 把地球表面剖分为可索引单元的规则网格框架 |
 | Open labels（开放标签） | DEP 雨洪多边形、311 积水点、USGS Ida HWM 等公开图层；**不是**保险公司 PFIb |
 | PFIb（building-level Pluvial Flood Index） | 7Analytics / Svellingen 等所用建筑级雨洪指数（保险损害驱动）；本项目**不使用** |
-| PFI_h(c,r) | 模型在降雨条件 \(r\) 下对六边形单元 \(c\) 的洪水概率/指数预测；**不是**特征重要性，也**不是** PFIb |
+| PFI_h(c,r) | 模型在降雨条件 \(r\) 下对六边形单元 \(c\) 的洪水概率/指数预测；**不是**特征重要性，也**不是** PFIb（注意：Svellingen 等也用 `PFI_h` 表示其 H3 聚合后的 PFIb；本项目的 `PFI_h(c,r)` 是独立定义，二者符号同名但语义不同） |
 | Spatial H3-block CV（空间 H3 块交叉验证） | 按粗分辨率 H3 父块分组的 GroupKFold，整块留出，降低地理泄漏（spatial leakage） |
 | Random split（随机划分） | 近似 i.i.d. 划分；本报告仅作诊断，不得替代空间 CV |
 | Jaccard ladder（Jaccard 阶梯） | 细分辨率热点集合与父级聚合热点的集合相似度，随分辨率与聚合方式变化 |
@@ -30,6 +30,7 @@
 | I2（观测事件降雨） | 计划接入 gauge/radar 事件降雨；当前仍阻塞，仅有合成常数 `event_raster` |
 | Negative control（负对照） | FEMA Sandy 沿海淹没叠置检查；**永不作为训练标签** |
 | SciencePlots | matplotlib 学术样式插件；本报告图使用 Times New Roman（TNR） |
+| Trivial / majority baseline（平凡基线 / 多数类基线） | 不做学习的“闭眼”预测（如恒判正类）；用于对照模型是否真的学到判别力 |
 
 ---
 
@@ -37,7 +38,7 @@
 
 本报告是仓库 **live Lower Manhattan open-data smoke** 的教师向（teacher-like）过程说明：不只贴图，而是交代每张表/图的**来龙去脉、如何读、意义、可下的结论、不可下的结论**。
 
-在 H3 分辨率 R9 上组装 **n_cells = 141** 个六边形单元，`assembly_mode=opendata`。主技能指标为 **spatial H3-block CV（空间 H3 块交叉验证）**：准确率均值 **0.783756 ± 0.069280**，F1 均值 **0.865748**（来源：`models/nyc_smoke/run_metadata.json`，`created_utc=2026-08-16T06:36:48Z`）。尺度损失用开放标签 **Jaccard ladder** 诊断：细 R10→粗 R8 的 **mean** 聚合 Jaccard = **0.1667**（不得写成“复现了 Svellingen 的 0.14”）。自适应相对均匀细网格（R11）单元数比 **adaptive_cell_count_ratio ≈ 0.569**。
+在 H3 分辨率 R9 上组装 **n_cells = 141** 个六边形单元，`assembly_mode=opendata`。主（**分块评价**）指标为 **spatial H3-block CV（空间 H3 块交叉验证）**：准确率均值 **0.783756 ± 0.069280**，F1 均值 **0.865748**（来源：`models/nyc_smoke/run_metadata.json`，`created_utc=2026-08-16T06:36:48Z`）。**关键诚实修正（2026-08-17）：** 留出样本正类占比 **80.1%**，恒判正的多数类平凡基线在同样折上可达 accuracy **0.808**、F1 **0.893**，**高于**模型的 0.784 / 0.866——故这两个数**不得**被称为“分类技能”（来源：`outputs/classification_baselines.json`）。尺度损失用开放标签 **Jaccard ladder** 诊断：细 R10→粗 R8 的 **mean** 聚合 Jaccard = **0.1667**（不得写成“复现了 Svellingen 的 0.14”）。自适应相对均匀细网格（R11）单元数比 **adaptive_cell_count_ratio ≈ 0.569**。
 
 **诚实缺口（待补充）：** (1) I2 观测事件降雨仍阻塞，`rainfall_source=event_raster` 为合成常数钩子；(2) `outputs/pfi_h_scenarios.csv` 四情景（25/40/75/100 mm/h）下，**单元内 PFI_h 极差 = 0**，情景均值同为 ≈0.802888，故**不宣称**已观察到降雨条件判别力；(3) LM ≠ citywide；(4) ChatGPT 浏览器 MCP 本会话不可用，顾问 web-search 回复待人工粘贴 brief。
 
@@ -69,7 +70,7 @@
 
 ### 3.1 研究区（必须反复强调边界）
 
-配置中的 **Lower Manhattan bbox**（约 −74.02–−73.97°E，40.70–40.76°N；以 `configs/nyc.yaml` / `DOWNLOAD_MANIFEST.json` 为准）。这是 **pilot smoke extent**，**不是**纽约全市。
+配置中的 **Lower Manhattan bbox**（约 74.02–73.97°W，40.70–40.76°N；以 `configs/nyc.yaml` / `DOWNLOAD_MANIFEST.json` 为准）。这是 **pilot smoke extent**，**不是**纽约全市。
 
 ### 3.2 Live 图层（2026-08-15 工作区下载；非虚构）
 
@@ -101,7 +102,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 
 - **主学习器：** 梯度提升分类器 + 连续风险回归器。  
 - **基线：** L2 逻辑/线性，以及高程–不透水–坡度类规则（管道内；本报告以空间 CV 为主）。  
-- **主指标：** spatial H3-block GroupKFold（5 folds，7 blocks）。  
+- **主指标：** spatial H3-block GroupKFold（5 folds，7 blocks）；**并报告类别占比与多数类平凡基线**（`outputs/classification_baselines.json`）。  
 - **诊断：** random split val accuracy ≈ 0.690 —— **不得**在摘要中替代空间 CV。  
 - **软件元数据：** h3 4.4.2；sklearn 1.8.0；`random_seed=42`；framework `pluvial-flood-risk-dggs-h3` v0.1.0。
 
@@ -130,9 +131,9 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 
 ## 5. 结果 Results（只引用真实产物）
 
-### 表 1 · 空间 CV 汇总（主技能表）
+### 表 1 · 空间 CV 汇总（主分块评价表）
 
-**来源：** `models/nyc_smoke/run_metadata.json`
+**来源：** `models/nyc_smoke/run_metadata.json`（模型折均）＋ `outputs/classification_baselines.json`（平凡基线，2026-08-17 固化）
 
 | Metric | Value |
 |--------|-------|
@@ -143,12 +144,16 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 | R² mean ± std | 0.030333 ± 0.342841 |
 | MAE mean | 0.332182 |
 | random_split_val_accuracy（诊断） | 0.689655 |
+| 留出正类占比（prevalence） | 0.8014 |
+| 多数类（恒判正）基线 accuracy | **0.808** |
+| 多数类（恒判正）基线 F1 | **0.893** |
+| 模型是否超过多数类基线 acc / f1 | **否 / 否** |
 
-**来龙去脉：** smoke 跑完后，训练脚本把 GroupKFold 各折平均写入 metadata。这是论文/报告里**唯一优先引用的技能汇总**。  
-**如何读：** 先看 accuracy 均值±标准差，再看 F1；R² 接近 0 说明**连续风险回归**在本试点上几乎无解释力。随机划分准确率略低/不同，仅提示“换协议分数会变”，不能当主结果。  
-**意义：** 在开放标签 + 空间块留出下，分类任务仍可得到中等偏上的折均准确率。  
-**结论（允许）：** LM smoke 上协议可跑通，空间 CV 分类准确率约 0.78±0.07。  
-**结论（禁止）：** 全市技能；“已解决事件响应预报”；用随机划分替换空间 CV。
+**来龙去脉：** smoke 跑完后，训练脚本把 GroupKFold 各折平均写入 metadata；随后 `scripts/compute_classification_baselines.py` 读取 `spatial_cv_folds.csv`，对每折计算“全部判正”“全部判负”两种平凡基线并写入 `outputs/`。这是论文/报告里**唯一优先引用的评价汇总**，且**必须**连同类别占比与多数类基线一起引用。  
+**如何读：** 先看正类占比（0.8014，即 80% 留出单元为正），再看多数类基线（恒判正 acc 0.808 / F1 0.893），最后才看模型分数（0.784 / 0.866）。模型分数**低于**多数类基线，说明在本试点上分类器并未展现出超过“闭眼判洪”的判别力；R² 接近 0 也说明连续风险回归几乎无解释力。随机划分准确率略低/不同，仅提示“换协议分数会变”，不能当主结果。  
+**意义：** 空间块留出让评价设计更诚实，但它本身不产生技能证据；在类别严重失衡时，accuracy/F1 必须与平凡基线对照，否则会被虚高。  
+**结论（允许）：** LM smoke 上协议可跑通（能训练、能分块评价、能出表）。  
+**结论（禁止）：** 全市技能；“模型有分类判别力”（本轮**未超过**多数类基线）；用随机划分替换空间 CV；“已解决事件响应预报”。
 
 ### 表 2 · 逐折明细
 
@@ -286,7 +291,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 4. **自适应**由 trained `PFI_h` 驱动；  
 5. **语义澄清**：`PFI_h(c,r)` ≠ importance ≠ PFIb。
 
-证据强度仅支撑“协议可跑通 + 尺度损失可见 + 单元数可降”，**不支撑**“全市可部署事件响应系统”。311 报告偏差、潮汐岸线水文代理、合成降雨、平坦情景 PFI、小样本块不均，是主要科学风险。
+证据强度仅支撑“协议可跑通 + 尺度损失可见 + 单元数可降”，**不支撑**“全市可部署事件响应系统”，也**不支撑**“分类有判别技能”（模型未超过多数类平凡基线）。311 报告偏差、潮汐岸线水文代理、合成降雨、平坦情景 PFI、**类别严重失衡（80% 正类）**、小样本块不均（仅 7 块分 5 折，单折 21–49 个测试单元），是主要科学风险。
 
 独立 WebSearch（本轮）再次确认：Svellingen DOI 与 Jaccard≈0.14 / ~98% 效率叙述；spatial CV / GroupKFold 是 GeoAI 诚实评价的标准关切。ChatGPT 顾问若稍后回复，只合并**不冲突**建议；冲突时以 locked science 为准。
 
@@ -297,7 +302,8 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 1. 开放标签 H3+ML + 空间块 CV 的 LM smoke 已产生可引用元数据与三张 SciencePlots 主图。  
 2. Jaccard 与自适应消融提供了与 PFIb 文献可**概念对话**、但不可**数值等同**的证据。  
 3. `PFI_h(c,r)` 定义已绑定；情景响应与 I2 观测降雨为下一步（待补充）。  
-4. 可主张创新点见 `docs/paper/innovation_and_framework.md` 的 I1–I5；拒绝 PFIb 复现、Jaccard 0.14 等同、LM→citywide、雷达降雨、平坦情景判别。
+4. **分类判别力未建立**：模型 accuracy/F1（0.784/0.866）低于多数类平凡基线（0.808/0.893），故不主张分类技能；失衡感知指标（ROC-AUC）待补充。  
+5. 可主张创新点见 `docs/paper/innovation_and_framework.md` 的 I1–I5；拒绝 PFIb 复现、Jaccard 0.14 等同、LM→citywide、雷达降雨、平坦情景判别、以及“分类有技能”的表述。
 
 ---
 
@@ -306,12 +312,14 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 | 局限 | 状态 |
 |------|------|
 | LM smoke n=141 ≠ citywide | 锁定 |
+| 类别失衡（80% 正类）；模型未超多数类基线 | **锁定**（`outputs/classification_baselines.json`） |
 | 合成 `event_raster`；I2 阻塞 | 锁定 |
 | 情景 PFI_h 单元内极差=0 | 锁定（待补充修复） |
 | FloodNet 默认关闭 | 锁定 |
 | Oslo / fixture ≠ science | 锁定 |
+| ROC-AUC 等失衡感知判别指标 | 待补充（尚未归档为 live 产物） |
 | 工作流图 F1 schematic | 待补充 |
-| ChatGPT web-search 顾问回复 | 待人工粘贴 / 浏览器 MCP |
+| ChatGPT web-search 顾问回复 | 已收到 R6–R10 活体评审（2026-08-17 人工粘贴），正在合并 |
 | GitHub 远程仓库 | **已公开** https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3（勿重复 `gh repo create`；勿 force-push） |
 
 ### 8.1 Paper vs report boundary (R6 audit)
@@ -337,6 +345,7 @@ R6 applied: stripped advisor-chat URLs, nature-writing axes metadata, and `outpu
 | Manuscript | `docs/paper/manuscript.md/.html/.pdf` |
 | Figures | `docs/paper/figures/*.png` |
 | Metadata | `models/nyc_smoke/run_metadata.json` |
+| Classification baselines | `outputs/classification_baselines.json` / `.csv`（脚本 `scripts/compute_classification_baselines.py`） |
 | Literature conclusions | `artifacts/literature_architecture_conclusions.md` |
 | ChatGPT brief | `artifacts/chatgpt_literature_brief.md` |
 | Collaboration | `artifacts/chatgpt_collaboration_report.md` |

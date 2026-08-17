@@ -1,6 +1,6 @@
 # Manuscript skeleton — Scalable pluvial flood risk on H3 (open labels)
 
-Working title: *Beyond aggregating a building index: spatially honest, event-conditioned pluvial flood learning on adaptive H3 grids*
+Working title: *Beyond aggregating a building index: spatially honest pluvial flood learning and adaptive H3 screening with an explicit rainfall-conditioned cell index*
 
 **Status:** Expanded manuscript in `docs/paper/manuscript.md` (Results filled from live `models/nyc_smoke/` / `outputs/` only). Skeleton retained as outline reference.  
 **Conversation:** https://chatgpt.com/c/6a8086e4-3a30-83ea-960b-cde100e0f3b2 (browser MCP blocked 2026-08-16; paste `artifacts/chatgpt_literature_brief.md` manually)  
@@ -50,7 +50,7 @@ Provenance fields on every assembled table: `assembly_mode` (opendata|fixture|ha
 
 ### 4.3 Models and baselines
 
-Primary learner: gradient-boosting classifier + continuous risk regressor on the H3 feature matrix. Baselines: L2 logistic + linear regressor, and a simple elevation/impervious/slope/TWI-like ponding rule. In-sample metrics are reported only as optimistic references; primary skill claims use spatial CV.
+Primary learner: gradient-boosting classifier + continuous risk regressor on the H3 feature matrix. Baselines: L2 logistic + linear regressor, and a simple elevation/impervious/slope/TWI-like ponding rule. In-sample metrics are reported only as optimistic references; primary blocked-evaluation claims use spatial CV, with class-prevalence and majority-class baselines disclosed (accuracy/F1 do not beat the majority baseline on this pilot).
 
 ### 4.4 Spatial H3-block cross-validation
 

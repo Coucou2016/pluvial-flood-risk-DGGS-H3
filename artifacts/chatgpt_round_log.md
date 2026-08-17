@@ -37,6 +37,41 @@
 | `pfi_h_scenarios.csv` | mean PFI_h **0.802888** all scenarios; within-cell range **0** |
 | `negative_control.json` | coastal_only frac ≈0.057; pluvial−coastal ≈0.120 |
 
+## R6–R10 live reply received (2026-08-17, manual paste)
+
+ChatGPT fetched the R6–R10 packages, manuscript/report/README, live JSON/CSV, and cited literature, and returned a structured review. Cursor independently re-verified every numeric claim against local artifacts before accepting.
+
+| Claim | Verified against | Verdict |
+|-------|------------------|---------|
+| n=141; 5 folds / 7 blocks; acc 0.783756±0.069280; F1 0.865748; R² 0.03033±0.34284; MAE 0.33218; random acc 0.68966 | `models/nyc_smoke/run_metadata.json` | Match |
+| Fold4 n_test=24, two blocks, acc 0.9167, F1 0.9444 | `models/nyc_smoke/spatial_cv_folds.csv` | Match |
+| Jaccard R10→R8 mean = 0.1666667; max/p90 = 1.0 | `outputs/jaccard_by_resolution.csv` | Match |
+| Adaptive 3933/6909 = 0.569257; 3933/141 = 27.89×; 79/141 parents | `outputs/adaptive_vs_fixed_ablation.csv` | Match |
+| Sandy coastal-only 0.05674; pluvial−coastal 0.119803 | `outputs/negative_control.json` | Match |
+| Rainfall scenario means all 0.8028875; within-cell range 0 | `outputs/pfi_h_scenarios.csv` | Match |
+| **Class prevalence 80.1% pos (113 pos / 28 neg); always-positive baseline acc ≈0.808, F1 ≈0.893 → above model 0.784/0.866** | `models/nyc_smoke/spatial_cv_folds.csv` (materialized via `scripts/compute_classification_baselines.py` → `outputs/classification_baselines.json`) | **Match — material issue, ACCEPTED** |
+
+### Accepted edits applied (this batch)
+
+1. **Materialized trivial/majority baseline** as a live artifact (`outputs/classification_baselines.json` + `.csv`; script `scripts/compute_classification_baselines.py`). Model does **not** beat majority baseline on acc/F1.
+2. **Retitled** manuscript: "event-conditioned pluvial flood learning" → "…with an explicit rainfall-conditioned cell index" (event-conditioning is a definition/interface, not demonstrated learning).
+3. **Longitude** `−74.02–−73.97°E` → `74.02–73.97°W`.
+4. **Sun et al. (2023)** reworded: they establish the rationale for spatial separation; this study operationalises it with `GroupKFold` over H3 parents (no longer attributes GroupKFold to Sun).
+5. **Jaccard** now "under mean aggregation" (max/p90 = 1.0 must not be omitted).
+6. **Adaptive comparator** stated every time: ~57% vs uniform R11 AND 27.9× vs fixed R9.
+7. **"cell-count efficiency" → "cell-count comparison"** (E5).
+8. **"primary skill reporting" → "primary blocked evaluation reporting"** throughout; accuracy/F1 reframed as fit-and-evaluate check, not skill.
+9. **"support protocol credibility" → "demonstrate execution of the protocol"**; "erase fine hotspots" → "substantially alter fine-hotspot membership".
+10. **Removed Oslo/demo QA clauses** from manuscript Abstract/Data availability (now "synthetic demonstrations are excluded from scientific evidence").
+11. **Added formal data-source citations** (USGS 3DEP/NHDPlus, MRLC NLCD, NYC DEP/311, FEMA Sandy) + H3 reference.
+12. **Added PFI_h notation-collision note** (Svellingen also use `PFI_h` for H3-aggregated PFIb; ours is a separately defined index).
+13. **Added limitations**: class imbalance / no demonstrated discrimination; small blocked design (7 blocks over 5 folds, test 21–49).
+14. **README**: removed machine-local `cd E:\...` path; abstract now includes the majority-baseline caveat.
+
+### Rejected / modified
+
+None — all ChatGPT numeric claims were independently reproduced. Minor wording accepted with edits (e.g. absence/rarity claims softened to "the present study combines…" rather than "Few combine…").
+
 ## Prior R1–R5
 
 See earlier section of this file / `acceptance_report_5rounds.md`. ChatGPT substantive replies remain uncaptured pending manual URL paste.

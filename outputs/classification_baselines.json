@@ -1,0 +1,13 @@
+{
+  "source_fold_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_smoke\\spatial_cv_folds.csv",
+  "note": "Trivial baselines for the n=141 smoke fold table. Positive class dominates (overall prevalence 0.8014), so always-positive is the majority-class baseline.",
+  "overall_positive_prevalence": 0.8014184397163121,
+  "model_mean_acc": 0.783756338899196,
+  "model_mean_f1": 0.8657478632478632,
+  "always_positive_mean_acc": 0.8081669758812616,
+  "always_positive_mean_f1": 0.8933652953742908,
+  "always_negative_mean_acc": 0.1918330241187384,
+  "always_negative_mean_f1": 0.0,
+  "model_beats_majority_acc": false,
+  "model_beats_majority_f1": false
+}

@@ -11,7 +11,7 @@ This repository implements an H3-indexed pluvial workflow: per-cell features, ML
 
 Working methods manuscript (IJDRR-shaped; open labels ≠ PFIb): [`docs/paper/manuscript.md`](docs/paper/manuscript.md) · HTML [`docs/paper/manuscript.html`](docs/paper/manuscript.html).
 
-**Abstract (pilot evidence only).** We present an open-label H3 learning protocol for a Lower Manhattan pilot (`n=141`): public flood indicators, H3-block spatial CV (accuracy **0.784 ± 0.069**, F1 **0.866**), open-label scale-loss Jaccard (mean R10→R8 **0.167**), adaptive cell-count screening (adaptive/uniform ≈ **0.569**), and a binding rainfall-conditioned `PFI_h(c,r)` definition. We do **not** claim citywide skill, PFIb reproduction, radar rainfall, or rainfall discrimination (current within-cell scenario range = **0**; 待补充). Process detail: [`docs/paper/report.md`](docs/paper/report.md).
+**Abstract (pilot evidence only).** We present an open-label H3 learning protocol for a Lower Manhattan pilot (`n=141`): public flood indicators, H3-block spatial CV (accuracy **0.784 ± 0.069**, F1 **0.866**; **below** an always-positive majority baseline of **0.808** / **0.893**, so not reported as classification skill), open-label scale-loss Jaccard (mean aggregation R10→R8 **0.167**), adaptive cell-count screening (adaptive/uniform ≈ **0.569**), and a binding rainfall-conditioned `PFI_h(c,r)` definition. We do **not** claim citywide skill, PFIb reproduction, radar rainfall, or rainfall discrimination (current within-cell scenario range = **0**; 待补充). Process detail: [`docs/paper/report.md`](docs/paper/report.md).
 
 ## Paper path vs demo path
 
@@ -34,7 +34,7 @@ Working methods manuscript (IJDRR-shaped; open labels ≠ PFIb): [`docs/paper/ma
 ## Quick start (demo path)
 
 ```powershell
-cd E:\Projects\20260522-pluvial-flood-risk-DGGS-H3
+cd /path/to/pluvial-flood-risk-DGGS-H3
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -e ".[dev]"

@@ -11,7 +11,7 @@
 |------|--------|
 | Progress | R6–R10 paste packages written; manuscript/report/README matured; HTML rebuilt; pushed to `origin/master` |
 | ≥5 new ChatGPT paste packages | **Yes** — `artifacts/chatgpt_paste_R6.md` … `R10.md` |
-| ≥5 ChatGPT substantive replies captured live via browser | **No** — MCP tabs vanish immediately (`No browser tab available` / `Browser view not found`) |
+| ≥5 ChatGPT substantive replies captured live via browser | **No** (MCP tabs vanish) — but **live R6–R10 review received via manual paste 2026-08-17** and archived below |
 | Manual URL pack for user | `artifacts/chatgpt_paste_github_urls_R6_R10.md` |
 | Round log | `artifacts/chatgpt_round_log.md` |
 | Independent verification | Live CSVs/JSON + WebSearch (Svellingen IJDRR DOI abstract) |
@@ -64,16 +64,26 @@ Baseline before batch: `2836ddb`.
 - [x] README academic abstract pointer to manuscript  
 - [x] `manuscript.html` / `report.html` regenerated  
 - [x] R6–R10 paste MDs + URL pack on public GitHub path  
-- [ ] Live ChatGPT replies archived (awaiting user paste from preferred chat)
+- [x] Live ChatGPT replies archived (R6–R10 review received via manual paste 2026-08-17; see §"R6–R10 live reply" below)
+
+## R6–R10 live reply (2026-08-17) — material issue found & fixed
+
+ChatGPT's review reproduced every live number correctly. The one **material** finding, independently re-verified and now fixed:
+
+- Held-out labels are **80.1% positive** (113 pos / 28 neg across 5 folds).
+- An always-positive majority baseline reaches **acc 0.808 / F1 0.893**, which **exceeds** the model's **0.784 / 0.866**.
+- Therefore accuracy/F1 must **not** be reported as "classification skill".
+
+Materialized as a live artifact (`outputs/classification_baselines.json` + `.csv` via `scripts/compute_classification_baselines.py`), and manuscript/report/README were reworded: retitled (event-conditioned → explicit rainfall-conditioned cell index), longitude `°E`→`°W`, Sun citation decoupled from GroupKFold, Jaccard "under mean aggregation", adaptive comparator stated both ways, "skill"→"blocked evaluation", class-imbalance + small-blocked-design limitations added, formal data-source + H3 citations added, PFI_h notation-collision note added, Oslo/demo QA clauses removed.
 
 ## Remaining 待补充
 
-1. Manual ChatGPT R6–R10 URL-read replies returned to Cursor for archival.  
-2. I2 observed event rainfall (non-synthetic provenance).  
-3. Non-flat within-cell `PFI_h(c,r)` across rainfall scenarios.  
-4. Expanded bbox / citywide profile under the same spatial CV protocol.  
-5. FloodNet held-out validation.  
-6. Workflow schematic Figure 1.  
+1. I2 observed event rainfall (non-synthetic provenance).  
+2. Non-flat within-cell `PFI_h(c,r)` across rainfall scenarios.  
+3. Expanded bbox / citywide profile under the same spatial CV protocol.  
+4. FloodNet held-out validation.  
+5. Workflow schematic Figure 1.  
+6. Class-imbalance-aware discrimination metric (ROC-AUC) archived as a live artifact.  
 7. Additional venue-specific references after advisor literature replies.
 
 ## Locked science (unchanged)
@@ -92,7 +102,9 @@ Open labels ≠ PFIb; spatial H3-block CV; adaptive H3; `PFI_h` ≠ importance �
 
 | Gate | Result |
 |------|--------|
-| Code touched? | **No** |
-| `.venv` pytest | **Skipped** (paper-only; noted) |
+| Code touched? | **Yes (this batch)** — added `scripts/compute_classification_baselines.py` (no pipeline/core edits) |
+| `.venv` pytest | **PASS** — `57 passed, 1 skipped` (`-p no:zarr`, `PYTHONPATH=src`) |
+| Baseline artifact | `outputs/classification_baselines.json` / `.csv` written |
 | HTML rebuild | **Yes** — `scripts/build_paper_report_html.py` |
+| PDF rebuild | **Yes** — Chrome headless `--print-to-pdf` |
 | Force-push | **No** |

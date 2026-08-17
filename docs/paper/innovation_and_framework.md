@@ -31,7 +31,7 @@ Boundary: Lower Manhattan smoke ≠ citywide; synthetic event rainfall ≠ radar
 | # | Claimable innovation | Evidence now | Not claimable |
 |---|----------------------|--------------|---------------|
 | I1 | **Open multi-source labels** on H3 (DEP / 311 / Ida HWM) instead of proprietary PFIb | `assembly_mode=opendata`, DATA_SOURCES | “Better than PFIb”; insurance skill |
-| I2 | **Spatial H3-block CV as primary skill** | `models/nyc_smoke/spatial_cv_folds.csv`, run_metadata | Random-split accuracy as primary |
+| I2 | **Spatial H3-block CV as primary blocked evaluation** | `models/nyc_smoke/spatial_cv_folds.csv`, run_metadata, `outputs/classification_baselines.json` | Random-split accuracy as primary; classification "skill" (model does not beat majority baseline) |
 | I3 | **Scale-loss Jaccard ladder on open labels** (mean/max/p90 rollups) | `outputs/jaccard_by_resolution.csv` | Equality to Svellingen Jaccard 0.14 |
 | I4 | **Adaptive H3 refinement** screened by trained `PFI_h` | `adaptive_vs_fixed_ablation.csv`, `score_source=trained_PFI_h` | Citywide compute savings |
 | I5 | **Explicit `PFI_h(c,r)` definition** as rainfall-conditioned flood probability/index (not PFIb, not feature importance) | Definition + scenario table schema | Event-conditioned discrimination (current CSV: **zero within-cell PFI range across scenarios** — report as gap) |
