@@ -141,6 +141,32 @@ None — all ChatGPT numeric claims were independently reproduced. Minor wording
 
 **Applied edits (this commit):** manuscript §6.1/§6.6 table labels → reader-facing ("Cells", "Spatial-CV accuracy, mean ± SD", "ROC-AUC, pooled out-of-fold", "Average precision (AP), pooled out-of-fold", …); "(majority)" removed; AP terminology; all four figure captions rewritten to description-only; in-text figure references added (§4.1, §6.1, §6.2, §6.3); `figures.py` saves PDF vector alongside PNG for all four figures. Science/results/numbers unchanged (all values remain the locked live artifacts).
 
+## R15 (academic tone + remove AI-draft traces) — live ChatGPT reply received 2026-08-18
+
+**Paste package:** `artifacts/chatgpt_paste_R15.md` (verbatim flagged passages pasted inline; ChatGPT could not fetch `b8adee0` from GitHub). **Backup:** `docs/paper/backups/20260818_0325_preR15/`.
+
+**ChatGPT verdict:** The register is improved, but the remaining problem is not "AI vocabulary" in isolation — it is outline scaffolding, developer terminology, repeated defensive disclaimers, and sentences describing what the manuscript is *trying not to claim*. Rule: move from "claim policing" to "scope and interpretation" language.
+
+| Feedback | Verdict |
+|----------|---------|
+| Delete header "Working manuscript (methods orientation, IJDRR-shaped)" + "Additional venue-specific references to be added." | **ACCEPTED** — both deleted |
+| §1 contribution paragraph: remove "question: can…?" + "First/Second/Third" scaffold; rewrite with integrated parallel syntax | **ACCEPTED** — replaced with ChatGPT's full rewrite |
+| "methods protocol" → "methodological framework / approach" | **ACCEPTED** — throughout |
+| §2 Related Work: use flowing paragraphs, NOT ### subheadings; split the two-tag paragraph; 5 themes + closing synthesis | **ACCEPTED** — removed all bold lead-ins, restructured to 6 paragraphs |
+| "hook"/"stub" → name the scientific variable (rainfall input / condition; unpopulated optional input) | **ACCEPTED** — all removed |
+| "binding definition" → "formal definition"; "binding for future runs" → "retained for subsequent analyses" | **ACCEPTED** |
+| "ida_like 75" → "Ida-like (75)" | **ACCEPTED** |
+| "not narrated as matching" → "is not interpreted as evidence of reproduction"; "coincidental" → numerical-proximity phrasing | **ACCEPTED** — §7.1 Jaccard comparison rewritten |
+| "should not be read as 'no scale loss'" → direct analytical prose | **ACCEPTED** |
+| "cannot yet respond to rainfall" → "invariant across rainfall scenarios" | **ACCEPTED** — §4.7 |
+| Table field names still leaking (§6.2 coarse_res/aggregation; §6.3 n_fixed_coarse/…; §6.5 n_cells/n_coastal/…) | **ACCEPTED** — all three cleaned (missed in R14) |
+| Mechanical purge of em-dashes / "Furthermore" / "the present study" | **REJECTED** — none is intrinsically an AI trace; cadence, not the word, is the issue |
+| Backtick-vs-italic symbol convention (`PFI_h` in backticks) | **DEFERRED** — markdown working manuscript; symbol/LaTeX conversion deferred to final typesetting |
+
+**Applied edits:** `manuscript.md` (header/footer metadata removed; §1 contribution rewritten; §2 restructured to flowing prose; "hook"/"stub"/"binding"/"ida_like"/"narrated"/"coincidental" removed; §4.7, §6.2/§6.3/§6.4/§6.5, §7.1/§7.2, §8 tone-polished; table labels cleaned); `README.md` (abstract terminology synced: "majority baseline"→"baseline", "PR-AUC"→"average precision", "binding…definition"→"explicitly defined…index", "hook"→"synthetic rainfall input"). No number/result/claim changed.
+
+**Deferred to final consistency pass:** `report.md` still uses "PR-AUC" (16 occurrences) and a couple of "stub"/"ida_like" strings; will be synced to "average precision (AP)" in the final rebuild.
+
 ## Prior R1–R5
 
 See earlier section of this file / `acceptance_report_5rounds.md`. ChatGPT substantive replies remain uncaptured pending manual URL paste.
