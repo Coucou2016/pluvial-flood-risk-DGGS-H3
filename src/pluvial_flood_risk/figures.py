@@ -155,15 +155,8 @@ def plot_jaccard_ladder(
 
     if title:
         fig.suptitle(title, fontsize=11)
-    elif fine is not None:
-        fig.suptitle(f"Scale-loss diagnostic (fine R{fine} hotspots vs parent rollup)", fontsize=11)
 
-    note = caption or (
-        "Mean rollup smooths extrema; max/p90 retain more fine hotspots. "
-        "Not a reproduction of Svellingen et al. Jaccard 0.14."
-    )
-    fig.text(0.5, 0.02, note, ha="center", va="bottom", fontsize=8, wrap=True)
-    fig.tight_layout(rect=(0.0, 0.08, 1.0, 0.92))
+    fig.tight_layout()
     fig.savefig(out_path, dpi=300, bbox_inches="tight")
     fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
     plt.close(fig)
@@ -190,9 +183,18 @@ def plot_spatial_cv_bars(
 
     x = np.arange(len(df))
     width = 0.35
+    colors = {"accuracy": "#4C72B0", "f1": "#C44E52"}
     fig, ax = plt.subplots(figsize=(6.4, 3.4))
-    ax.bar(x - width / 2, df["accuracy"], width, label="Accuracy")
-    ax.bar(x + width / 2, df["f1"], width, label="F1")
+    ax.bar(x - width / 2, df["accuracy"], width, label="Accuracy", color=colors["accuracy"])
+    ax.bar(x + width / 2, df["f1"], width, label="F1", color=colors["f1"])
+
+    # Mean ± SD across folds, drawn as reference lines with a shaded band.
+    for metric, color in colors.items():
+        mean = float(df[metric].mean())
+        sd = float(df[metric].std())
+        ax.axhline(mean, color=color, linestyle="--", linewidth=0.9, alpha=0.85)
+        ax.axhspan(mean - sd, mean + sd, color=color, alpha=0.10)
+
     ax.set_xticks(x)
     ax.set_xticklabels([f"Fold {i}" for i in df["fold_id"].astype(int)])
     ax.set_ylim(0.0, 1.05)
@@ -200,7 +202,8 @@ def plot_spatial_cv_bars(
     ax.set_xlabel("H3-block spatial CV fold")
     ax.legend()
     ax.grid(True, axis="y", alpha=0.3)
-    fig.suptitle(title or "Spatial H3-block CV (Lower Manhattan smoke)", fontsize=11)
+    if title:
+        fig.suptitle(title, fontsize=11)
     fig.tight_layout()
     fig.savefig(out_path, dpi=300, bbox_inches="tight")
     fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
@@ -235,7 +238,7 @@ def plot_workflow_schematic(
             "items": [
                 "Open flood labels\n(DEP stormwater, 311, USGS Ida HWM)",
                 "Static predictors\n(elevation, slope, impervious,\nbuilding density, distance-to-water)",
-                "Rainfall condition r\n(synthetic constant hook; radar TBD)",
+                "Rainfall condition r\n(constant synthetic rainfall;\nnot observed radar)",
             ],
         },
         {
@@ -378,21 +381,8 @@ def plot_workflow_schematic(
     )
     ax.add_patch(sandy_arrow)
 
-    fig.suptitle(
-        title
-        or "Open-label H3 pluvial flood learning protocol (workflow)",
-        fontsize=12,
-    )
-    fig.text(
-        0.5,
-        0.005,
-        "PFI_h(c,r) is a model output, not feature importance and not PFIb. "
-        "Manhattan open-data pilots; not citywide.",
-        ha="center",
-        va="bottom",
-        fontsize=7.5,
-        color="#555555",
-    )
+    if title:
+        fig.suptitle(title, fontsize=12)
     fig.savefig(out_path, dpi=300, bbox_inches="tight")
     fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
     plt.close(fig)
@@ -430,12 +420,13 @@ def plot_adaptive_ablation(
     fig, ax = plt.subplots(figsize=(5.6, 3.4))
     ax.bar(labels, values, color=["#4C72B0", "#55A868", "#C44E52"])
     ax.set_ylabel("Cell count")
-    ratio = row.get("adaptive_cell_count_ratio", None)
-    note = f"score_col={row.get('score_col', 'PFI_h')}"
-    if ratio is not None and pd.notna(ratio):
-        note += f"; adaptive/uniform={float(ratio):.3f}"
-    ax.set_title(note, fontsize=9)
-    fig.suptitle(title or "Adaptive vs fixed / uniform fine H3", fontsize=11)
+    for i, v in enumerate(values):
+        if pd.notna(v):
+            ax.text(i, float(v), f"{int(v):,}", ha="center", va="bottom", fontsize=9)
+    ymax = max(v for v in values if pd.notna(v))
+    ax.set_ylim(0, ymax * 1.12)
+    if title:
+        fig.suptitle(title, fontsize=11)
     ax.grid(True, axis="y", alpha=0.3)
     fig.tight_layout()
     fig.savefig(out_path, dpi=300, bbox_inches="tight")
