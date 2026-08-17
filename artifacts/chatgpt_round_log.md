@@ -197,6 +197,29 @@ All four figures regenerated as PNG + PDF; `tests/test_figures.py` passes. Scien
 
 **Commits:** `e4ab9ac` (R17 submission-readiness edits) + `fd9950e` (audit hash). **Tag:** `paper-v1` → `e4ab9acd7439491d7bc5908be550876aaa503cf2`. **Push:** **BLOCKED** — `github.com:443` unreachable from this environment (TCP connect failed, "Connection was reset"); local commits + tag are intact and will be pushed once network is available.
 
+## R18 (holistic synthesis-section review) — live ChatGPT reply received 2026-08-18
+
+**Paste package:** `artifacts/chatgpt_paste_R18.md`. **Reply archived:** `artifacts/chatgpt_reply_R18.md`. **Backup:** `docs/paper/backups/20260818_0420_preR17/` (R17 pre-edit; R18 edits applied on top).
+
+**ChatGPT verdict:** Synthesis sections are now close to journal register; remaining issue is argumentative economy — the manuscript repeats its exclusions too often and spends a paragraph defending what it is not.
+
+| Feedback | Verdict |
+|----------|---------|
+| Abstract: "Many operational indices… ignore spatial leakage" too broad/informal → "Some data-driven… approaches rely on proprietary… labels, while random train-test splits can overstate…" | **ACCEPTED** |
+| Abstract: "80% positive" → "approximately 80% positive" (clarify rounding) | **ACCEPTED** |
+| Abstract: "uniform fine grid" → "uniform R11 refinement"; "event rainfall remains" → "rainfall is represented by a constant synthetic input in the present pilots" | **ACCEPTED** |
+| Intro: "silent spatial leakage" → "explicitly accounting for spatial dependence"; "proprietary stack" → "proprietary data and index formulation"; "fabric" → "spatial substrate"; "spatially honest learning protocol" → "open-label learning framework with explicit spatial holdout evaluation" | **ACCEPTED** |
+| Intro contribution still feature-list → architectural opening "H3 … as the common spatial support for open-label learning…" | **ACCEPTED** |
+| PFI disambiguation paragraph too long/defensive → one sentence + delete "Claims of…" sentence | **ACCEPTED** |
+| §7.1: "moderate" jointly on ROC-AUC/AP obscures AP prevalence-dependence; "threshold-independent" loose for AP → rewrite | **ACCEPTED** |
+| §7.1: "product-ready city maps" → "operational citywide flood maps"; "explicit non-PFIb" → "independently defined rainfall-conditioned H3 model output"; Jaccard ending → "should not be interpreted as a reproduction" | **ACCEPTED** |
+| §8 too repetitive of abstract → rewrite as methodological lesson | **ACCEPTED** |
+| AI declaration: Elsevier exact heading + wording "review manuscript language, organization…" + move immediately above References | **ACCEPTED** |
+| References author-date vs numbered [n]: not a blocker (YPYW), polish only | **NO CHANGE** (deferred) |
+| CRediT placeholder is only submission blocker → replace with real authors before submission | **DEFERRED to user** (author identity unknown; not fabricated) |
+
+**Applied edits:** `manuscript.md` (Abstract, §1 Introduction, §7.1 Discussion, §8 Conclusions, §7.2 Limitation 4 rainfall phrasing, AI declaration heading/wording/position). No number/result changed; all values remain the locked live artifacts.
+
 ## Prior R1–R5
 
 See earlier section of this file / `acceptance_report_5rounds.md`. ChatGPT substantive replies remain uncaptured pending manual URL paste.
