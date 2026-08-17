@@ -259,6 +259,22 @@ All four figures regenerated as PNG + PDF; `tests/test_figures.py` passes. Scien
 
 **Applied edits:** `manuscript.md` (Abstract, §6.1, §6.6, Fig 2/Fig 4 captions, §7.3). No number/result/claim changed.
 
+## R21 (final sign-off) — live ChatGPT reply received 2026-08-18
+
+**Paste package:** `artifacts/chatgpt_paste_R21.md`. **Reply archived:** `artifacts/chatgpt_reply_R21.md`. **Backup:** `docs/paper/backups/20260818_0424_preR21/`.
+
+**ChatGPT verdict:** ACCEPT (with conditions). The manuscript now has a coherent, defensible methodological contribution. One final edit (separate AP from "moderate discrimination" in the abstract), then STOP substantive prose editing — further rounds risk stylistic churn. CRediT author list remains the only submission blocker.
+
+| Feedback | Verdict |
+|----------|---------|
+| (a) Conceptual H3 innovation in abstract | **ACCEPTED** (no change) |
+| (b) Abstract: separate "moderate ranking discrimination (ROC-AUC 0.70)" from "average precision of 0.72" | **ACCEPTED** — final edit applied |
+| (c) Abstract length ~230 words within target | **ACCEPTED** (no change) |
+| Final holistic verdict: submission-ready modulo CRediT + declared limitations | **ACCEPTED** |
+| ChatGPT's explicit guidance: stop substantive prose editing after (b) | **ACCEPTED** — rounds concluded |
+
+**Applied edits:** `manuscript.md` (Abstract — one sentence). No number/result/claim changed. **This concludes the ChatGPT collaboration rounds (R12–R21 = 10 live rounds).**
+
 ## Prior R1–R5
 
 See earlier section of this file / `acceptance_report_5rounds.md`. ChatGPT substantive replies remain uncaptured pending manual URL paste.
