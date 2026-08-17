@@ -165,6 +165,7 @@ def plot_jaccard_ladder(
     fig.text(0.5, 0.02, note, ha="center", va="bottom", fontsize=8, wrap=True)
     fig.tight_layout(rect=(0.0, 0.08, 1.0, 0.92))
     fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
     plt.close(fig)
     return out_path
 
@@ -202,6 +203,7 @@ def plot_spatial_cv_bars(
     fig.suptitle(title or "Spatial H3-block CV (Lower Manhattan smoke)", fontsize=11)
     fig.tight_layout()
     fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
     plt.close(fig)
     return out_path
 
@@ -392,6 +394,7 @@ def plot_workflow_schematic(
         color="#555555",
     )
     fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
     plt.close(fig)
     return out_path
 
@@ -436,5 +439,6 @@ def plot_adaptive_ablation(
     ax.grid(True, axis="y", alpha=0.3)
     fig.tight_layout()
     fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
     plt.close(fig)
     return out_path

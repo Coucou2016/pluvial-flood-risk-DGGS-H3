@@ -121,6 +121,26 @@ None — all ChatGPT numeric claims were independently reproduced. Minor wording
 
 **Applied edits (manuscript.md §4.1–4.8 rewritten for reproducibility):** R9/R10/R8/R11 role separation; exact target construction; seed 42 + ponding equation + fold-mean-vs-pooled baseline clarification; R7 parent + AP definition; hotspot quantile 0.9; adaptive 0.8-quantile screen; PFI_h Y_c=flood_class + no-calibration clause; Sandy exclusion scope. Terminology: "PR-AUC" → "average precision (AP)" consistently. Science/results unchanged (all values are code-verified, none fabricated).
 
+## R14 (Results presentation + figure/table format + captions) — live ChatGPT reply received 2026-08-18
+
+**Paste package:** `artifacts/chatgpt_paste_R14.md`. ChatGPT replied live in the advisor conversation (browser MCP). It could not fetch commit `49e756e` from GitHub in-session, so it reviewed from the pasted captions/table rows and gave format guidance that required no fabricated numbers.
+
+**ChatGPT verdict:** Results content is scientifically cautious, but presentation still carries implementation vocabulary and two statistical-labeling ambiguities. Highest-value cleanup = make tables look designed, not JSON-serialized.
+
+| Feedback | Independent verification | Verdict |
+|----------|--------------------------|---------|
+| Table rows still use machine field names (`spatial_cv_roc_auc_pooled`, `n_cells`, …) → replace with reader-facing labels | manuscript §6.1/§6.6 rows confirmed verbatim | **ACCEPTED** — cleaned all rows |
+| "always-positive (majority)" conflates classifier identity with dataset majority property → drop "(majority)"; majority is per-pilot | §6.1 prevalence 0.801 vs §6.6 0.479 confirms identity/majority must not be fused | **ACCEPTED** — removed "(majority)", added per-pilot note |
+| "PR-AUC" ≠ average precision mathematically → if `average_precision_score`, call it AP | `metrics.py` uses `sklearn.metrics.average_precision_score` | **ACCEPTED** — "Average precision (AP)" everywhere |
+| Captions over-interpret (Fig2 Fold4/citywide warning; Fig3 "consistent with smoothing" + "must not be equated to…") → move interpretation to prose | captions confirmed verbatim | **ACCEPTED** — captions stripped to description only |
+| Fig1 caption "synthetic constant hook" unpolished → "constant synthetic rainfall condition…not observed radar" | — | **ACCEPTED** — rewrote Fig1 caption |
+| Fig4 "for the pilot table" → "for the Lower Manhattan pilot" | — | **ACCEPTED** |
+| Figure numbers must be cited in text at correct points (Fig1 before §4.1, Fig2 in §6.1, Fig3 in §6.2, Fig4 in §6.3) | manuscript had no in-text refs | **ACCEPTED** — added all four |
+| Vector output required for Elsevier (EPS/PDF, not PNG-only) | figures.py saved PNG only | **ACCEPTED** — every figure now saves PDF alongside PNG |
+| Fig2: paired points + mean±SD better than grouped bars; Fig3: two-panel; Fig4: numerical bar labels + drop `score_col=` note; Fig1: remove redundant in-image title | figure code inspected | **DEFERRED to R16** (figure deep-polish round) |
+
+**Applied edits (this commit):** manuscript §6.1/§6.6 table labels → reader-facing ("Cells", "Spatial-CV accuracy, mean ± SD", "ROC-AUC, pooled out-of-fold", "Average precision (AP), pooled out-of-fold", …); "(majority)" removed; AP terminology; all four figure captions rewritten to description-only; in-text figure references added (§4.1, §6.1, §6.2, §6.3); `figures.py` saves PDF vector alongside PNG for all four figures. Science/results/numbers unchanged (all values remain the locked live artifacts).
+
 ## Prior R1–R5
 
 See earlier section of this file / `acceptance_report_5rounds.md`. ChatGPT substantive replies remain uncaptured pending manual URL paste.

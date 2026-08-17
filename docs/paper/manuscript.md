@@ -46,7 +46,7 @@ Relative to the PFIb-to-H3 aggregation papers, this work does not improve or rep
 
 ### 4.1 H3 representation
 
-Supervised modelling uses H3 resolution 9 (R9) as the training and evaluation support; models are fitted and blocked cross-validation metrics are computed on R9 cells. Resolution 10 (R10) is used only to assemble fine labels for the scale-loss diagnostic, which rolls hotspots to parent resolutions 9 and 8 (R8); R10 and R8 never participate in training. Adaptive refinement is a post-training representation step that replaces selected R9 cells with their resolution-11 (R11) descendants. All H3 indexing and spatial joins use longitude–latitude coordinates (EPSG:4326).
+Supervised modelling uses H3 resolution 9 (R9) as the training and evaluation support; models are fitted and blocked cross-validation metrics are computed on R9 cells. Resolution 10 (R10) is used only to assemble fine labels for the scale-loss diagnostic, which rolls hotspots to parent resolutions 9 and 8 (R8); R10 and R8 never participate in training. Adaptive refinement is a post-training representation step that replaces selected R9 cells with their resolution-11 (R11) descendants. All H3 indexing and spatial joins use longitude–latitude coordinates (EPSG:4326). The overall workflow is summarised in Figure 1.
 
 ### 4.2 Features and open labels
 
@@ -106,28 +106,28 @@ All figures are computed from the two Manhattan pilots and do not describe cityw
 
 | Metric | Value |
 |--------|-------|
-| n_cells | 141 |
-| spatial_cv_n_folds | 5 |
-| spatial_cv_n_blocks | 7 |
-| spatial_cv_accuracy_mean ± std | 0.784 ± 0.069 |
-| spatial_cv_f1_mean | 0.866 |
-| spatial_cv_r2_mean ± std | 0.030 ± 0.343 |
-| spatial_cv_mae_mean | 0.332 |
-| random_split_val_accuracy (diagnostic only) | 0.690 |
-| positive-class prevalence (held-out) | 0.801 |
-| always-positive (majority) baseline accuracy | 0.808 |
-| always-positive (majority) baseline F1 | 0.893 |
-| always-negative baseline accuracy | 0.192 |
-| spatial_cv_roc_auc_pooled | 0.683 |
-| spatial_cv_pr_auc_pooled | 0.861 |
+| Cells | 141 |
+| Spatial-CV folds | 5 |
+| Spatial-CV blocks | 7 |
+| Spatial-CV accuracy, mean ± SD | 0.784 ± 0.069 |
+| Spatial-CV F1, mean | 0.866 |
+| Spatial-CV R², mean ± SD | 0.030 ± 0.343 |
+| Spatial-CV MAE, mean | 0.332 |
+| Random-split accuracy (diagnostic only) | 0.690 |
+| Positive-class prevalence (held-out) | 0.801 |
+| Always-positive baseline accuracy | 0.808 |
+| Always-positive baseline F1 (fold-mean) | 0.893 |
+| Always-negative baseline accuracy | 0.192 |
+| ROC-AUC, pooled out-of-fold | 0.683 |
+| Average precision (AP), pooled out-of-fold | 0.861 |
 
-Per-fold accuracy/F1: Fold0 0.755 / 0.850; Fold1 0.760 / 0.850; Fold2 0.773 / 0.872; Fold3 0.714 / 0.813; Fold4 0.917 / 0.944.
+Per-fold accuracy/F1: Fold0 0.755 / 0.850; Fold1 0.760 / 0.850; Fold2 0.773 / 0.872; Fold3 0.714 / 0.813; Fold4 0.917 / 0.944 (Figure 2).
 
 The held-out labels are highly imbalanced (80.1% positive). A trivial always-positive classifier would reach mean accuracy 0.808 and mean F1 0.893 across the same folds, which exceeds the model's 0.784 accuracy and 0.866 F1. Spatial blocking makes the evaluation design more defensible but does not by itself establish discrimination. The threshold-independent out-of-fold metrics are moderate: pooled ROC-AUC is 0.683 and pooled average precision is 0.861, the latter only slightly above the 0.801 prevalence baseline for a random ranker. Fold4 accuracy (0.917) coincides with a small test set (n = 24, two blocks) and is not interpreted in isolation. Continuous-risk R² (0.030 ± 0.343) is weak and reported for completeness. Random-split accuracy (0.690) remains diagnostic only.
 
 ### 6.2 Scale-loss Jaccard ladder (open labels)
 
-Fine resolution R10, hotspot quantile 0.9:
+Fine resolution R10, hotspot quantile 0.9 (Figure 3):
 
 | coarse_res | aggregation | jaccard | f1 |
 |------------|-------------|---------|-----|
@@ -152,7 +152,7 @@ Under mean aggregation, parent rollup at R8 yields Jaccard 0.167 with fine R10 h
 | n_parents_refined | 79 |
 | score_quantile | 0.8 |
 
-Adaptive mixed grids use about 57% as many cells as a uniform R11 grid (3933 versus 6909) while refining 79 of 141 coarse parents. Relative to the fixed R9 baseline the mixed grid uses about 27.9 times more cells (3933 versus 141). This statement concerns cell counts only; wall-clock runtime, memory, and city-scale cost are not reported.
+Adaptive mixed grids use about 57% as many cells as a uniform R11 grid (3933 versus 6909) while refining 79 of 141 coarse parents (Figure 4). Relative to the fixed R9 baseline the mixed grid uses about 27.9 times more cells (3933 versus 141). This statement concerns cell counts only; wall-clock runtime, memory, and city-scale cost are not reported.
 
 ### 6.4 Rainfall scenarios
 
@@ -166,21 +166,21 @@ Open-data assembly: n_cells = 141; n_coastal = 31; n_pluvial = 71; n_both = 23; 
 
 | Metric | Value |
 |--------|-------|
-| n_cells | 956 |
-| spatial_cv_n_folds | 5 |
-| spatial_cv_n_blocks | 28 |
-| spatial_cv_accuracy_mean ± std | 0.642 ± 0.148 |
-| spatial_cv_f1_mean | 0.608 |
-| spatial_cv_r2_mean ± std | 0.525 ± 0.112 |
-| spatial_cv_mae_mean | 0.112 |
-| random_split_val_accuracy (diagnostic only) | 0.667 |
-| positive-class prevalence (held-out) | 0.479 |
-| always-positive baseline accuracy | 0.479 |
-| always-positive baseline F1 (fold-mean) | 0.641 |
-| constant majority-class (always-negative) baseline accuracy | 0.521 |
-| constant majority-class (always-negative) baseline F1 | 0.000 |
-| spatial_cv_roc_auc_pooled | 0.703 |
-| spatial_cv_pr_auc_pooled | 0.723 |
+| Cells | 956 |
+| Spatial-CV folds | 5 |
+| Spatial-CV blocks | 28 |
+| Spatial-CV accuracy, mean ± SD | 0.642 ± 0.148 |
+| Spatial-CV F1, mean | 0.608 |
+| Spatial-CV R², mean ± SD | 0.525 ± 0.112 |
+| Spatial-CV MAE, mean | 0.112 |
+| Random-split accuracy (diagnostic only) | 0.667 |
+| Positive-class prevalence (held-out) | 0.479 |
+| Always-positive baseline accuracy | 0.479 |
+| Always-positive baseline F1 (fold-mean) | 0.641 |
+| Constant majority-class (always-negative) accuracy | 0.521 |
+| Constant majority-class (always-negative) F1 | 0.000 |
+| ROC-AUC, pooled out-of-fold | 0.703 |
+| Average precision (AP), pooled out-of-fold | 0.723 |
 
 Per-fold accuracy/F1: Fold0 0.801 / 0.832; Fold1 0.419 / 0.442; Fold2 0.759 / 0.736; Fold3 0.516 / 0.343; Fold4 0.715 / 0.689.
 
@@ -220,13 +220,13 @@ This study presents a reproducible open-label H3 and machine-learning protocol�
 
 ## Figure captions
 
-**Figure 1. Open-label H3 pluvial flood learning protocol (workflow).** Conceptual pipeline. (1) Open multi-source inputs: flood labels (DEP stormwater polygons, 311 flooding points, USGS Ida high-water marks), static predictors (elevation, slope, impervious fraction, building density, distance-to-water), and a rainfall condition `r` (a synthetic constant hook in this pilot, not radar). (2) H3 assembly at R9 with provenance tags (`assembly_mode`, `feature_source`, `label_source`, `rainfall_source`). (3) Learning and blocked evaluation: a gradient-boosting classifier with a continuous-risk regressor, H3-block `GroupKFold` spatial cross-validation as the primary blocked evaluation, constant-class baselines (always-positive and always-negative), and logistic/ponding-rule baselines. (4) Diagnostics and outputs: the rainfall-conditioned `PFI_h(c,r)` index (a definition/interface in this pilot, with currently flat scenario response), a scale-loss Jaccard ladder (R10 to R9/R8), adaptive refinement screened by trained `PFI_h` (to R11), and a Sandy negative-control check. The FEMA Sandy layer is a dashed side-channel that bypasses learning and enters only the negative-control diagnostic; it is never a training label.
+**Figure 1. Open-label H3 pluvial-flood learning workflow.** Open flood observations (DEP stormwater polygons, 311 flooding reports, and USGS Ida high-water marks), static predictors (elevation, slope, impervious fraction, building density, distance-to-water), and a rainfall condition `r` (a constant synthetic rainfall condition in the present pilot, not observed radar rainfall) are assembled into H3 cells at R9 with provenance tags (`assembly_mode`, `feature_source`, `label_source`, `rainfall_source`), fitted with a gradient-boosting classifier and a continuous-risk regressor under H3-block `GroupKFold` cross-validation against constant-class (always-positive and always-negative) and logistic/ponding-rule baselines, and passed to diagnostics: the rainfall-conditioned `PFI_h(c,r)` index (currently flat scenario response), a scale-loss Jaccard ladder (R10 to R9/R8), adaptive refinement to R11, and a Sandy negative-control check. The FEMA Sandy layer is a dashed side-channel that bypasses learning and enters only the negative-control diagnostic; it is never a training label.
 
-**Figure 2. Spatial H3-block cross-validation fold metrics.** Per-fold classification accuracy and F1 on the Lower Manhattan pilot (n = 141; 5 folds; 7 blocks). Primary reporting uses the mean ± standard deviation across folds; individual high folds (e.g., Fold4) are not interpreted as citywide skill, and accuracy/F1 are reported alongside constant-class baselines.
+**Figure 2. Spatial H3-block cross-validation performance for the Lower Manhattan pilot.** Classification accuracy and F1 are shown for each of five held-out folds formed from seven R7 H3 blocks (n = 141 cells).
 
-**Figure 3. Open-label scale loss across H3 resolutions.** Jaccard similarity and F1 between fine-resolution (R10) hotspot parent sets and coarse (R8/R9) hotspot sets under mean, maximum, and p90 aggregation. Mean aggregation at R8 yields Jaccard of about 0.167, consistent with smoothing of local extremes; maximum and p90 preserve extrema by construction. These are diagnostics on the Lower Manhattan open-label pilot and must not be equated to Svellingen et al.'s PFIb Jaccard of 0.14.
+**Figure 3. Open-label hotspot scale-loss diagnostics across H3 resolutions.** Jaccard similarity and F1 compare R10-derived hotspot sets (top decile, quantile 0.9) with R9 and R8 representations under mean, maximum, and p90 aggregation.
 
-**Figure 4. Adaptive refinement versus uniform fine grids (cell counts).** Fixed coarse (R9), adaptive mixed, and uniform fine (R11) cell counts for the pilot table (adaptive/uniform ≈ 0.569; 79 of 141 parents refined). The comparison is restricted to cell counts; it is not a wall-clock or citywide runtime claim.
+**Figure 4. Adaptive refinement versus uniform fine grids by cell count.** Fixed R9, adaptive mixed R9/R11, and uniform R11 representations are compared for the Lower Manhattan pilot (adaptive/uniform ≈ 0.569; 79 of 141 parents refined).
 
 ---
 
