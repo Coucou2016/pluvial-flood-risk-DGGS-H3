@@ -220,6 +220,26 @@ All four figures regenerated as PNG + PDF; `tests/test_figures.py` passes. Scien
 
 **Applied edits:** `manuscript.md` (Abstract, §1 Introduction, §7.1 Discussion, §8 Conclusions, §7.2 Limitation 4 rainfall phrasing, AI declaration heading/wording/position). No number/result changed; all values remain the locked live artifacts.
 
+## R19 (cross-section consistency audit) — live ChatGPT reply received 2026-08-18
+
+**Paste package:** `artifacts/chatgpt_paste_R19.md`. **Reply archived:** `artifacts/chatgpt_reply_R19.md`. **Backup:** `docs/paper/backups/20260818_0418_preR19/`.
+
+**ChatGPT verdict:** Numbers internally consistent; four residual cross-section issues from R18 remained and were fixed.
+
+| Feedback | Verdict |
+|----------|---------|
+| Number consistency: all values consistent; abstract rounding (0.683→0.68, 0.703→0.70, 0.861→0.86, 0.723→0.72) standard; keep full precision in tables | **ACCEPTED** (no change) |
+| §7.2 #6 still applies "moderate" jointly to ROC-AUC + AP (AP is prevalence-dependent) → rewrite to "Pooled out-of-fold ROC-AUC indicates modest-to-moderate ranking discrimination… average precision is interpreted relative to… prevalence…" | **ACCEPTED** |
+| §6.4 "a feature importance of 0" reintroduces terminology collision → "contributes no learned variation to the fitted predictions" | **ACCEPTED** |
+| §1 contribution paragraph still ends with a duplicated PFI_h sentence + citywide-scope sentence → delete both (notation sentence + Abstract/Discussion/Conclusions already cover them) | **ACCEPTED** |
+| §3 "the larger … extends northward" geographically incomplete → "the larger expanded-Manhattan bounding box spans …"; `manhattan_expanded` → "expanded Manhattan" | **ACCEPTED** |
+| §5 E5 "adaptive refinement/ablation" implies predictive ablation → "adaptive refinement and fixed-versus-adaptive grid comparison" | **ACCEPTED** |
+| §4.2 "scenario-conditioning feature (rainfall intensity)" → "rainfall condition r (rainfall intensity)" for uniformity with §§3/4.7 | **ACCEPTED** |
+| Figure 1 caption vs §§4.1–4.8 — consistent (caption already has "R10 to R9/R8") | **ACCEPTED** (no change) |
+| Bonus consistency: §7.2 #6 "always-positive majority baseline" → "always-positive baseline" (R14 "drop majority" rule) | **ACCEPTED** |
+
+**Applied edits:** `manuscript.md` (§1, §3, §4.2, §5 E5, §6.4, §7.2 #6). No number/result/claim changed.
+
 ## Prior R1–R5
 
 See earlier section of this file / `acceptance_report_5rounds.md`. ChatGPT substantive replies remain uncaptured pending manual URL paste.
