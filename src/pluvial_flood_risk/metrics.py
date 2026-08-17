@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 from sklearn.metrics import (
     accuracy_score,
+    average_precision_score,
     f1_score,
     mean_absolute_error,
     mean_squared_error,
@@ -30,4 +31,8 @@ def evaluate_predictions(
             metrics["roc_auc"] = float(roc_auc_score(y_true_class, y_proba))
         except ValueError:
             metrics["roc_auc"] = float("nan")
+        try:
+            metrics["average_precision"] = float(average_precision_score(y_true_class, y_proba))
+        except ValueError:
+            metrics["average_precision"] = float("nan")
     return metrics

@@ -94,6 +94,7 @@ def train_models(
                 y_risk,
                 groups,
                 n_splits=spatial_cv_folds,
+                cells=cells,
             )
         )
 

@@ -92,6 +92,17 @@ def run_training(
         write_spatial_cv_fold_table(fold_rows, out_fold)
         metrics["spatial_cv_fold_csv"] = str(out_fold)
 
+    oof_rows = metrics.pop("spatial_cv_oof_table", None)
+    if oof_rows:
+        from pluvial_flood_risk.spatial_cv import write_spatial_cv_oof_table
+
+        if model_dir == MODELS_DIR:
+            out_oof = OUTPUTS_DIR / "spatial_cv_oof_predictions.csv"
+        else:
+            out_oof = model_dir / "spatial_cv_oof_predictions.csv"
+        write_spatial_cv_oof_table(oof_rows, out_oof)
+        metrics["spatial_cv_oof_csv"] = str(out_oof)
+
     result.metrics = metrics
     save_models(result, model_dir)
 
@@ -243,7 +254,8 @@ def run_evaluation(
     metrics["gbm_in_sample_f1"] = metrics["f1"]
 
     if "h3_index" in df.columns:
-        groups = block_ids_for_cells(df["h3_index"].astype(str).tolist(), spatial_cv_k)
+        cell_list = df["h3_index"].astype(str).tolist()
+        groups = block_ids_for_cells(cell_list, spatial_cv_k)
         metrics.update(
             spatial_block_cv_metrics(
                 X,
@@ -251,6 +263,7 @@ def run_evaluation(
                 df[TARGET_COLUMN].to_numpy(),
                 groups,
                 n_splits=spatial_cv_folds,
+                cells=cell_list,
             )
         )
         fold_rows = metrics.pop("spatial_cv_fold_table", None)
@@ -260,6 +273,13 @@ def run_evaluation(
             fold_csv = OUTPUTS_DIR / "spatial_cv_folds_eval.csv"
             write_spatial_cv_fold_table(fold_rows, fold_csv)
             metrics["spatial_cv_fold_csv"] = str(fold_csv)
+        oof_rows = metrics.pop("spatial_cv_oof_table", None)
+        if oof_rows:
+            from pluvial_flood_risk.spatial_cv import write_spatial_cv_oof_table
+
+            oof_csv = OUTPUTS_DIR / "spatial_cv_oof_predictions_eval.csv"
+            write_spatial_cv_oof_table(oof_rows, oof_csv)
+            metrics["spatial_cv_oof_csv"] = str(oof_csv)
         metrics["note"] = (
             "in_sample metrics are optimistic on training cells; "
             "spatial_cv_* are spatially blocked hold-out folds. "

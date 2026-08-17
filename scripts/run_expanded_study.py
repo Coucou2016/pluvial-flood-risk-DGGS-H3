@@ -10,8 +10,9 @@ n=141 results are never overwritten:
 - summary       -> outputs/expanded_primary_table.json
 - baselines     -> outputs/classification_baselines_expanded.{json,csv}
 
-The "primary table" is the spatial H3-block CV summary plus a disclosed
-majority-class (always-positive) baseline, mirroring Table 1 of the report.
+The "primary table" is the spatial H3-block CV summary plus disclosed
+constant-classifier baselines (always-positive and always-negative, with the
+true constant-majority derived from the pooled class count), mirroring Table 1.
 """
 
 from __future__ import annotations
@@ -30,31 +31,93 @@ from pluvial_flood_risk.assemble import assemble_h3_table, sources_from_config  
 from pluvial_flood_risk.pipeline import run_training  # noqa: E402
 
 
-def _majority_baseline(fold_csv: Path) -> dict:
+def _constant_baselines(fold_csv: Path) -> dict:
+    """Constant-classifier baselines for a spatial-CV fold table.
+
+    Reports always-positive and always-negative classifiers *separately* and
+    derives the true constant-majority classifier from the pooled class count,
+    so that "majority" is never conflated with "always-positive" when the
+    positive class is below 50%.
+
+    All baselines are computed fold-wise and then averaged, matching how the
+    model's spatial-CV accuracy/F1 are reported (mean of per-fold metrics).
+    Pooled values are also emitted for reference.
+    """
     import pandas as pd
 
     df = pd.read_csv(fold_csv)
-    pos = int(df["n_positive_test"].sum())
-    neg = int(df["n_negative_test"].sum())
-    n = pos + neg
-    prevalence = pos / n if n else 0.0
-    ap_acc = prevalence
-    ap_f1 = 2.0 * prevalence / (prevalence + 1.0) if prevalence > 0 else 0.0
-    model_acc = float(df["accuracy"].mean())
-    model_f1 = float(df["f1"].mean())
+    per_fold = []
+    for _, r in df.iterrows():
+        pos = int(r["n_positive_test"])
+        neg = int(r["n_negative_test"])
+        n = pos + neg
+        per_fold.append(
+            {
+                "n_test": n,
+                "pos": pos,
+                "neg": neg,
+                # always-positive: predict 1 everywhere
+                "ap_acc": pos / n,
+                "ap_f1": (2.0 * pos / (n + pos)) if pos > 0 else 0.0,
+                # always-negative: predict 0 everywhere (positive-class F1 = 0)
+                "an_acc": neg / n,
+                "an_f1": 0.0,
+                "model_acc": float(r["accuracy"]),
+                "model_f1": float(r["f1"]),
+            }
+        )
+
+    total_pos = sum(f["pos"] for f in per_fold)
+    total_neg = sum(f["neg"] for f in per_fold)
+    n = total_pos + total_neg
+    prevalence = total_pos / n if n else 0.0
+    majority_class = "negative" if total_neg >= total_pos else "positive"
+
+    def mean(key: str) -> float:
+        return sum(f[key] for f in per_fold) / len(per_fold)
+
+    model_acc = mean("model_acc")
+    model_f1 = mean("model_f1")
+
+    ap_acc_mean = mean("ap_acc")
+    ap_f1_mean = mean("ap_f1")
+    an_acc_mean = mean("an_acc")
+
+    # Constant-majority classifier = always predict the pooled majority class.
+    if majority_class == "negative":
+        majority_acc_mean = an_acc_mean
+        majority_f1_mean = 0.0
+    else:
+        majority_acc_mean = ap_acc_mean
+        majority_f1_mean = ap_f1_mean
+
     return {
         "n_test": n,
-        "n_positive": pos,
-        "n_negative": neg,
+        "n_positive": total_pos,
+        "n_negative": total_neg,
         "positive_prevalence": prevalence,
-        "always_positive_acc": ap_acc,
-        "always_positive_f1": ap_f1,
-        "always_negative_acc": neg / n if n else 0.0,
-        "always_negative_f1": 0.0,
+        "majority_class": majority_class,
         "model_mean_acc": model_acc,
         "model_mean_f1": model_f1,
-        "model_beats_majority_acc": bool(model_acc > ap_acc),
-        "model_beats_majority_f1": bool(model_f1 > ap_f1),
+        # always-positive (fold-mean + pooled)
+        "always_positive_acc_mean": ap_acc_mean,
+        "always_positive_f1_mean": ap_f1_mean,
+        "always_positive_acc_pooled": prevalence,
+        "always_positive_f1_pooled": (2.0 * prevalence / (1.0 + prevalence)) if prevalence > 0 else 0.0,
+        # always-negative (fold-mean + pooled)
+        "always_negative_acc_mean": an_acc_mean,
+        "always_negative_f1_mean": 0.0,
+        "always_negative_acc_pooled": total_neg / n if n else 0.0,
+        "always_negative_f1_pooled": 0.0,
+        # constant-majority (fold-mean)
+        "majority_acc_mean": majority_acc_mean,
+        "majority_f1_mean": majority_f1_mean,
+        # comparisons (fold-mean model vs fold-mean baseline)
+        "model_beats_always_positive_acc": bool(model_acc > ap_acc_mean),
+        "model_beats_always_positive_f1": bool(model_f1 > ap_f1_mean),
+        "model_beats_always_negative_acc": bool(model_acc > an_acc_mean),
+        "model_beats_majority_acc": bool(model_acc > majority_acc_mean),
+        "model_beats_majority_f1": bool(model_f1 > majority_f1_mean),
     }
 
 
@@ -100,7 +163,7 @@ def main() -> None:
     train_metrics = run_training(table_path, model_dir=model_dir)
 
     fold_csv = model_dir / "spatial_cv_folds.csv"
-    baseline = _majority_baseline(fold_csv) if fold_csv.exists() else {}
+    baseline = _constant_baselines(fold_csv) if fold_csv.exists() else {}
 
     summary = {
         "bbox_profile": "manhattan_expanded",
@@ -114,13 +177,15 @@ def main() -> None:
         ),
         "flood_class_positive_frac": float(df["flood_class"].mean()) if "flood_class" in df.columns else None,
         "spatial_cv": train_metrics,
-        "majority_baseline": baseline,
+        "constant_baselines": baseline,
         "fold_csv": str(fold_csv),
         "table_path": str(table_path),
         "note": (
             "Expanded-bbox primary table (manhattan_expanded). Separate from the n=141 "
-            "Lower Manhattan smoke. accuracy/F1 are reported alongside a majority-class "
-            "baseline; do not claim classification skill without beating that baseline."
+            "Lower Manhattan smoke. accuracy/F1 are reported alongside always-positive "
+            "and always-negative constant classifiers, with the true constant-majority "
+            "derived from the pooled class count. Classification discrimination is not "
+            "claimed from thresholded accuracy/F1 alone."
         ),
     }
 

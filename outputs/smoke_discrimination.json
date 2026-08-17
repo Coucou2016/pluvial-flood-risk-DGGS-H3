@@ -1,0 +1,15 @@
+{
+  "source_table": "data\\processed\\nyc_h3_cells.parquet",
+  "k": 2,
+  "folds": 5,
+  "n_cells": 141,
+  "spatial_cv_n_blocks": 7.0,
+  "accuracy_mean": 0.783756338899196,
+  "f1_mean": 0.8657478632478632,
+  "roc_auc_mean": 0.7222652591073644,
+  "roc_auc_std": 0.14345267748430376,
+  "pr_auc_mean": 0.9030133568336461,
+  "pr_auc_std": 0.06519862344030448,
+  "roc_auc_pooled": 0.6828381795195955,
+  "pr_auc_pooled": 0.8613021524807966
+}

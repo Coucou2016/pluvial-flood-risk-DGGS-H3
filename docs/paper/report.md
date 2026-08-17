@@ -30,7 +30,7 @@
 | I2（观测事件降雨） | 计划接入 gauge/radar 事件降雨；当前仍阻塞，仅有合成常数 `event_raster` |
 | Negative control（负对照） | FEMA Sandy 沿海淹没叠置检查；**永不作为训练标签** |
 | SciencePlots | matplotlib 学术样式插件；本报告图使用 Times New Roman（TNR） |
-| Trivial / majority baseline（平凡基线 / 多数类基线） | 不做学习的“闭眼”预测（如恒判正类）；用于对照模型是否真的学到判别力 |
+| Trivial / constant baseline（平凡基线 / 常量基线） | 不做学习的“闭眼”预测（如恒判正类 always-positive、恒判负类 always-negative）；用于对照模型是否真的学到判别力；真多数类由 pooled 类别数推导 |
 
 ---
 
@@ -117,9 +117,9 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 #### 图 1 · `docs/paper/figures/workflow_schematic.png`
 
 **来龙去脉：** 这是论文的 Figure 1 概念工作流图（SciencePlots + Times New Roman），由 `src/pluvial_flood_risk/figures.py` 的 `plot_workflow_schematic` 生成，无数据依赖，对应手稿 Methods 的四个阶段。  
-**如何读：** 从左到右四列——(1) 开放多源输入（开放标签 + 静态特征 + 降雨条件 r + FEMA Sandy 负对照）；(2) H3 组装（R9，带 provenance 标签）；(3) 学习与分块评价（梯度提升 + H3 块 GroupKFold 空间 CV + 多数类平凡基线 + 逻辑/积水规则基线）；(4) 诊断与输出（`PFI_h(c,r)`、Jaccard 尺度损失阶梯、自适应加密、Sandy 负对照检查）。  
+**如何读：** 从左到右四列——(1) 开放多源输入（开放标签 + 静态特征 + 降雨条件 r）；(2) H3 组装（R9，带 provenance 标签）；(3) 学习与分块评价（梯度提升 + H3 块 GroupKFold 空间 CV + 常量类基线（恒判正/恒判负）+ 逻辑/积水规则基线）；(4) 诊断与输出（`PFI_h(c,r)`、Jaccard 尺度损失阶梯、自适应加密、Sandy 负对照检查）。FEMA Sandy 是一条**虚线旁路**，绕过学习框、只进入负对照诊断，绝非训练标签。  
 **意义：** 一张图讲清整条协议与「证据—边界」纪律，帮助审稿人快速定位每一步对应的结果小节。  
-**结论：** `PFI_h(c,r)` 是模型输出，不是特征重要性，也不是 PFIb；证据仅限 Lower Manhattan 开放数据试点，非全市。
+**结论：** `PFI_h(c,r)` 是模型输出，不是特征重要性，也不是 PFIb；当前情景响应平坦（定义/接口已绑定，响应待观测降雨）；证据仅限两个 Manhattan 开放数据试点，非全市。
 
 ---
 
@@ -128,7 +128,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 1. 下载/校验 `data/raw/nyc/`，写入 `DOWNLOAD_MANIFEST.json` / `DATA_SOURCES.md`。  
 2. `build_nyc_h3.py --no-fixtures` → `data/processed/nyc_h3_cells.parquet`（opendata）。  
 3. `pluvial-nyc-smoke` → `models/nyc_smoke/*`、`outputs/*`（空间 CV、Jaccard、自适应、情景、负对照）。  
-4. SciencePlots + TNR 重绘三图到 `docs/paper/figures/`（并同步 `artifacts/figures/`）。  
+4. SciencePlots + TNR 重绘四图到 `docs/paper/figures/`（并同步 `artifacts/figures/`）。  
 5. `scripts/build_paper_report_html.py` → 自包含 `report.html`（Base64 图、内联 CSS）。  
 6. Chrome headless `--print-to-pdf` → `report.pdf`（若失败，以 HTML 为准并记入 acceptance）。
 
@@ -155,12 +155,14 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 | 多数类（恒判正）基线 accuracy | **0.808** |
 | 多数类（恒判正）基线 F1 | **0.893** |
 | 模型是否超过多数类基线 acc / f1 | **否 / 否** |
+| 留出 ROC-AUC（pooled） | **0.683** |
+| 留出 PR-AUC（pooled） | **0.861**（随机基线 = 正类占比 0.801） |
 
 **来龙去脉：** smoke 跑完后，训练脚本把 GroupKFold 各折平均写入 metadata；随后 `scripts/compute_classification_baselines.py` 读取 `spatial_cv_folds.csv`，对每折计算“全部判正”“全部判负”两种平凡基线并写入 `outputs/`。这是论文/报告里**唯一优先引用的评价汇总**，且**必须**连同类别占比与多数类基线一起引用。  
-**如何读：** 先看正类占比（0.8014，即 80% 留出单元为正），再看多数类基线（恒判正 acc 0.808 / F1 0.893），最后才看模型分数（0.784 / 0.866）。模型分数**低于**多数类基线，说明在本试点上分类器并未展现出超过“闭眼判洪”的判别力；R² 接近 0 也说明连续风险回归几乎无解释力。随机划分准确率略低/不同，仅提示“换协议分数会变”，不能当主结果。  
+**如何读：** 先看正类占比（0.8014，即 80% 留出单元为正），再看多数类基线（恒判正 acc 0.808 / F1 0.893），最后才看模型分数（0.784 / 0.866）。模型分数**低于**多数类基线，说明阈值化的 accuracy/F1 未超过“闭眼判洪”；但留出 ROC-AUC 0.683 > 0.5、PR-AUC 0.861 仅略高于 0.801 随机基线，提示存在**中等且有限**的排序判别力，不能据此主张“分类技能”。R² 接近 0 也说明连续风险回归几乎无解释力。随机划分准确率略低/不同，仅提示“换协议分数会变”，不能当主结果。  
 **意义：** 空间块留出让评价设计更诚实，但它本身不产生技能证据；在类别严重失衡时，accuracy/F1 必须与平凡基线对照，否则会被虚高。  
 **结论（允许）：** LM smoke 上协议可跑通（能训练、能分块评价、能出表）。  
-**结论（禁止）：** 全市技能；“模型有分类判别力”（本轮**未超过**多数类基线）；用随机划分替换空间 CV；“已解决事件响应预报”。
+**结论（禁止）：** 全市技能；“强分类判别力”（阈值化 accuracy/F1 **未超过**多数类基线，ROC-AUC/PR-AUC 仅为中等）；用随机划分替换空间 CV；“已解决事件响应预报”。
 
 ### 表 2 · 逐折明细
 
@@ -290,7 +292,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 
 **来源：** `outputs/expanded_primary_table.json`、`models/nyc_expanded/spatial_cv_folds.csv`、`outputs/classification_baselines_expanded.{json,csv}`；原始数据在 `data/raw/nyc_expanded/`（`DOWNLOAD_MANIFEST.json` 可溯源）。
 
-**来龙去脉：** §5.1 的 `n=141` 表只覆盖 Lower Manhattan 极小窗口，正类占比高达 80.1%，被 ChatGPT R8 评审判为“material issue”——因为 80% 的正类意味着“永远说会淹”的平凡基线就能拿到 0.808 accuracy / 0.893 F1，模型反而打不过它。为验证这是否只是“小窗口被 DEP 洪泛多边形覆盖”导致的空间伪象，本小节把同样的开放数据协议跑在更大的 `manhattan_expanded` 范围（`[-74.03, 40.68, -73.94, 40.80]`，约 0.09° × 0.12°，从曼哈顿下城向上城/中城南扩展），得到 `n=956` 个 R9 单元、28 个空间块。
+**来龙去脉：** §5.1 的 `n=141` 表只覆盖 Lower Manhattan 极小窗口，正类占比高达 80.1%，被 ChatGPT R8 评审判为“material issue”——因为 80% 的正类意味着“永远说会淹”的平凡基线就能拿到 0.808 accuracy / 0.893 F1，模型反而打不过它。为检验这是否只是“极小 bbox 落在 DEP 洪泛多边形内”造成的**范围敏感现象（extent-sensitivity 假设）**，本小节把同样的开放数据协议跑在更大的 `manhattan_expanded` 范围（`[-74.03, 40.68, -73.94, 40.80]`，约 0.09° × 0.12°，从曼哈顿下城向上城/中城南扩展），得到 `n=956` 个 R9 单元、28 个空间块。注意：这一步只“扩大范围再跑一次”，**不构成**对“小窗口 80% 正类是伪象”的证明——除非后续量化两个范围下各标签分量（DEP/311/Ida）的覆盖差异。
 
 **如何读：** 下表与 §5.1 表 1 同构，便于直接对照“小窗口 vs 扩展窗口”。
 
@@ -305,10 +307,16 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 | spatial_cv_r2_mean ± std | **0.525 ± 0.112** | 0.030 ± 0.343 |
 | spatial_cv_mae_mean | **0.112** | 0.332 |
 | random_split_val_accuracy（仅诊断） | 0.667 | 0.690 |
-| always-positive（多数类）accuracy | **0.479** | 0.808 |
-| always-positive（多数类）F1 | **0.648** | 0.893 |
-| 模型是否超过多数类 accuracy | **是（0.642 > 0.479）** | 否（0.784 < 0.808） |
-| 模型是否超过多数类 F1 | 否（0.608 < 0.648） | 否（0.866 < 0.893） |
+| always-positive accuracy | **0.479** | 0.808 |
+| always-positive F1（折内均值） | **0.641** | 0.893 |
+| always-negative accuracy | **0.521** | 0.192 |
+| always-negative F1（正类） | 0.000 | 0.000 |
+| 恒定多数类（真多数类） | 恒判负，acc 0.521 | 恒判正，acc 0.808 |
+| 模型是否超过恒定多数类 accuracy | **是（0.642 > 0.521）** | 否（0.784 < 0.808） |
+| 模型是否超过 always-positive F1 | 否（0.608 < 0.641） | 否（0.866 < 0.893） |
+| ROC-AUC（pooled，留出） | **0.703** | 0.683 |
+| PR-AUC / average precision（pooled，留出） | **0.723** | 0.861 |
+| 随机 PR-AUC 基线（=正类占比） | 0.479 | 0.801 |
 
 **逐折明细（`models/nyc_expanded/spatial_cv_folds.csv`）：**
 
@@ -322,12 +330,13 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 
 **意义（为什么这个表重要）：**
 
-1. **类别失衡得到缓解。** 扩展窗口正类占比 47.9%，接近均衡；这证明小窗口的 80.1% 正类主要是“极小 bbox 落在 DEP 洪泛多边形内”的空间伪象，而不是模型本身的问题。
-2. **accuracy 首次超过多数类平凡基线。** 扩展窗口模型 0.642 的 accuracy 明显高于“永远说会淹”的 0.479，说明模型在更大的空间范围里确实学到了可迁移的判别信息；这与小窗口“打不过平凡基线”形成鲜明对比。
-3. **连续风险 R² 从近零跃升到 0.525。** 小窗口 R²≈0.030（近乎无用），扩展窗口 R²≈0.525（中等偏强），说明连续风险回归器在更大、更均衡的样本上具有真实信号。这一点也反过来支持“小窗口 R² 近零是样本规模/空间覆盖不足所致”的判断。
-4. **F1 仍低于多数类基线（0.608 < 0.648）。** F1 是对正类的调和平均；在均衡设定下，“永远说会淹”仍有 recall=1、precision=0.479，F1≈0.648。模型为了提升精度而牺牲了部分 recall，导致 F1 略低于平凡基线。因此**分类判别力仍只能算“部分建立”**，不能用 F1 主张“分类技能”。
+1. **类别失衡随空间范围变化。** 扩展窗口正类占比 47.9%，接近均衡；这提示小窗口的 80.1% 正类很可能是“极小 bbox 落在 DEP 洪泛多边形内”造成的范围敏感现象（extent-sensitivity 假设），但本报告**尚未量化**两个范围下各标签分量（DEP/311/Ida）的覆盖差异，因此不宣称“已证明”小窗口占比是伪象。
+2. **accuracy 超过恒定多数类基线。** 扩展窗口模型 0.642 的 accuracy 高于恒定多数类（恒判负）0.521，也高于 always-positive 0.479。这是阈值化 accuracy 层面的证据，但**不等同于**阈值无关的判别力证明；它与小窗口“打不过平凡基线”形成对比，但“可迁移判别信息”仍需真正的空间/外部迁移证据才能主张。
+3. **连续风险 R² 从近零变为 0.525。** 小窗口 R²≈0.030，扩展窗口 R²≈0.525，说明在更大、更均衡的样本上连续回归出现正信号。但单个扩展试点**不能**归因于“样本规模或空间覆盖不足是小窗口 R² 近零的原因”——该差异只表明范围敏感，未识别其具体成因。
+4. **F1 仍低于 always-positive 比较器（0.608 < 0.641，折内均值）。** F1 是对正类的调和平均；在近均衡设定下，“永远说会淹”仍有 recall=1、precision≈0.479，折内 F1≈0.641。模型为了提升精度牺牲了部分 recall，导致 F1 略低于该比较器。因此单看 F1，**不能主张“分类技能”**。
+5. **阈值无关判别指标为中等。** 留出 pooled ROC-AUC=0.703（>0.5）、PR-AUC=0.723，后者明显高于其随机基线 0.479。这提示存在**中等程度**的留出排序判别力，且相对于随机基线，扩展窗口（更均衡）比小窗口（PR-AUC 0.861 仅略高于随机基线 0.801）更有说服力。但 ROC-AUC/PR-AUC 只回答“排序是否优于随机”，不回答“正类 F1 是否优于 always-positive”，故总体结论仍为**判别力中等、而非强**。
 
-**结论（honest）：** 扩展窗口主表**不是全市结果**（仍是曼哈顿中城南+下城北的试点），但它把“小窗口因类别失衡而打不过平凡基线”这一最严重短板缓解了：模型在 accuracy 上超过多数类基线，连续 R² 显著增强。下一步仍缺：真正的 citywide 范围、ROC-AUC 等失衡感知判别指标、观测事件降雨、FloodNet 留出验证。
+**结论（honest）：** 扩展窗口主表**不是全市结果**（仍是曼哈顿中城南+下城北的试点），但它把“小窗口因类别失衡而打不过平凡基线”这一最严重短板缓解了：模型在 accuracy 上超过恒定多数类基线（0.642 > 0.521），连续 R² 变为正信号（0.525），且留出 ROC-AUC 0.703 / PR-AUC 0.723 给出**中等**阈值无关排序判别力（相对随机基线 0.479 更有意义）。但正类 F1 仍低于 always-positive 比较器（0.608 < 0.641），故**分类证据混合、判别力中等而非强、仍不主张全市“分类技能”**。下一步仍缺：真正的 citywide 范围、观测事件降雨（当前合成常数导致 `PFI_h` 情景平坦）、FloodNet 留出验证。
 
 ---
 
@@ -341,7 +350,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 4. **自适应**由 trained `PFI_h` 驱动；  
 5. **语义澄清**：`PFI_h(c,r)` ≠ importance ≠ PFIb。
 
-证据强度仅支撑“协议可跑通 + 尺度损失可见 + 单元数可降”，**不支撑**“全市可部署事件响应系统”。分类判别力方面：小窗口（80% 正类）模型打不过多数类平凡基线；扩展窗口（`manhattan_expanded`，47.9% 正类，28 块）模型在 accuracy 上**超过**多数类基线（0.642 > 0.479）、连续 R² 跃升到 0.525，但 F1 仍低于平凡基线（0.608 < 0.648），故**判别力只算部分建立、仍不主张“分类技能”**。311 报告偏差、潮汐岸线水文代理、合成降雨、平坦情景 PFI、小样本块不均（小窗口仅 7 块分 5 折），是主要科学风险。
+证据强度仅支撑“协议可跑通 + 尺度损失可见 + 单元数可降”，**不支撑**“全市可部署事件响应系统”。分类方面：小窗口（80% 正类）模型打不过平凡基线（accuracy/F1 均低于恒判正基线）；扩展窗口（`manhattan_expanded`，47.9% 正类，28 块）模型在 accuracy 上**超过**恒定多数类（恒判负）基线（0.642 > 0.521），但正类 F1 仍低于 always-positive 比较器（0.608 < 0.641，折内均值）。留出阈值无关指标为**中等**：小窗口 pooled ROC-AUC 0.683 / PR-AUC 0.861（随机基线 0.801），扩展窗口 pooled ROC-AUC 0.703 / PR-AUC 0.723（随机基线 0.479）。故**分类证据混合、判别力中等而非强、仍不主张全市“分类技能”**。311 报告偏差、潮汐岸线水文代理、合成降雨、平坦情景 PFI、小样本块不均（小窗口仅 7 块分 5 折），是主要科学风险。
 
 独立 WebSearch（本轮）再次确认：Svellingen DOI 与 Jaccard≈0.14 / ~98% 效率叙述；spatial CV / GroupKFold 是 GeoAI 诚实评价的标准关切。ChatGPT 顾问若稍后回复，只合并**不冲突**建议；冲突时以 locked science 为准。
 
@@ -352,7 +361,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 1. 开放标签 H3+ML + 空间块 CV 已产生两个试点（LM smoke `n=141`、扩展窗口 `n=956`）的可引用元数据，以及四张 SciencePlots 主图（工作流 F1、空间 CV F2、Jaccard F3、自适应 F4）。  
 2. Jaccard 与自适应消融提供了与 PFIb 文献可**概念对话**、但不可**数值等同**的证据。  
 3. `PFI_h(c,r)` 定义已绑定；情景响应与 I2 观测降雨为下一步（待补充）。  
-4. **分类判别力部分建立、仍未主张“分类技能”**：小窗口 accuracy/F1（0.784/0.866）低于多数类平凡基线（0.808/0.893）；扩展窗口 accuracy 超过多数类基线（0.642 > 0.479）且连续 R²=0.525，但 F1（0.608）仍低于平凡基线（0.648）。失衡感知指标（ROC-AUC）待补充。  
+4. **分类证据混合、判别力中等而非强、仍不主张“分类技能”**：小窗口 accuracy/F1（0.784/0.866）低于多数类平凡基线（0.808/0.893）；扩展窗口 accuracy 超过恒定多数类（恒判负）基线（0.642 > 0.521）且连续 R²=0.525，但正类 F1（0.608）仍低于 always-positive 比较器（0.641，折内均值）。留出阈值无关指标（pooled）：小窗口 ROC-AUC 0.683 / PR-AUC 0.861（随机基线 0.801），扩展窗口 ROC-AUC 0.703 / PR-AUC 0.723（随机基线 0.479）——均为**中等**排序判别力，不升格为“强分类技能”。  
 5. 可主张创新点见 `docs/paper/innovation_and_framework.md` 的 I1–I5；拒绝 PFIb 复现、Jaccard 0.14 等同、LM→citywide、雷达降雨、平坦情景判别、以及“分类有技能”的表述。
 
 ---
@@ -368,7 +377,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 | 情景 PFI_h 单元内极差=0 | 锁定（待补充修复） |
 | FloodNet 默认关闭 | 锁定 |
 | Oslo / fixture ≠ science | 锁定 |
-| ROC-AUC 等失衡感知判别指标 | 待补充（尚未归档为 live 产物） |
+| ROC-AUC / PR-AUC 留出判别指标 | **完成**（`models/*/spatial_cv_oof_predictions.csv`；小窗口 `outputs/smoke_discrimination.json`；扩展窗口 `outputs/expanded_primary_table.json`） |
 | 工作流图 F1 schematic | **完成**（`docs/paper/figures/workflow_schematic.png`，SciencePlots + TNR） |
 | ChatGPT web-search 顾问回复 | 已收到 R6–R10 活体评审（2026-08-17 人工粘贴），正在合并 |
 | GitHub 远程仓库 | **已公开** https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3（勿重复 `gh repo create`；勿 force-push） |

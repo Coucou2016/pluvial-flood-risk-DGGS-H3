@@ -1,134 +1,108 @@
-# Beyond aggregating a building index: spatially honest pluvial flood learning and adaptive H3 screening with an explicit rainfall-conditioned cell index
+# Spatially blocked pluvial flood learning on the H3 grid: open labels, adaptive refinement, and a rainfall-conditioned cell index
 
-**Working manuscript (methods / IJDRR-shaped)**  
-**Status:** Matured draft constrained to live Lower Manhattan open-data pilot metrics. Incomplete items marked 待补充.  
-**Public code and documentation:** https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3
-
-**Terminology ledger**
-
-| Term | Canonical meaning |
-|------|-------------------|
-| H3 | Uber hexagonal Discrete Global Grid System |
-| Open labels | DEP stormwater polygons, 311 flooding points, USGS Ida HWM — not PFIb |
-| Spatial H3-block CV | GroupKFold holding out coarse H3 parent blocks |
-| `PFI_h(c,r)` | Model rainfall-conditioned flood probability/index for cell `c` under rainfall condition `r` |
-| PFIb | 7Analytics / Svellingen building-level pluvial flood index — **not used here** |
-| LM pilot | Lower Manhattan open-data pilot (`n_cells=141`) |
-| Expanded pilot | `manhattan_expanded` open-data pilot (`n_cells=956`), still not citywide |
+**Working manuscript (methods orientation, IJDRR-shaped).**
 
 ---
 
 ## Abstract
 
-Urban pluvial flood screening increasingly relies on machine learning and multi-resolution grids, yet many operational indices remain tied to proprietary insurance labels and evaluation protocols that ignore spatial leakage. Building on the H3 DGGS framing popularised for scalable pluvial mapping, we present an **open-label** hexagonal **learning protocol** for Manhattan pilots: multi-source public flood indicators are joined to H3 cells, gradient-boosting models are assessed with **H3-block spatial cross-validation**, scale-loss is quantified with a Jaccard/F1 hotspot ladder, and an **adaptive** refinement stage screens parents using trained cell scores. We define `PFI_h(c,r)` explicitly as a rainfall-conditioned hex flood probability/index — a model output, not feature importance and not the proprietary PFIb product. On the live open-data pilot table (`n=141` cells; open-data assembly), spatial CV accuracy was **0.784 ± 0.069** (5 folds) with mean F1 **0.866**, but the positive class dominates (80% of held-out cells), and a trivial always-positive majority baseline reaches **0.808** accuracy and **0.893** F1 — so these blocked metrics are **not** reported as classification skill; continuous-risk R² under the same folds was near zero (**0.030 ± 0.343**) and is likewise not claimed as skill. A second, larger open-data pilot (`manhattan_expanded`; `n=956` cells, 28 blocks, 47.9% positive) is more balanced: spatial CV accuracy **0.642 ± 0.148** exceeds the always-positive majority baseline (**0.479**), and continuous-risk R² is **0.525 ± 0.112**, while mean F1 (**0.608**) remains below the always-positive F1 (**0.648**) — so classification discrimination is still not claimed, but the model shows above-majority accuracy and non-trivial continuous signal at this larger scale. Adaptive refinement used about **57%** as many cells as a uniform R11 grid while refining high-score parents — a **cell-count** comparison only. We do **not** claim citywide skill, PFIb reproduction, radar rainfall, or rainfall-conditioned discrimination: event rainfall remains a synthetic constant hook, and scenario tables show **no within-cell `PFI_h` change across rainfall intensities** (待补充). Synthetic demonstrations are excluded from scientific evidence.
+Intense short-duration rainfall can overwhelm urban drainage and produce pluvial flooding with limited warning, and city-scale screening increasingly relies on machine learning and multi-resolution grids. Many operational indices, however, are tied to proprietary insurance labels and to evaluation protocols that ignore spatial leakage. This study presents an open-label machine-learning protocol for hexagonal pluvial flood screening on the H3 discrete global grid. Multi-source public flood indicators are joined to H3 cells, gradient-boosting classification and continuous-risk regression models are fitted, and performance is assessed with H3-block spatial cross-validation that withholds entire parent cells. The protocol also quantifies scale loss through a Jaccard/F1 hotspot ladder and screens parents for adaptive refinement using trained cell scores. The rainfall-conditioned hexagon index `PFI_h(c,r)` is defined as a model output—distinct from feature importance and from the proprietary building-level PFIb product. On a smaller Manhattan pilot (n = 141), spatial cross-validation accuracy is 0.784 ± 0.069 with F1 0.866, but the positive class dominates (80% prevalence) and a trivial always-positive classifier reaches 0.808 accuracy and 0.893 F1; out-of-fold ROC-AUC is 0.68 and average precision 0.86. On a larger pilot (n = 956, 47.9% positive), accuracy is 0.642 ± 0.148, exceeding both the always-positive (0.479) and the constant majority-class (0.521) baselines, with continuous-risk R² of 0.525 ± 0.112; out-of-fold ROC-AUC is 0.70 and average precision 0.72. Adaptive refinement uses approximately 57% as many cells as a uniform fine grid. The results demonstrate the protocol under the stated boundaries; they do not establish citywide skill or rainfall-conditioned discrimination, because event rainfall remains a synthetic constant and the scenario response is flat.
+
+**Keywords:** pluvial flood; H3; discrete global grid; spatial cross-validation; machine learning; flood susceptibility.
 
 ---
 
 ## 1 Introduction
 
-Intense short-duration rainfall can overwhelm urban drainage and generate pluvial flooding with limited warning. City-scale assessment needs representations that are (i) computationally scalable, (ii) updateable when new observations arrive, and (iii) evaluable without silent spatial leakage. Discrete Global Grid Systems (DGGS), and in particular Uber H3, provide nested hexagonal cells that support multi-resolution aggregation and neighbour queries.
+Extreme rainfall events are increasing in frequency and intensity, and pluvial flooding—the flooding that occurs when intense rain overwhelms urban drainage before it can enter watercourses—can develop rapidly and with limited warning (Rosenzweig et al., 2021). Assessing this risk at city scale requires representations that are computationally scalable, updateable as new observations arrive, and evaluable without silent spatial leakage.
 
-Svellingen et al. (2026) demonstrated that machine-learning-derived building-level pluvial susceptibility (PFIb) can be aggregated into H3 cells to reduce spatial query cost by roughly two orders of magnitude, while also showing that hotspot sets can diverge sharply across resolutions (Jaccard similarity ≈ 0.14 between fine street-level and coarser neighbourhood hotspots on their proprietary stack). That work motivates H3 as a communication and screening fabric, but its focus is the aggregation and communication of a proprietary index, not an open, spatially honest learning protocol for jurisdictions that cannot access insurance claims.
+Discrete Global Grid Systems (DGGS), and the hexagonal H3 system in particular, provide nested cells that support multi-resolution aggregation and neighbourhood queries. Svellingen et al. (2026) showed that a machine-learning building-level pluvial susceptibility index can be aggregated into H3 cells, reducing spatial query cost by roughly two orders of magnitude, and that hotspot sets can diverge sharply across resolutions (Jaccard similarity of about 0.14 between street-level and neighbourhood hotspots on their proprietary stack). That work establishes H3 as a communication and screening fabric, but it focuses on aggregating and communicating a proprietary index rather than on an open, spatially honest learning protocol for jurisdictions without access to insurance claims.
 
-This manuscript therefore asks: **can an open multi-source label stack on H3 support spatially blocked evaluation, diagnose scale-loss, and drive adaptive refinement with an explicit rainfall-conditioned cell index — without claiming PFIb reproduction?** We contribute a **methods protocol**, not a citywide operational product:
+This study addresses the following question: can an open, multi-source label stack on H3 support spatially blocked evaluation, diagnose scale loss, and drive adaptive refinement with an explicit rainfall-conditioned cell index, without claiming reproduction of any proprietary product? The contribution is a methods protocol rather than a citywide operational map, and consists of three parts. First, an open-label H3 feature and label assembly procedure with explicit provenance for assembly mode, feature source, label source, and rainfall source. Second, primary evaluation through spatial H3-block cross-validation, with random splits relegated to diagnostics and class-prevalence baselines disclosed alongside accuracy and F1. Third, a scale-loss Jaccard/F1 ladder and an adaptive H3 refinement stage screened by trained cell scores, together with a binding definition of `PFI_h(c,r)` that is neither feature importance nor PFIb.
 
-1. An open-label H3 feature/label assembly protocol with explicit provenance fields for assembly mode, feature source, label source, and rainfall source.
-2. Primary **blocked evaluation** reporting via spatial H3-block CV, with random splits demoted to diagnostics and class-prevalence baselines disclosed alongside accuracy/F1.
-3. A scale-loss Jaccard/F1 ladder and an adaptive H3 ablation screened by trained `PFI_h`, plus a binding definition of `PFI_h(c,r)` that is neither feature importance nor PFIb.
-
-Evidence is restricted to a Lower Manhattan open-data pilot (`n=141`). Claims of citywide skill, radar rainfall, PFIb parity, or rainfall-conditioned discrimination are out of scope until those gaps close (待补充).
-
----
+Throughout, `PFI_h(c,r)` denotes a rainfall-conditioned hexagon flood probability produced by the trained model; the symbol is reused from Svellingen et al. (2026), where it instead denotes an H3-aggregated building index, and the two quantities are not equivalent. Claims of citywide skill, radar-based rainfall, parity with PFIb, or rainfall-conditioned discrimination are outside the scope of the present evidence.
 
 ## 2 Related work
 
-**From building indices to hexagonal screening.** Escalating short-duration extremes have pushed operational risk assessment toward leaner, updateable representations. Svellingen et al. (2026, IJDRR) show that a machine-learning building-level pluvial susceptibility index (PFIb) can be aggregated into H3 cells, cutting geometry-heavy spatial query cost by roughly two orders of magnitude (~98% in their report) while exposing a clear resolution trade-off: fine street-level hotspots are largely invisible at coarser neighbourhood grids (Jaccard ≈ 0.14 between their R13 and R10 hotspot sets). A related SSRN preprint develops the same H3 indexing narrative (Svellingen et al., SSRN). That line of work establishes H3 as a scalable communication fabric for proprietary indices; its stated focus is aggregation and communication rather than open-label learning or spatially blocked evaluation for jurisdictions without insurance claims. We therefore treat PFIb→H3 aggregation as the closest precedent and as an explicit claim boundary (no PFIb reproduction; no numerical equality to their Jaccard). Note also that Svellingen et al. reuse the symbol `PFI_h` for their H3-aggregated PFIb; in this manuscript `PFI_h(c,r)` denotes a separately defined rainfall-conditioned model probability/index and is **not** derived from PFIb.
+**From building indices to hexagonal screening.** Svellingen et al. (2026, IJDRR) aggregate a machine-learning building-level pluvial susceptibility index (PFIb) into H3 cells, reducing geometry-heavy spatial query cost by roughly two orders of magnitude while exposing a resolution trade-off: fine street-level hotspots are largely invisible at coarser neighbourhood grids (Jaccard about 0.14 between their fine and intermediate hotspot sets). A related preprint develops the same H3 indexing narrative (Svellingen et al., SSRN). This line of work treats H3 as a scalable communication fabric for proprietary indices; its focus is aggregation and communication rather than open-label learning or spatially blocked evaluation. It is therefore the closest precedent and an explicit boundary for the present study, which does not reproduce PFIb and does not equate its own Jaccard values to theirs.
 
-**Hexagonal DGGS as analysis substrate.** Independently of insurance labels, Li et al. (2022) use an ISEA3H hexagonal DGGS for multi-scale flood mapping under climate scenarios, emphasising resolution-consistent predictors. Their contribution supports DGGS nesting as a scientific substrate. Our focus differs: an Uber H3 **learning and evaluation protocol** on open urban flood indicators, not climate-scenario inundation mapping alone.
+**Hexagonal DGGS as an analysis substrate.** Independently of insurance labels, Li et al. (2022) use an ISEA3H hexagonal DGGS for multi-scale flood mapping under climate scenarios, emphasising resolution-consistent predictors. Their contribution supports DGGS nesting as a scientific substrate. The present study differs in its emphasis on an H3 learning and evaluation protocol for open urban flood indicators rather than on climate-scenario inundation mapping.
 
-**Spatial holdouts in GeoAI.** Random train/test splits routinely inflate skill under spatial autocorrelation. Sun, Hu, Lakhanpal & Zhou (2023) establish the rationale for spatially separated validation in geospatial machine learning; this study operationalises that rationale with `GroupKFold` over coarse H3 parent IDs, so that entire parent blocks are withheld and primary reporting aligns with leakage-aware practice rather than treating random accuracy as the headline metric.
+**Spatial holdouts in GeoAI.** Random train/test splits routinely inflate skill under spatial autocorrelation. Sun et al. (2023) establish the rationale for spatially separated validation in geospatial machine learning. This study operationalises that rationale with `GroupKFold` over coarse H3 parent identifiers, so that entire parent blocks are withheld and primary reporting aligns with leakage-aware practice rather than treating random accuracy as the headline metric.
 
-**Urban pluvial ML susceptibility.** City-scale studies map susceptibility from DEM, land cover, and drainage proxies with classical ML (e.g. Bersabe & Jun, 2025, Seoul). The present study combines open multi-source labels, H3 nesting, adaptive refinement screened by trained scores, and an explicit rainfall-conditioned cell index in one reproducible pipeline with blocked CV as the primary evaluation. That combination — and the honesty constraints that follow from a small open-data pilot — is the gap this manuscript addresses.
+**Urban pluvial machine-learning susceptibility.** City-scale studies map susceptibility from digital elevation models, land cover, and drainage proxies with classical machine learning (e.g., Bersabe & Jun, 2025, Seoul). The present study combines open multi-source labels, H3 nesting, adaptive refinement screened by trained scores, and an explicit rainfall-conditioned cell index in a single reproducible pipeline with blocked cross-validation as the primary evaluation.
 
-**Honest novelty (one paragraph).** Relative to PFIb→H3 aggregation papers, we do not improve or reproduce a proprietary building index; we ask whether public flood indicators can support spatially blocked learning on H3. Relative to hexagonal DGGS flood mapping, we emphasise evaluation protocol and adaptive screening rather than scenario inundation alone. Relative to urban pluvial ML susceptibility maps, we add H3-block CV as the primary **blocked evaluation** report, an open-label scale-loss ladder, adaptive cell-count diagnostics, and a binding non-PFIb definition of `PFI_h(c,r)` — while refusing citywide, radar, and rainfall-discrimination claims until stronger evidence exists.
-
----
+Relative to the PFIb-to-H3 aggregation papers, this work does not improve or reproduce a proprietary building index; it asks whether public flood indicators can support spatially blocked learning on H3. Relative to hexagonal DGGS flood mapping, it emphasises evaluation protocol and adaptive screening rather than scenario inundation alone. Relative to urban pluvial susceptibility maps, it adds H3-block cross-validation as the primary evaluation, an open-label scale-loss ladder, adaptive cell-count diagnostics, and a binding non-PFIb definition of `PFI_h(c,r)`, while withholding citywide, radar, and rainfall-discrimination claims until stronger evidence exists.
 
 ## 3 Study area and data
 
-**Extent.** Lower Manhattan bounding box (approx. 74.02–73.97°W, 40.70–40.76°N), as documented in the public repository configuration and download manifest. This is a **pilot extent**, not citywide New York City.
+**Extent.** Two Manhattan pilot extents are used. The smaller is a Lower Manhattan bounding box (approximately 74.02–73.97°W, 40.70–40.76°N); the larger (`manhattan_expanded`) extends northward to approximately 74.03–73.94°W, 40.68–40.80°N. Both are pilot extents within New York City, not a citywide extent.
 
-**Live layers (open downloads, August 2026).** DEM (USGS 3DEP subset), DEP stormwater flood polygons, building footprints, USGS Ida high-water marks, 311 flooding points (ArcGIS/CDN mirrors), FEMA Sandy inundation (negative control only), NLCD impervious fraction, NHDPlus HR hydro vectors (`dist_stream_m` as a **distance-to-water** proxy in a tidal/shoreline setting). FloodNet is stub/opt-in. Event rainfall is a **synthetic constant** Ida-like hook, not radar.
+**Layers.** The following open layers were downloaded in August 2026: a digital elevation model (USGS 3DEP subset); DEP stormwater flood polygons; building footprints; USGS Hurricane Ida high-water marks; NYC 311 flooding points (ArcGIS/CDN mirrors); FEMA Sandy storm-surge inundation (negative control only); NLCD impervious fraction; and NHDPlus HR hydrography, from which `dist_stream_m` is derived as a distance-to-water proxy in a tidal and shoreline setting. FloodNet sensor data are available only as a stub and are not used. Event rainfall is a synthetic constant Ida-like hook rather than radar or gauge data.
 
-**Data sources.** Elevation is from the USGS 3D Elevation Program (3DEP); impervious fraction from the Multi-Resolution Land Characteristics Consortium National Land Cover Database (NLCD); hydrography (`dist_stream_m`) from NHDPlus High Resolution; flood labels from the New York City Department of Environmental Protection stormwater flood polygons, NYC 311 flooding service requests, and USGS Hurricane Ida high-water marks; the negative control from FEMA Sandy storm-surge inundation. Provider/access citations are listed in References; version and download dates are recorded in the repository download manifest.
-
-**Provenance.** Training table assembly reports open-data assembly with observed static features; rainfall may still carry an event-raster provenance tag rather than gauge/radar observation.
-
----
+**Data sources.** Elevation is from the USGS 3D Elevation Program; impervious fraction from the National Land Cover Database; hydrography from NHDPlus High Resolution; flood labels from the New York City Department of Environmental Protection stormwater flood polygons, NYC 311 flooding service requests, and USGS Hurricane Ida high-water marks; and the negative control from FEMA Sandy storm-surge inundation. Version and download dates are recorded in the repository download manifest. The assembly is open-data; rainfall may carry an event-raster provenance tag rather than a gauge or radar observation.
 
 ## 4 Methods
 
 ### 4.1 H3 representation
 
-Training uses H3 resolution **R9** (configurable). Scale-loss diagnostics assemble labels at fine resolution **R10** and roll hotspots to parents R9/R8. Adaptive refinement expands selected parents to **R11**. Joins use EPSG:4326.
+Training uses H3 resolution 9, configurable. Scale-loss diagnostics assemble labels at fine resolution 10 and roll hotspots to parent resolutions 9 and 8. Adaptive refinement expands selected parents to resolution 11. All joins use EPSG:4326.
 
 ### 4.2 Features and open labels
 
-Static predictors: elevation, slope, flow-accumulation proxy, impervious fraction, urban land-cover flag, building density, distance-to-water. Rainfall enters as rainfall intensity for scenario conditioning; observed static columns are tracked separately from rainfall so a constant synthetic grid is not marketed as radar.
+Static predictors are elevation, slope, a flow-accumulation proxy, impervious fraction, an urban land-cover flag, building density, and distance-to-water. Rainfall enters as rainfall intensity for scenario conditioning; observed static columns are tracked separately from rainfall so that a constant synthetic grid is not presented as radar.
 
-Labels combine DEP polygon area fractions with 311 / Ida point counts into flood-risk / flood-class targets as **observed flood labels** (not ground truth). We do not use PFIb. FloodNet joins only when explicitly enabled and a non-empty layer exists.
+Labels combine DEP polygon area fractions with 311 and Ida point counts into flood-risk and flood-class targets. These are observed flood labels, not ground-truth inundation, and PFIb is not used. FloodNet joins only when explicitly enabled and a non-empty layer exists.
 
 ### 4.3 Models and baselines
 
-Primary learner: gradient-boosting classifier + continuous risk regressor. Baselines: L2 logistic / linear, and an elevation–impervious–slope–TWI-like ponding rule. In-sample metrics are optimistic references only.
+The primary learner is a gradient-boosting classifier with a continuous-risk regressor. Baselines are an L2-regularised logistic (or linear) model and an elevation–impervious–slope ponding rule. In-sample metrics are treated as optimistic references only. In addition, two constant classifiers—always-positive and always-negative—are computed on each held-out fold so that accuracy and F1 are never reported without a class-prevalence comparison; the constant majority-class classifier is derived from the pooled class count.
 
 ### 4.4 Spatial H3-block cross-validation
 
-Cells are grouped by coarse H3 parents; GroupKFold holds out entire blocks. Per-fold metrics are archived with the pilot run. Random i.i.d. splits are not primary.
+Cells are grouped by coarse H3 parents, and `GroupKFold` withholds entire blocks. Per-fold metrics are archived with each pilot run. For each held-out cell, the predicted class probability is retained, so that threshold-independent discrimination metrics (ROC-AUC and average precision, or PR-AUC) can be computed from out-of-fold predictions. Random independent splits are computed but are not primary.
 
 ### 4.5 Scale-loss diagnostics
 
-Fine-resolution hotspot sets (top quantile of risk) are compared to parent-aggregated hotspots via Jaccard and F1 for mean/max/p90 rollups. Numeric values are **not** equated to Svellingen et al.’s PFIb Jaccard ≈ 0.14.
+Fine-resolution hotspot sets (the top quantile of risk) are compared with parent-aggregated hotspots using Jaccard similarity and F1 under mean, maximum, and p90 rollups. These values are not equated to Svellingen et al.'s PFIb Jaccard of 0.14.
 
 ### 4.6 Adaptive refinement
 
-After training, cell scores (`PFI_h` / flood probability) screen parents for refinement. Metrics: mixed-resolution cell counts versus fixed coarse and versus uniform fine (adaptive/uniform cell-count ratio). The pilot uses trained `PFI_h` as the screening score.
+After training, cell scores screen parents for refinement. The metrics are mixed-resolution cell counts relative to a fixed coarse grid and a uniform fine grid, expressed as an adaptive-to-uniform cell-count ratio. The pilot uses the trained `PFI_h` as the screening score.
 
-### 4.7 Event-conditioned `PFI_h(c,r)`
+### 4.7 Rainfall-conditioned index
+
+The cell index is defined as
 
 \[
-\mathrm{PFI}_h(c,r)=\widehat{P}(Y_c=1\mid X_c,r)
+\mathrm{PFI}_h(c,r)=\widehat{P}(Y_c=1\mid X_c,r),
 \]
 
-Static features \(X_c\) are held fixed while rainfall condition \(r\) varies across named scenarios. This is a **model output**, not SHAP/permutation importance and not PFIb.
+where static features \(X_c\) are held fixed while the rainfall condition \(r\) varies across named scenarios. This is a model output, not a SHAP or permutation importance, and not PFIb. Because the training rainfall is currently a constant, the model has not observed rainfall variation and `PFI_h(c,r)` cannot yet respond to it; the definition remains binding for future runs with observed rainfall.
 
 ### 4.8 Negative control
 
-FEMA Sandy coastal inundation overlaps are reported for separation checks only and are never training labels.
+FEMA Sandy coastal inundation overlaps are reported for separation checks only and are never used as training labels.
 
----
-
-## 5 Experiments
+## 5 Experimental design
 
 | ID | Description | Role |
 |----|-------------|------|
-| E1 | Assemble open LM table | Feature/label table for the pilot bbox |
-| E2 | Spatial CV | Primary blocked accuracy / F1 |
-| E3 | Baselines | Diagnostic comparison |
+| E1 | Assemble the open Lower Manhattan table | Feature/label table for the pilot bbox |
+| E2 | Spatial cross-validation | Primary blocked accuracy / F1 and out-of-fold discrimination |
+| E3 | Baselines | Diagnostic comparison against constant and parametric classifiers |
 | E4 | Jaccard ladder | Scale-loss hotspot similarity |
-| E5 | Adaptive + ablation | Cell-count comparison vs uniform fine |
+| E5 | Adaptive refinement and ablation | Cell-count comparison against uniform fine |
 | E6 | Rainfall scenarios | Within-cell `PFI_h` response across intensities |
 | E7 | Sandy negative control | Coastal overlap checks (not training) |
 
-Reproducible tables and figures are released with the public repository; process detail lives in the companion research report.
-
----
+Reproducible tables and figures are released with the public repository; process detail is documented in the accompanying research report.
 
 ## 6 Results
 
-All numbers below are copied from the live Lower Manhattan open-data pilot (`n_cells=141`). They do **not** describe citywide performance.
+All figures are computed from the two Manhattan pilots and do not describe citywide performance.
 
-### 6.1 Spatial H3-block CV (primary blocked evaluation)
+### 6.1 Spatial H3-block cross-validation
 
 | Metric | Value |
 |--------|-------|
@@ -143,10 +117,13 @@ All numbers below are copied from the live Lower Manhattan open-data pilot (`n_c
 | positive-class prevalence (held-out) | 0.801 |
 | always-positive (majority) baseline accuracy | 0.808 |
 | always-positive (majority) baseline F1 | 0.893 |
+| always-negative baseline accuracy | 0.192 |
+| spatial_cv_roc_auc_pooled | 0.683 |
+| spatial_cv_pr_auc_pooled | 0.861 |
 
 Per-fold accuracy/F1: Fold0 0.755 / 0.850; Fold1 0.760 / 0.850; Fold2 0.773 / 0.872; Fold3 0.714 / 0.813; Fold4 0.917 / 0.944.
 
-**Reading.** The held-out labels are highly imbalanced (80.1% positive). A trivial always-positive majority classifier would reach mean accuracy **0.808** and mean F1 **0.893** across the same folds, which **exceeds** the model's **0.784** accuracy and **0.866** F1. Spatial blocking makes the evaluation design more defensible but does **not** by itself establish discrimination; these blocked metrics are therefore reported as a fit-and-evaluate check on the protocol, **not** as classification skill. Fold4 accuracy (0.917) coincides with a small test set (`n_test=24`, two blocks) and must not be cherry-picked. Continuous-risk R² (0.030 ± 0.343) is weak and is reported only for completeness. Random-split accuracy (0.690) remains diagnostic only and is **not** the primary claim. A class-imbalance-aware ranking metric (ROC-AUC) is the more appropriate discrimination summary and is listed as a follow-up (待补充).
+The held-out labels are highly imbalanced (80.1% positive). A trivial always-positive classifier would reach mean accuracy 0.808 and mean F1 0.893 across the same folds, which exceeds the model's 0.784 accuracy and 0.866 F1. Spatial blocking makes the evaluation design more defensible but does not by itself establish discrimination. The threshold-independent out-of-fold metrics are moderate: pooled ROC-AUC is 0.683 and pooled average precision is 0.861, the latter only slightly above the 0.801 prevalence baseline for a random ranker. Fold4 accuracy (0.917) coincides with a small test set (n = 24, two blocks) and is not interpreted in isolation. Continuous-risk R² (0.030 ± 0.343) is weak and reported for completeness. Random-split accuracy (0.690) remains diagnostic only.
 
 ### 6.2 Scale-loss Jaccard ladder (open labels)
 
@@ -161,9 +138,9 @@ Fine resolution R10, hotspot quantile 0.9:
 | 9 | max | 1.000 | 1.000 |
 | 9 | p90 | 0.977 | 0.988 |
 
-**Reading.** Under mean aggregation, parent rollup at R8 yields Jaccard **0.167** with fine R10 hotspot parents, which is **consistent with** strong scale smoothing on this open-label stack. Max/p90 retain extrema by construction (Jaccard 1.0 at R8) and therefore should not be narrated as “no scale loss.” These diagnostics are **not** a reproduction of Svellingen et al.’s PFIb Jaccard ≈ 0.14 (different labels, resolutions, and hotspot definitions).
+Under mean aggregation, parent rollup at R8 yields Jaccard 0.167 with fine R10 hotspot parents, consistent with strong scale smoothing on this open-label stack. Maximum and p90 aggregations retain extrema by construction and therefore should not be read as "no scale loss". These diagnostics do not reproduce Svellingen et al.'s PFIb Jaccard of 0.14, which uses different labels, resolutions, and hotspot definitions.
 
-### 6.3 Adaptive vs fixed / uniform fine
+### 6.3 Adaptive versus fixed and uniform fine grids
 
 | Field | Value |
 |-------|-------|
@@ -175,19 +152,17 @@ Fine resolution R10, hotspot quantile 0.9:
 | n_parents_refined | 79 |
 | score_quantile | 0.8 |
 
-Adaptive mixed grids use about **57%** as many cells as a **uniform R11** grid (3933 vs 6909) while refining 79/141 coarse parents; relative to the **fixed R9** baseline the mixed grid uses about **27.9×** more cells (3933 vs 141). This statement concerns **cell counts only**. We do **not** report wall-clock runtime, memory, or city-scale cost savings from this pilot.
+Adaptive mixed grids use about 57% as many cells as a uniform R11 grid (3933 versus 6909) while refining 79 of 141 coarse parents. Relative to the fixed R9 baseline the mixed grid uses about 27.9 times more cells (3933 versus 141). This statement concerns cell counts only; wall-clock runtime, memory, and city-scale cost are not reported.
 
-### 6.4 Rainfall scenarios (`PFI_h`)
+### 6.4 Rainfall scenarios
 
-141 cells × scenarios {moderate 25, heavy 40, ida_like 75, extreme 100 mm/h}; rainfall provenance remains event-raster (synthetic constant hook); assembly is open-data.  
-**Observed:** mean `PFI_h` ≈ **0.802888** for every scenario; **within-cell range across scenarios = 0**.  
-**Interpretation:** the current pilot does **not** demonstrate rainfall-conditioned discrimination. The scenario loop is correct (only `rainfall_mm_h` varies); the flat response is explained by **constant training rainfall** — all 141 training cells carry `rainfall_mm_h = 75` from the synthetic constant event-raster hook, so rainfall has zero training variance and a classifier feature importance of **0.0**. The model has never observed rainfall variation, so `PFI_h` cannot respond to it. Non-zero response requires ingested observed event rainfall (multi-intensity, non-synthetic provenance) and retraining; definition of `PFI_h(c,r)` remains binding for future runs.
+The scenario loop covers 141 cells across {moderate 25, heavy 40, ida_like 75, extreme 100 mm/h}; rainfall provenance remains an event-raster synthetic constant hook. The mean `PFI_h` is about 0.803 for every scenario, and the within-cell range across scenarios is 0. The current pilot therefore does not demonstrate rainfall-conditioned discrimination. The loop is correct (only `rainfall_mm_h` varies); the flat response follows from constant training rainfall, because all training cells carry `rainfall_mm_h = 75` from the synthetic hook, so rainfall has zero training variance and a feature importance of 0. A non-zero response requires ingested observed event rainfall with multi-intensity, non-synthetic provenance and retraining.
 
 ### 6.5 Sandy negative control
 
-Open-data assembly: n_cells=141; n_coastal=31; n_pluvial=71; n_both=23; n_coastal_only=8; frac_coastal_only≈0.057; pluvial_minus_coastal_mean_score≈0.120. Coastal overlay is **not** a training label.
+Open-data assembly: n_cells = 141; n_coastal = 31; n_pluvial = 71; n_both = 23; n_coastal_only = 8; frac_coastal_only ≈ 0.057; pluvial-minus-coastal mean score ≈ 0.120. Coastal overlap is not a training label.
 
-### 6.6 Expanded open-data pilot (`manhattan_expanded`)
+### 6.6 Expanded open-data pilot
 
 | Metric | Value |
 |--------|-------|
@@ -200,56 +175,56 @@ Open-data assembly: n_cells=141; n_coastal=31; n_pluvial=71; n_both=23; n_coasta
 | spatial_cv_mae_mean | 0.112 |
 | random_split_val_accuracy (diagnostic only) | 0.667 |
 | positive-class prevalence (held-out) | 0.479 |
-| always-positive (majority) baseline accuracy | 0.479 |
-| always-positive (majority) baseline F1 | 0.648 |
+| always-positive baseline accuracy | 0.479 |
+| always-positive baseline F1 (fold-mean) | 0.641 |
+| constant majority-class (always-negative) baseline accuracy | 0.521 |
+| constant majority-class (always-negative) baseline F1 | 0.000 |
+| spatial_cv_roc_auc_pooled | 0.703 |
+| spatial_cv_pr_auc_pooled | 0.723 |
 
 Per-fold accuracy/F1: Fold0 0.801 / 0.832; Fold1 0.419 / 0.442; Fold2 0.759 / 0.736; Fold3 0.516 / 0.343; Fold4 0.715 / 0.689.
 
-**Reading.** The expanded extent (`manhattan_expanded`, ≈0.09° × 0.12°) is a second, larger open-data pilot (956 cells over 28 blocks), still **not** citywide. Its held-out labels are near-even (47.9% positive), in contrast to the 80% prevalence of the smaller Lower Manhattan table. Under the same H3-block protocol, the model's spatial CV accuracy **0.642 ± 0.148** exceeds the always-positive majority baseline (**0.479**), and continuous-risk R² (**0.525 ± 0.112**) is substantially higher than the smaller pilot's near-zero value, indicating non-trivial continuous signal at this scale. Mean F1 (**0.608**) nevertheless remains below the always-positive F1 (**0.648**), so classification discrimination in F1 terms is **not** claimed; the per-fold spread (accuracy 0.419–0.801; F1 0.343–0.832) reflects folds whose held-out blocks are majority-negative (Fold1, Fold3) versus majority-positive (Fold0, Fold4). This is reported as a robustness check on the protocol, not as citywide skill.
-
----
+The expanded extent is a second, larger open-data pilot (956 cells over 28 blocks), still not citywide. Its held-out labels are near-even (47.9% positive), in contrast to the 80% prevalence of the smaller table. Under the same H3-block protocol, spatial cross-validation accuracy is 0.642 ± 0.148, exceeding both the always-positive baseline (0.479) and the constant majority-class baseline (0.521). Out-of-fold discrimination is moderate: pooled ROC-AUC is 0.703 and pooled average precision is 0.723, the latter clearly above the 0.479 prevalence baseline. Mean F1 (0.608) nevertheless remains below the fold-mean always-positive F1 (0.641). The per-fold spread (accuracy 0.419–0.801; F1 0.343–0.832) coincides with heterogeneous held-out class composition—Fold1 and Fold3 are majority-negative, Fold0 and Fold4 are majority-positive, and Fold2 is nearly balanced (97/94)—and is not attributed to prevalence without further analysis. Continuous-risk R² (0.525 ± 0.112) is a positive blocked signal at this scale. This is reported as a robustness check on the protocol, not as citywide skill.
 
 ## 7 Discussion
 
-### 7.1 Implications under stated boundaries
+### 7.1 Interpretation under the stated boundaries
 
-The Manhattan pilots **indicate** that an open-label H3 table can be trained and evaluated with blocked CV, that mean rollups substantially alter fine-hotspot membership (scale-loss), and that trained-score adaptive refinement reduces uniform-fine **cell count**. These results demonstrate execution of the protocol under the stated pilot design; they do **not** establish product-ready city maps or rainfall-responsive screening under the current synthetic rainfall hook. On classification discrimination the two pilots differ: the smaller table does **not** beat its majority-class baseline, while the expanded table beats it on **accuracy** (0.642 vs 0.479) but **not** on F1 (0.608 vs 0.648), so discrimination remains only partially evidenced and is not claimed as skill.
+The two pilots indicate that an open-label H3 table can be assembled, trained, and evaluated with blocked cross-validation; that mean rollups substantially alter fine-hotspot membership; and that trained-score adaptive refinement reduces uniform-fine cell count. These results demonstrate execution of the protocol under the stated pilot design; they do not establish product-ready city maps or rainfall-responsive screening under the current synthetic rainfall hook. On classification, the two pilots differ. The smaller table does not beat its constant-class baselines on accuracy or F1, whereas the expanded table beats the constant majority-class baseline on accuracy (0.642 versus 0.521) but not on F1 against the always-positive comparator (0.608 versus 0.641). Out-of-fold ROC-AUC and average precision are moderate in both pilots (pooled ROC-AUC 0.68 and 0.70; pooled PR-AUC 0.86 and 0.72), indicating some threshold-independent ranking discrimination that is stronger, relative to its prevalence baseline, in the more balanced expanded extent. Positive-class F1 nevertheless remains below the always-positive comparator in both pilots, so the discrimination evidence is treated as moderate rather than strong, and no citywide classification skill is claimed.
 
-Relative to Svellingen et al. (2026), the dialogue is conceptual: they aggregate a proprietary building index (PFIb) into H3 for scalable communication; we learn on public labels with spatial holdouts and an explicit non-PFIb `PFI_h(c,r)`. Our open-label Jaccard under mean aggregation R10→R8 (0.167) should **not** be narrated as matching their PFIb Jaccard ≈ 0.14 — different labels, resolutions, and hotspot definitions. Proximity of 0.167 to 0.14 is coincidental and must not be used as validation.
+Relative to Svellingen et al. (2026), the comparison is conceptual: they aggregate a proprietary building index into H3 for scalable communication, whereas this study learns on public labels with spatial holdouts and an explicit non-PFIb `PFI_h(c,r)`. The open-label Jaccard of 0.167 under mean aggregation (R10 to R8) is not narrated as matching their PFIb Jaccard of 0.14; the proximity is coincidental, given the different labels, resolutions, and hotspot definitions.
 
 ### 7.2 Limitations
 
-1. **Spatial extent.** Results use two Manhattan pilots — Lower Manhattan (`n=141` cells) and an expanded extent (`n=956` cells) — neither of which is citywide New York City.
-2. **Label bias.** 311 and related open indicators reflect reporting and mapping processes, not complete ground truth.
-3. **Hydro proxy.** Distance-to-water from NHDPlus in a tidal/shoreline setting is a proxy, not inland drainage density.
-4. **Rainfall provenance.** Event rainfall remains a synthetic constant hook; gauge/radar event ingest is 待补充.
-5. **Flat `PFI_h(c,r)`.** Within-cell range across rainfall scenarios is currently **0**; rainfall-conditioned discrimination is not demonstrated.
-6. **Class imbalance / no demonstrated discrimination.** The smaller pilot is highly imbalanced (80% positive); its accuracy and positive-class F1 fall **below** an always-positive majority baseline (0.808 / 0.893 vs model 0.784 / 0.866). The expanded pilot is near-even (47.9% positive) and beats the majority baseline on accuracy (0.642 vs 0.479) but **not** on F1 (0.608 vs 0.648). Classification discrimination is therefore only partially evidenced and is **not** claimed as skill; a class-imbalance-aware ranking metric (ROC-AUC) should be reported once archived.
-7. **Small blocked design.** The smaller pilot distributes only 7 H3 blocks over 5 folds (per-fold test 21–49, some folds a single block); the expanded pilot uses 28 blocks (per-fold test 190–193), which is more defensible but still a limited, non-citywide design.
-8. **Continuous skill.** Spatial-CV R² is near zero in the smaller pilot (0.030) and moderate in the expanded pilot (0.525); the latter is reported as a scale-sensitive signal, not as citywide predictive skill.
+1. **Spatial extent.** Results use two Manhattan pilots—Lower Manhattan (n = 141) and an expanded extent (n = 956)—neither of which is citywide New York City.
+2. **Label bias.** 311 and related open indicators reflect reporting and mapping processes, not complete ground-truth inundation.
+3. **Hydrographic proxy.** Distance-to-water from NHDPlus in a tidal and shoreline setting is a proxy, not inland drainage density.
+4. **Rainfall provenance.** Event rainfall remains a synthetic constant hook; gauge or radar event ingestion is not yet implemented.
+5. **Flat rainfall response.** The within-cell range of `PFI_h` across rainfall scenarios is currently 0; rainfall-conditioned discrimination is not demonstrated.
+6. **Class imbalance and discrimination.** The smaller pilot is highly imbalanced (80% positive), and its accuracy and positive-class F1 fall below the always-positive majority baseline (0.808 / 0.893 versus 0.784 / 0.866). The expanded pilot is near-even and beats the constant majority-class baseline on accuracy (0.642 versus 0.521) but not on F1 against the always-positive comparator (0.608 versus 0.641). Out-of-fold ROC-AUC and PR-AUC are moderate in both pilots, so discrimination is supported at a modest level but is not claimed as strong skill.
+7. **Small blocked design.** The smaller pilot distributes only seven H3 blocks over five folds (per-fold test 21–49, some folds a single block); the expanded pilot uses 28 blocks (per-fold test 190–193), which is more defensible but still a limited, non-citywide design.
+8. **Continuous skill.** Spatial cross-validation R² is near zero in the smaller pilot (0.030) and moderate in the expanded pilot (0.525); the latter is reported as a scale-sensitive signal, not as citywide predictive skill.
 9. **Held-out sensors.** FloodNet validation is unavailable under the default stub/opt-in path.
 
-Random-split accuracy must not displace spatial CV in claims. Fold-level variance (including Fold4 on `n_test=24` in the smaller pilot) further warns against over-interpreting a single pilot run.
+Random-split accuracy must not displace spatial cross-validation in claims. Fold-level variance (including Fold4 on n = 24 in the smaller pilot) further cautions against over-interpreting a single pilot run.
 
-### 7.3 Completion criteria
+### 7.3 Outstanding steps
 
-(i) ingest observed event rainfall with non-synthetic provenance; (ii) non-flat scenarios — within-cell `PFI_h` range > 0 across rainfall intensities on the same static \(X_c\); (iii) citywide (or larger) profile with the same spatial CV protocol — the expanded `manhattan_expanded` pilot (`n=956`) is now archived, but a full citywide run remains 待补充; (iv) FloodNet held-out validation when a non-empty layer exists.
-
----
+Future work should (i) ingest observed event rainfall with non-synthetic provenance; (ii) produce non-flat scenarios, that is, a within-cell `PFI_h` range greater than zero across rainfall intensities on the same static features; (iii) extend to a citywide or larger profile under the same spatial cross-validation protocol; and (iv) perform FloodNet held-out validation when a non-empty sensor layer is available.
 
 ## 8 Conclusions
 
-We present a reproducible open-label H3+ML **protocol** — spatial block CV, scale-loss diagnostics, adaptive cell-count refinement, and an explicit non-PFIb `PFI_h(c,r)` definition — evaluated on two Manhattan open-data pilots. Live metrics demonstrate execution of the protocol under the stated boundaries; they do not establish citywide operational skill. The smaller pilot does not beat a majority-class baseline; the expanded pilot beats it on accuracy but not F1 and shows moderate continuous R², so classification discrimination remains only partially evidenced. Observed event rainfall, non-degenerate rainfall response, a full citywide extent, class-imbalance-aware discrimination metrics, and FloodNet validation remain 待补充.
+This study presents a reproducible open-label H3 and machine-learning protocol—spatial block cross-validation, scale-loss diagnostics, adaptive cell-count refinement, and an explicit non-PFIb `PFI_h(c,r)` definition—evaluated on two Manhattan open-data pilots. The live metrics demonstrate execution of the protocol under the stated boundaries but do not establish citywide operational skill. Out-of-fold ROC-AUC and average precision indicate moderate ranking discrimination, stronger relative to chance in the more balanced expanded extent, while positive-class F1 remains below the always-positive comparator in both pilots. Observed event rainfall, a non-degenerate rainfall response, a full citywide extent, and FloodNet validation remain to be addressed.
 
 ---
 
 ## Figure captions
 
-**Figure 1. Open-label H3 pluvial flood learning protocol (workflow).** Conceptual pipeline: (1) open multi-source inputs — open flood labels (DEP stormwater polygons, 311 flooding points, USGS Ida high-water marks), static predictors (elevation, slope, impervious fraction, building density, distance-to-water), a rainfall condition `r` (a synthetic constant hook in this pilot, not radar), and a FEMA Sandy negative control that is never a training label; (2) H3 assembly at R9 with provenance tags (`assembly_mode`, `feature_source`, `label_source`, `rainfall_source`); (3) learning and blocked evaluation — a gradient-boosting classifier with continuous risk regressor, H3-block `GroupKFold` spatial cross-validation as the primary blocked evaluation, a disclosed majority-class baseline, and logistic/ponding-rule baselines; (4) diagnostics and outputs — the rainfall-conditioned `PFI_h(c,r)` index, a scale-loss Jaccard ladder (R10→R9/R8), adaptive refinement screened by trained `PFI_h` (→R11), and a Sandy negative-control check.
+**Figure 1. Open-label H3 pluvial flood learning protocol (workflow).** Conceptual pipeline. (1) Open multi-source inputs: flood labels (DEP stormwater polygons, 311 flooding points, USGS Ida high-water marks), static predictors (elevation, slope, impervious fraction, building density, distance-to-water), and a rainfall condition `r` (a synthetic constant hook in this pilot, not radar). (2) H3 assembly at R9 with provenance tags (`assembly_mode`, `feature_source`, `label_source`, `rainfall_source`). (3) Learning and blocked evaluation: a gradient-boosting classifier with a continuous-risk regressor, H3-block `GroupKFold` spatial cross-validation as the primary blocked evaluation, constant-class baselines (always-positive and always-negative), and logistic/ponding-rule baselines. (4) Diagnostics and outputs: the rainfall-conditioned `PFI_h(c,r)` index (a definition/interface in this pilot, with currently flat scenario response), a scale-loss Jaccard ladder (R10 to R9/R8), adaptive refinement screened by trained `PFI_h` (to R11), and a Sandy negative-control check. The FEMA Sandy layer is a dashed side-channel that bypasses learning and enters only the negative-control diagnostic; it is never a training label.
 
-**Figure 2. Spatial H3-block cross-validation fold metrics.** Per-fold classification accuracy and F1 on the Lower Manhattan pilot (`n=141` cells; 5 folds; 7 blocks). Primary reporting uses the mean ± standard deviation across folds; individual high folds (e.g. Fold4) are not interpreted as citywide skill, and accuracy/F1 are reported alongside a majority-class baseline (see Table in §6.1).
+**Figure 2. Spatial H3-block cross-validation fold metrics.** Per-fold classification accuracy and F1 on the Lower Manhattan pilot (n = 141; 5 folds; 7 blocks). Primary reporting uses the mean ± standard deviation across folds; individual high folds (e.g., Fold4) are not interpreted as citywide skill, and accuracy/F1 are reported alongside constant-class baselines.
 
-**Figure 3. Open-label scale-loss across H3 resolutions.** Jaccard similarity and F1 between fine-resolution (R10) hotspot parent sets and coarse (R8/R9) hotspot sets under mean, max, and p90 aggregation. Mean aggregation at R8 yields Jaccard ≈ 0.167, consistent with smoothing of local extremes; max/p90 preserve extrema by construction. Values are diagnostics on the Lower Manhattan open-label pilot and must not be equated to Svellingen et al.’s PFIb Jaccard ≈ 0.14.
+**Figure 3. Open-label scale loss across H3 resolutions.** Jaccard similarity and F1 between fine-resolution (R10) hotspot parent sets and coarse (R8/R9) hotspot sets under mean, maximum, and p90 aggregation. Mean aggregation at R8 yields Jaccard of about 0.167, consistent with smoothing of local extremes; maximum and p90 preserve extrema by construction. These are diagnostics on the Lower Manhattan open-label pilot and must not be equated to Svellingen et al.'s PFIb Jaccard of 0.14.
 
 **Figure 4. Adaptive refinement versus uniform fine grids (cell counts).** Fixed coarse (R9), adaptive mixed, and uniform fine (R11) cell counts for the pilot table (adaptive/uniform ≈ 0.569; 79 of 141 parents refined). The comparison is restricted to cell counts; it is not a wall-clock or citywide runtime claim.
 
@@ -257,22 +232,24 @@ We present a reproducible open-label H3+ML **protocol** — spatial block CV, sc
 
 ## Data and code availability
 
-Public repository (code, configs, tests, paper docs, and small summary tables; large rasters/geojson, trained model binaries, and large parquet files excluded): https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3 (`pluvial-flood-risk-dggs-h3` v0.1.0). Layer provenance and download manifests are released with the repository. Synthetic demonstrations are excluded from scientific evidence. A deep process-oriented research report accompanies the manuscript in the same documentation folder.
+The public repository (code, configs, tests, paper documentation, and small summary tables; large rasters, geojson, trained model binaries, and large parquet files are excluded) is available at https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3. Layer provenance and download manifests are released with the repository. Synthetic demonstrations are excluded from scientific evidence. A process-oriented research report and a data-authenticity audit document accompany the manuscript in the same documentation folder.
 
-## References (selected)
+## References
 
-1. Svellingen, W., Torgersen, G., Bruland, O. & Muthanna, T. Scalable pluvial flood risk assessment: A data-driven framework integrating machine learning (ML) and discrete global grid systems (DGGS H3). *Int. J. Disaster Risk Reduction* **137** (2026). https://doi.org/10.1016/j.ijdrr.2026.106091  
-2. Svellingen, W. et al. Indexing areas vulnerable to pluvial floods—Using Machine Learning and H3 Hexagonal Grid System. *SSRN* (preprint). https://doi.org/10.2139/ssrn.5875380  
-3. Li, M., McGrath, H. & Stefanakis, E. Multi-Scale Flood Mapping under Climate Change Scenarios in Hexagonal Discrete Global Grids. *ISPRS Int. J. Geo-Inf.* **11**, 627 (2022). https://doi.org/10.3390/ijgi11120627  
-4. Sun, K., Hu, Y., Lakhanpal, G. & Zhou, R. Z. Spatial cross-validation for GeoAI. In Gao, S., Hu, Y. & Li, W. (eds) *Handbook of Geospatial Artificial Intelligence* (Taylor & Francis, 2023). Chapter PDF: https://www.acsu.buffalo.edu/~yhu42/papers/2023_GeoAIHandbook_SpatialCV.pdf  
-5. Bersabe, J. T. & Jun, B.-W. The Machine Learning-Based Mapping of Urban Pluvial Flood Susceptibility in Seoul Integrating Flood Conditioning Factors and Drainage-Related Data. *ISPRS Int. J. Geo-Inf.* **14**, 57 (2025). https://doi.org/10.3390/ijgi14020057  
-6. Uber Technologies, Inc. H3: A hexagonal hierarchical geospatial indexing system. https://h3geo.org (2026).  
-7. U.S. Geological Survey. 3D Elevation Program (3DEP). https://www.usgs.gov/3d-elevation-program  
-8. Multi-Resolution Land Characteristics Consortium. National Land Cover Database (NLCD). https://www.mrlc.gov  
-9. U.S. Geological Survey. NHDPlus High Resolution. https://www.usgs.gov/national-hydrography/nhdplus-high-resolution  
-10. New York City Department of Environmental Protection. Stormwater flood map. https://www.nyc.gov/site/dep  
-11. New York City Open Data. 311 Service Requests (flooding). https://data.cityofnewyork.us  
-12. U.S. Geological Survey. Hurricane Ida high-water marks. https://www.usgs.gov  
-13. Federal Emergency Management Agency. Hurricane Sandy storm surge inundation. https://www.fema.gov  
+1. Svellingen, W., Torgersen, G., Bruland, O. & Muthanna, T. Scalable pluvial flood risk assessment: A data-driven framework integrating machine learning (ML) and discrete global grid systems (DGGS H3). *Int. J. Disaster Risk Reduction* **137** (2026). https://doi.org/10.1016/j.ijdrr.2026.106091
+2. Svellingen, W. et al. Indexing areas vulnerable to pluvial floods—Using Machine Learning and H3 Hexagonal Grid System. *SSRN* (preprint). https://doi.org/10.2139/ssrn.5875380
+3. Li, M., McGrath, H. & Stefanakis, E. Multi-Scale Flood Mapping under Climate Change Scenarios in Hexagonal Discrete Global Grids. *ISPRS Int. J. Geo-Inf.* **11**, 627 (2022). https://doi.org/10.3390/ijgi11120627
+4. Sun, K., Hu, Y., Lakhanpal, G. & Zhou, R. Z. Spatial cross-validation for GeoAI. In Gao, S., Hu, Y. & Li, W. (eds) *Handbook of Geospatial Artificial Intelligence* (Taylor & Francis, 2023). https://www.acsu.buffalo.edu/~yhu42/papers/2023_GeoAIHandbook_SpatialCV.pdf
+5. Bersabe, J. T. & Jun, B.-W. The Machine Learning-Based Mapping of Urban Pluvial Flood Susceptibility in Seoul Integrating Flood Conditioning Factors and Drainage-Related Data. *ISPRS Int. J. Geo-Inf.* **14**, 57 (2025). https://doi.org/10.3390/ijgi14020057
+6. Uber Technologies, Inc. H3: A hexagonal hierarchical geospatial indexing system. https://h3geo.org (2026).
+7. U.S. Geological Survey. 3D Elevation Program (3DEP). https://www.usgs.gov/3d-elevation-program
+8. Multi-Resolution Land Characteristics Consortium. National Land Cover Database (NLCD). https://www.mrlc.gov
+9. U.S. Geological Survey. NHDPlus High Resolution. https://www.usgs.gov/national-hydrography/nhdplus-high-resolution
+10. New York City Department of Environmental Protection. Stormwater flood map. https://www.nyc.gov/site/dep
+11. New York City Open Data. 311 Service Requests (flooding). https://data.cityofnewyork.us
+12. U.S. Geological Survey. Hurricane Ida high-water marks. https://www.usgs.gov
+13. Federal Emergency Management Agency. Hurricane Sandy storm surge inundation. https://www.fema.gov
+14. Saito, T. & Rehmsmeier, M. The precision-recall plot is more informative than the ROC plot when evaluating binary classifiers on imbalanced datasets. *PLOS ONE* **10**, e0118432 (2015). https://doi.org/10.1371/journal.pone.0118432
+15. Rosenzweig, B. R. et al. The value of urban flood modeling. *Earth's Future* **9**, e2020EF001873 (2021). https://doi.org/10.1029/2020EF001873
 
-Additional venue-specific references 待补充.
+Additional venue-specific references to be added.

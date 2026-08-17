@@ -164,9 +164,9 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 figs["workflow"],
                 "Workflow schematic",
                 "<strong>图 1 · Figure 1</strong> — 开放标签 H3 雨洪学习协议的概念工作流（SciencePlots + Times New Roman）。"
-                "<br/><em>如何读：</em>从左到右四列——(1) 开放多源输入；(2) H3 组装（R9 + provenance 标签）；(3) 学习与分块评价（GBM + H3 块 GroupKFold 空间 CV + 多数类平凡基线）；(4) 诊断与输出（PFI_h(c,r)、Jaccard 阶梯、自适应加密、Sandy 负对照）。"
+                "<br/><em>如何读：</em>从左到右四列——(1) 开放多源输入；(2) H3 组装（R9 + provenance 标签）；(3) 学习与分块评价（GBM + H3 块 GroupKFold 空间 CV + 常量类基线恒判正/恒判负）；(4) 诊断与输出（PFI_h(c,r)、Jaccard 阶梯、自适应加密、Sandy 负对照，其中 Sandy 为虚线旁路、绕过学习框）。"
                 "<br/><em>意义：</em>一张图讲清整条协议与「证据—边界」纪律，对应手稿 Methods。"
-                "<br/><em>结论：</em>PFI_h(c,r) 是模型输出，不是特征重要性，也不是 PFIb；证据仅限 Lower Manhattan 试点，非全市。",
+                "<br/><em>结论：</em>PFI_h(c,r) 是模型输出，不是特征重要性，也不是 PFIb；当前情景响应平坦；证据仅限 Manhattan 开放数据试点，非全市。",
             ),
         ),
         (

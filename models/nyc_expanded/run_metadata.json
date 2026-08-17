@@ -1,5 +1,5 @@
 {
-  "created_utc": "2026-08-17T15:36:24.413759+00:00",
+  "created_utc": "2026-08-17T17:34:31.205606+00:00",
   "random_seed": 42,
   "data_provenance": "observed",
   "h3_version": "4.4.2",
@@ -20,7 +20,14 @@
     "spatial_cv_r2_std": 0.1115798248619264,
     "spatial_cv_f1_mean": 0.6083648651688762,
     "spatial_cv_mae_mean": 0.11225336106029046,
-    "spatial_cv_fold_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_expanded\\spatial_cv_folds.csv"
+    "spatial_cv_roc_auc_mean": 0.6724725090952612,
+    "spatial_cv_roc_auc_std": 0.17004124998520043,
+    "spatial_cv_pr_auc_mean": 0.66078056644847,
+    "spatial_cv_pr_auc_std": 0.22279074076724578,
+    "spatial_cv_roc_auc_pooled": 0.7028243980287965,
+    "spatial_cv_pr_auc_pooled": 0.7229784941037338,
+    "spatial_cv_fold_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_expanded\\spatial_cv_folds.csv",
+    "spatial_cv_oof_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_expanded\\spatial_cv_oof_predictions.csv"
   },
   "spatial_cv_k": 2,
   "spatial_cv_folds": 5

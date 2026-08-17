@@ -234,7 +234,6 @@ def plot_workflow_schematic(
                 "Open flood labels\n(DEP stormwater, 311, USGS Ida HWM)",
                 "Static predictors\n(elevation, slope, impervious,\nbuilding density, distance-to-water)",
                 "Rainfall condition r\n(synthetic constant hook; radar TBD)",
-                "Negative control\n(FEMA Sandy — never a label)",
             ],
         },
         {
@@ -251,7 +250,7 @@ def plot_workflow_schematic(
             "items": [
                 "Gradient-boosting classifier\n+ continuous risk regressor",
                 "H3-block GroupKFold spatial CV\n(primary blocked evaluation)",
-                "Majority-class baseline\n(always-positive) disclosed",
+                "Constant-class baselines\n(always-positive & always-negative)",
                 "Baselines: logistic / ponding rule",
             ],
         },
@@ -259,7 +258,7 @@ def plot_workflow_schematic(
             "title": "Diagnostics & outputs",
             "color": "#8172B2",
             "items": [
-                "PFI_h(c,r) — rainfall-conditioned\ncell probability/index (not PFIb)",
+                "PFI_h(c,r) — rainfall-conditioned\ncell probability/index (not PFIb;\ndefinition/interface, scenario response flat)",
                 "Scale-loss Jaccard ladder\n(R10 → R9 / R8)",
                 "Adaptive refinement\n(PFI_h screens parents → R11)",
                 "Sandy negative-control check",
@@ -295,7 +294,7 @@ def plot_workflow_schematic(
         # body boxes stacked
         n_items = len(st["items"])
         body_top = top - 0.04
-        body_bottom = 0.05
+        body_bottom = 0.34
         avail = body_top - body_bottom
         box_h = avail / n_items
         for j, item in enumerate(st["items"]):
@@ -339,6 +338,44 @@ def plot_workflow_schematic(
             )
             ax.add_patch(arr)
 
+    # Sandy negative control: dashed side-channel that bypasses the learning box
+    # and enters only the negative-control diagnostic in the outputs column.
+    sandy = FancyBboxPatch(
+        (0.06, 0.08),
+        1.0,
+        0.16,
+        boxstyle="round,pad=0.008,rounding_size=0.014",
+        linewidth=1.1,
+        linestyle="--",
+        edgecolor="#4C72B0",
+        facecolor="#4C72B0",
+        alpha=0.06,
+        mutation_aspect=1.0,
+    )
+    ax.add_patch(sandy)
+    ax.text(
+        0.56,
+        0.16,
+        "Negative control\n(FEMA Sandy — never a label)",
+        ha="center",
+        va="center",
+        fontsize=7.4,
+        color="#1a1a1a",
+        linespacing=1.25,
+    )
+    # dashed channel from Sandy to the stage-4 negative-control check box
+    ax.plot([1.06, 3.52], [0.16, 0.16], linestyle="--", linewidth=1.1, color="#4C72B0")
+    sandy_arrow = FancyArrowPatch(
+        (3.52, 0.16),
+        (3.52, 0.34),
+        arrowstyle="-|>",
+        linestyle="--",
+        mutation_scale=12,
+        linewidth=1.1,
+        color="#4C72B0",
+    )
+    ax.add_patch(sandy_arrow)
+
     fig.suptitle(
         title
         or "Open-label H3 pluvial flood learning protocol (workflow)",
@@ -348,7 +385,7 @@ def plot_workflow_schematic(
         0.5,
         0.005,
         "PFI_h(c,r) is a model output, not feature importance and not PFIb. "
-        "Lower Manhattan open-data pilot; not citywide.",
+        "Manhattan open-data pilots; not citywide.",
         ha="center",
         va="bottom",
         fontsize=7.5,
