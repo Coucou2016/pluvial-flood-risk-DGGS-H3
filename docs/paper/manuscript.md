@@ -4,7 +4,7 @@
 
 ## Abstract
 
-Intense short-duration rainfall can overwhelm urban drainage and produce pluvial flooding with limited warning, and city-scale screening increasingly relies on machine learning and multi-resolution grids. Many operational indices, however, are tied to proprietary insurance labels and to evaluation protocols that ignore spatial leakage. This study presents an open-label machine-learning framework for hexagonal pluvial flood screening on the H3 discrete global grid. Multi-source public flood indicators are joined to H3 cells, gradient-boosting classification and continuous-risk regression models are fitted, and performance is assessed with H3-block spatial cross-validation that withholds entire parent cells. The framework also quantifies scale loss through a Jaccard/F1 hotspot ladder and screens parents for adaptive refinement using trained cell scores. The rainfall-conditioned hexagon index `PFI_h(c,r)` is defined as a model output—distinct from feature importance and from the proprietary building-level PFIb product. On a smaller Manhattan pilot (n = 141), spatial cross-validation accuracy is 0.784 ± 0.069 with F1 0.866, but the positive class dominates (80% prevalence) and a trivial always-positive classifier reaches 0.808 accuracy and 0.893 F1; out-of-fold ROC-AUC is 0.68 and average precision 0.86. On a larger pilot (n = 956, 47.9% positive), accuracy is 0.642 ± 0.148, exceeding both the always-positive (0.479) and the constant majority-class (0.521) baselines, with continuous-risk R² of 0.525 ± 0.112; out-of-fold ROC-AUC is 0.70 and average precision 0.72. Adaptive refinement uses approximately 57% as many cells as a uniform fine grid. The results demonstrate the framework end-to-end on the stated pilot extents; they do not establish citywide skill or rainfall-conditioned discrimination, because event rainfall remains a constant synthetic input and the scenario response is flat.
+Intense short-duration rainfall can overwhelm urban drainage and produce pluvial flooding with limited warning, and city-scale screening increasingly relies on machine learning and multi-resolution grids. Many operational indices, however, are tied to proprietary insurance labels and to evaluation protocols that ignore spatial leakage. This study presents an open-label machine-learning framework for hexagonal pluvial flood screening on the H3 discrete global grid. Multi-source public flood indicators are joined to H3 cells; gradient-boosting classification and continuous-risk regression are fitted; and performance is assessed with H3-block spatial cross-validation that withholds entire parent cells. The framework quantifies scale loss through a Jaccard/F1 hotspot ladder, screens parents for adaptive refinement using trained scores, and defines a rainfall-conditioned cell index `PFI_h(c,r)` as a model output distinct from feature importance and from the proprietary PFIb. On a small Manhattan pilot (n = 141, 80% positive), accuracy is 0.784 ± 0.069 with F1 0.866, below the always-positive baseline (0.808 / 0.893); out-of-fold ROC-AUC is 0.68 and average precision 0.86. On a larger pilot (n = 956, 47.9% positive), accuracy is 0.642 ± 0.148, exceeding both the always-positive (0.479) and constant majority-class (0.521) baselines, with continuous-risk R² of 0.525 ± 0.112 and moderate out-of-fold discrimination (ROC-AUC 0.70, average precision 0.72). Adaptive refinement uses about 57% as many cells as a uniform fine grid. The results demonstrate the framework end-to-end on the stated pilot extents but do not establish citywide skill or rainfall-conditioned discrimination, because event rainfall remains a constant synthetic input.
 
 **Keywords:** pluvial flood; H3; discrete global grid; spatial cross-validation; machine learning; flood susceptibility.
 
@@ -14,7 +14,7 @@ Intense short-duration rainfall can overwhelm urban drainage and produce pluvial
 
 Extreme rainfall events are increasing in frequency and intensity, and pluvial flooding—the flooding that occurs when intense rain overwhelms urban drainage before it can enter watercourses—can develop rapidly and with limited warning (Rosenzweig et al., 2021). Assessing this risk at city scale requires representations that are computationally scalable, updateable as new observations arrive, and evaluable without silent spatial leakage.
 
-Discrete Global Grid Systems (DGGS), and the hexagonal H3 system in particular, provide nested cells that support multi-resolution aggregation and neighbourhood queries. Svellingen et al. (2026) showed that a machine-learning building-level pluvial susceptibility index can be aggregated into H3 cells, reducing spatial query cost by roughly two orders of magnitude, and that hotspot sets can diverge sharply across resolutions (Jaccard similarity of about 0.14 between street-level and neighbourhood hotspots on their proprietary stack). That work establishes H3 as a communication and screening fabric, but it focuses on aggregating and communicating a proprietary index rather than on an open, spatially honest learning protocol for jurisdictions without access to insurance claims.
+Discrete Global Grid Systems (DGGS), and the hexagonal H3 system in particular (Uber Technologies, 2026), provide nested cells that support multi-resolution aggregation and neighbourhood queries. Svellingen et al. (2026) showed that a machine-learning building-level pluvial susceptibility index can be aggregated into H3 cells, reducing spatial query cost by roughly two orders of magnitude, and that hotspot sets can diverge sharply across resolutions (Jaccard similarity of about 0.14 between street-level and neighbourhood hotspots on their proprietary stack). That work establishes H3 as a communication and screening fabric, but it focuses on aggregating and communicating a proprietary index rather than on an open, spatially honest learning protocol for jurisdictions without access to insurance claims.
 
 This study develops an open-label H3 framework for pluvial-flood susceptibility modelling that combines spatially blocked evaluation, multi-resolution scale diagnostics, adaptive refinement, and an explicitly defined rainfall-conditioned cell index. Unlike Svellingen et al. (2026), who aggregate a pre-existing building-level, insurance-derived index to H3 cells for scalable representation, the present approach learns directly from open flood observations on the H3 support, evaluates transfer across held-out H3 spatial blocks, and selectively refines the spatial representation using trained cell scores. The framework retains explicit provenance for feature, label, rainfall, and assembly sources; treats H3-block cross-validation as the primary evaluation while retaining random splits as diagnostic comparisons and reporting class-prevalence baselines alongside accuracy and F1; and quantifies resolution-dependent scale loss using Jaccard and F1 before adaptive refinement. `PFI_h(c,r)` is defined as a rainfall-conditioned model output and is distinct from both feature-importance measures and PFIb. The analysis is methodological and limited to the evaluated pilot extents rather than constituting a citywide operational flood map.
 
@@ -22,7 +22,7 @@ Throughout, `PFI_h(c,r)` denotes a rainfall-conditioned hexagon flood probabilit
 
 ## 2 Related work
 
-The closest methodological comparator is the H3-based pluvial flood framework of Svellingen et al. (2026). They aggregate a machine-learning building-level pluvial susceptibility index (PFIb) into H3 cells, reducing geometry-heavy spatial query cost by roughly two orders of magnitude while exposing a resolution trade-off: fine street-level hotspots are largely invisible at coarser neighbourhood grids (Jaccard about 0.14 between their fine and intermediate hotspot sets). A related preprint develops the same H3 indexing narrative (Svellingen et al., SSRN). This line of work treats H3 as a scalable communication fabric for proprietary indices; its focus is aggregation and communication rather than open-label learning or spatially blocked evaluation. It is therefore the closest precedent and an explicit boundary for the present study, which does not reproduce PFIb and does not equate its own Jaccard values to theirs.
+The closest methodological comparator is the H3-based pluvial flood framework of Svellingen et al. (2026). They aggregate a machine-learning building-level pluvial susceptibility index (PFIb) into H3 cells, reducing geometry-heavy spatial query cost by roughly two orders of magnitude while exposing a resolution trade-off: fine street-level hotspots are largely invisible at coarser neighbourhood grids (Jaccard about 0.14 between their fine and intermediate hotspot sets). A related preprint develops the same H3 indexing narrative (Svellingen et al., 2025). This line of work treats H3 as a scalable communication fabric for proprietary indices; its focus is aggregation and communication rather than open-label learning or spatially blocked evaluation. It is therefore the closest precedent and an explicit boundary for the present study, which does not reproduce PFIb and does not equate its own Jaccard values to theirs.
 
 Hexagonal DGGS have also been investigated as general substrates for multi-source and multi-resolution flood analysis. Li et al. (2022) use an ISEA3H hexagonal DGGS for multi-scale flood mapping under climate scenarios, emphasising resolution-consistent predictors. Their contribution supports DGGS nesting as a scientific substrate, whereas the present study uses H3 nesting for a learning and evaluation framework over open urban flood indicators rather than for climate-scenario inundation mapping. Adaptive and non-uniform spatial resolution has separate antecedents in process-based flood simulation; here the grid is refined selectively from trained scores rather than prescribed by an inundation solver.
 
@@ -60,11 +60,11 @@ The primary learner is a gradient-boosting classifier with a continuous-risk reg
 
 ### 4.4 Spatial H3-block cross-validation
 
-Each R9 modelling cell is assigned to its R7 parent by two-level coarsening (\(k=2\)), and five-fold `GroupKFold` partitions these R7 groups so that no R7 block occurs in both the training and held-out portions of a fold. Per-fold metrics are archived with each pilot run. For each held-out cell the predicted class probability is retained, so that threshold-independent discrimination metrics—ROC-AUC and average precision (AP, the area under the precision–recall curve)—are computed from pooled out-of-fold predictions. Random independent splits are computed but are not primary.
+Each R9 modelling cell is assigned to its R7 parent by two-level coarsening (\(k=2\)), and five-fold `GroupKFold` partitions these R7 groups so that no R7 block occurs in both the training and held-out portions of a fold. Per-fold metrics are archived with each pilot run. For each held-out cell the predicted class probability is retained, so that threshold-independent discrimination metrics—ROC-AUC and average precision (AP, the area under the precision–recall curve; Saito & Rehmsmeier, 2015)—are computed from pooled out-of-fold predictions. Random independent splits are computed but are not primary.
 
 ### 4.5 Scale-loss diagnostics
 
-Fine-resolution (R10) hotspot sets, defined as the top decile (quantile 0.9) of risk, are compared with parent-aggregated (R9 and R8) hotspots using Jaccard similarity and F1 under mean, maximum, and p90 rollups, after both sets are projected onto a common support. These diagnostics are methodologically distinct from the Jaccard value reported by Svellingen et al. and are not treated as a reproduction of that result.
+Fine-resolution (R10) hotspot sets, defined as the top decile (quantile 0.9) of risk, are compared with parent-aggregated (R9 and R8) hotspots using Jaccard similarity and F1 under mean, maximum, and p90 rollups, after both sets are projected onto a common support. These diagnostics are methodologically distinct from the Jaccard value reported by Svellingen et al. (2026) and are not treated as a reproduction of that result.
 
 ### 4.6 Adaptive refinement
 
@@ -138,7 +138,7 @@ Fine resolution R10, hotspot quantile 0.9 (Figure 3):
 | 9 | max | 1.000 | 1.000 |
 | 9 | p90 | 0.977 | 0.988 |
 
-Under mean aggregation, parent rollup at R8 yields Jaccard 0.167 with fine R10 hotspot parents, consistent with strong scale smoothing on this open-label stack. Maximum and p90 aggregation preserve extreme values by construction; their higher similarity therefore does not imply an absence of scale loss. These diagnostics use different labels, resolutions, and hotspot definitions from the PFIb Jaccard of 0.14 reported by Svellingen et al. and are not interpreted as a reproduction of that value.
+Under mean aggregation, parent rollup at R8 yields Jaccard 0.167 with fine R10 hotspot parents, consistent with strong scale smoothing on this open-label stack. Maximum and p90 aggregation preserve extreme values by construction; their higher similarity therefore does not imply an absence of scale loss. These diagnostics use different labels, resolutions, and hotspot definitions from the PFIb Jaccard of 0.14 reported by Svellingen et al. (2026) and are not interpreted as a reproduction of that value.
 
 ### 6.3 Adaptive versus fixed and uniform fine grids
 
@@ -218,6 +218,24 @@ This study presents a reproducible open-label H3 and machine-learning framework�
 
 ---
 
+## CRediT authorship contribution statement
+
+**[待补充 — to be completed before submission: list each author with their CRediT roles.]**
+
+## Funding
+
+This research did not receive any specific grant from funding agencies in the public, commercial, or not-for-profit sectors.
+
+## Declaration of competing interest
+
+The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
+
+## Declaration of generative AI and AI-assisted technologies in the writing process
+
+During the preparation of this work the authors used ChatGPT (OpenAI) as an editorial reviewer to identify and correct issues in scientific framing, language, and submission structure. After using this tool, the authors reviewed and edited the content as needed and take full responsibility for the content of the publication.
+
+---
+
 ## Figure captions
 
 **Figure 1. Open-label H3 pluvial-flood learning workflow.** Open flood observations (DEP stormwater polygons, 311 flooding reports, and USGS Ida high-water marks), static predictors (elevation, slope, impervious fraction, building density, distance-to-water), and a rainfall condition `r` (a constant synthetic rainfall condition in the present pilot, not observed radar rainfall) are assembled into H3 cells at R9 with provenance tags (`assembly_mode`, `feature_source`, `label_source`, `rainfall_source`), fitted with a gradient-boosting classifier and a continuous-risk regressor under H3-block `GroupKFold` cross-validation against constant-class (always-positive and always-negative) and logistic/ponding-rule baselines, and passed to diagnostics: the rainfall-conditioned `PFI_h(c,r)` index (currently flat scenario response), a scale-loss Jaccard ladder (R10 to R9/R8), adaptive refinement to R11, and a Sandy negative-control check. The FEMA Sandy layer is a dashed side-channel that bypasses learning and enters only the negative-control diagnostic; it is never a training label.
@@ -232,24 +250,40 @@ This study presents a reproducible open-label H3 and machine-learning framework�
 
 ## Data and code availability
 
-The public repository (code, configs, tests, paper documentation, and small summary tables; large rasters, geojson, trained model binaries, and large parquet files are excluded) is available at https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3. Layer provenance and download manifests are released with the repository. Synthetic demonstrations are excluded from scientific evidence. A process-oriented research report and a data-authenticity audit document accompany the manuscript in the same documentation folder.
+The public repository (code, configs, tests, paper documentation, and small summary tables; large rasters, geojson, trained model binaries, and large parquet files are excluded) is available at https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3. The immutable paper release is tagged `paper-v1` in the repository; the exact commit that generated all reported outputs is recorded in the accompanying audit document. Each raw layer is mapped in the repository download manifest to its source URL, retrieval date, and license. Synthetic demonstrations are excluded from scientific evidence. A process-oriented research report and a data-authenticity audit document accompany the manuscript in the same documentation folder.
 
 ## References
 
-1. Svellingen, W., Torgersen, G., Bruland, O. & Muthanna, T. Scalable pluvial flood risk assessment: A data-driven framework integrating machine learning (ML) and discrete global grid systems (DGGS H3). *Int. J. Disaster Risk Reduction* **137** (2026). https://doi.org/10.1016/j.ijdrr.2026.106091
-2. Svellingen, W. et al. Indexing areas vulnerable to pluvial floods—Using Machine Learning and H3 Hexagonal Grid System. *SSRN* (preprint). https://doi.org/10.2139/ssrn.5875380
-3. Li, M., McGrath, H. & Stefanakis, E. Multi-Scale Flood Mapping under Climate Change Scenarios in Hexagonal Discrete Global Grids. *ISPRS Int. J. Geo-Inf.* **11**, 627 (2022). https://doi.org/10.3390/ijgi11120627
-4. Sun, K., Hu, Y., Lakhanpal, G. & Zhou, R. Z. Spatial cross-validation for GeoAI. In Gao, S., Hu, Y. & Li, W. (eds) *Handbook of Geospatial Artificial Intelligence* (Taylor & Francis, 2023). https://www.acsu.buffalo.edu/~yhu42/papers/2023_GeoAIHandbook_SpatialCV.pdf
-5. Bersabe, J. T. & Jun, B.-W. The Machine Learning-Based Mapping of Urban Pluvial Flood Susceptibility in Seoul Integrating Flood Conditioning Factors and Drainage-Related Data. *ISPRS Int. J. Geo-Inf.* **14**, 57 (2025). https://doi.org/10.3390/ijgi14020057
-6. Uber Technologies, Inc. H3: A hexagonal hierarchical geospatial indexing system. https://h3geo.org (2026).
-7. U.S. Geological Survey. 3D Elevation Program (3DEP). https://www.usgs.gov/3d-elevation-program
-8. Multi-Resolution Land Characteristics Consortium. National Land Cover Database (NLCD). https://www.mrlc.gov
-9. U.S. Geological Survey. NHDPlus High Resolution. https://www.usgs.gov/national-hydrography/nhdplus-high-resolution
-10. New York City Department of Environmental Protection. Stormwater flood map. https://www.nyc.gov/site/dep
-11. New York City Open Data. 311 Service Requests (flooding). https://data.cityofnewyork.us
-12. U.S. Geological Survey. Hurricane Ida high-water marks. https://www.usgs.gov
-13. Federal Emergency Management Agency. Hurricane Sandy storm surge inundation. https://www.fema.gov
-14. Saito, T. & Rehmsmeier, M. The precision-recall plot is more informative than the ROC plot when evaluating binary classifiers on imbalanced datasets. *PLOS ONE* **10**, e0118432 (2015). https://doi.org/10.1371/journal.pone.0118432
-15. Rosenzweig, B. R. et al. The value of urban flood modeling. *Earth's Future* **9**, e2020EF001873 (2021). https://doi.org/10.1029/2020EF001873
-16. Agonafir, C., Lakhankar, T., Khanbilvardi, R., Krakauer, N. Y., Radell, D. & Devineni, N. A machine learning approach to evaluate the spatial variability of New York City's 311 street flooding complaints. *Comput. Environ. Urban Syst.* **97**, 101854 (2022). https://doi.org/10.1016/j.compenvurbsys.2022.101854
-17. Agonafir, C., Pabon, A. R., Lakhankar, T., Khanbilvardi, R. & Devineni, N. Understanding New York City street flooding through 311 complaints. *J. Hydrol.* **605**, 127300 (2022). https://doi.org/10.1016/j.jhydrol.2021.127300
+Agonafir, C., Lakhankar, T., Khanbilvardi, R., Krakauer, N. Y., Radell, D., & Devineni, N. (2022a). A machine learning approach to evaluate the spatial variability of New York City's 311 street flooding complaints. *Comput. Environ. Urban Syst.*, 97, 101854. https://doi.org/10.1016/j.compenvurbsys.2022.101854
+
+Agonafir, C., Pabon, A. R., Lakhankar, T., Khanbilvardi, R., & Devineni, N. (2022b). Understanding New York City street flooding through 311 complaints. *J. Hydrol.*, 605, 127300. https://doi.org/10.1016/j.jhydrol.2021.127300
+
+Bersabe, J. T., & Jun, B.-W. (2025). The machine learning-based mapping of urban pluvial flood susceptibility in Seoul integrating flood conditioning factors and drainage-related data. *ISPRS Int. J. Geo-Inf.*, 14(2), 57. https://doi.org/10.3390/ijgi14020057
+
+Federal Emergency Management Agency. (n.d.). Hurricane Sandy storm surge inundation. https://www.fema.gov
+
+Li, M., McGrath, H., & Stefanakis, E. (2022). Multi-scale flood mapping under climate change scenarios in hexagonal discrete global grids. *ISPRS Int. J. Geo-Inf.*, 11(12), 627. https://doi.org/10.3390/ijgi11120627
+
+Multi-Resolution Land Characteristics Consortium. (n.d.). National Land Cover Database (NLCD). https://www.mrlc.gov
+
+New York City Department of Environmental Protection. (n.d.). Stormwater flood map. https://www.nyc.gov/site/dep
+
+New York City Open Data. (n.d.). 311 service requests (flooding). https://data.cityofnewyork.us
+
+Rosenzweig, B. R., et al. (2021). The value of urban flood modeling. *Earth's Future*, 9(1), e2020EF001873. https://doi.org/10.1029/2020EF001873
+
+Saito, T., & Rehmsmeier, M. (2015). The precision-recall plot is more informative than the ROC plot when evaluating binary classifiers on imbalanced datasets. *PLOS ONE*, 10(3), e0118432. https://doi.org/10.1371/journal.pone.0118432
+
+Sun, K., Hu, Y., Lakhanpal, G., & Zhou, R. Z. (2023). Spatial cross-validation for GeoAI. In S. Gao, Y. Hu, & W. Li (Eds.), *Handbook of Geospatial Artificial Intelligence*. Taylor & Francis. https://www.acsu.buffalo.edu/~yhu42/papers/2023_GeoAIHandbook_SpatialCV.pdf
+
+Svellingen, W., Torgersen, G., Bruland, O., & Muthanna, T. (2025). Indexing areas vulnerable to pluvial floods—using machine learning and H3 hexagonal grid system. SSRN preprint. https://doi.org/10.2139/ssrn.5875380
+
+Svellingen, W., Torgersen, G., Bruland, O., & Muthanna, T. (2026). Scalable pluvial flood risk assessment: A data-driven framework integrating machine learning (ML) and discrete global grid systems (DGGS H3). *Int. J. Disaster Risk Reduction*, 137, 106091. https://doi.org/10.1016/j.ijdrr.2026.106091
+
+Uber Technologies, Inc. (2026). H3: A hexagonal hierarchical geospatial indexing system. https://h3geo.org
+
+U.S. Geological Survey. (n.d.). 3D Elevation Program (3DEP). https://www.usgs.gov/3d-elevation-program
+
+U.S. Geological Survey. (n.d.). Hurricane Ida high-water marks. https://www.usgs.gov
+
+U.S. Geological Survey. (n.d.). NHDPlus High Resolution. https://www.usgs.gov/national-hydrography/nhdplus-high-resolution

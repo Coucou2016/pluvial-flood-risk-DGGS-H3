@@ -167,6 +167,34 @@ None — all ChatGPT numeric claims were independently reproduced. Minor wording
 
 **Deferred to final consistency pass:** `report.md` still uses "PR-AUC" (16 occurrences) and a couple of "stub"/"ida_like" strings; will be synced to "average precision (AP)" in the final rebuild.
 
+## R16 (figure format deep-polish — local execution of R14 deferred figure guidance) — 2026-08-18
+
+No new ChatGPT round; executed the figure-format items ChatGPT deferred from R14. `src/pluvial_flood_risk/figures.py`:
+
+1. **Figure 1 (workflow):** removed in-image suptitle and the audit-footer ("not PFIb…not citywide"); rainfall box → "constant synthetic rainfall; not observed radar".
+2. **Figure 2 (spatial CV):** removed "smoke" title; added mean ± SD reference lines with shaded bands for Accuracy and F1 (consistent explicit colors).
+3. **Figure 3 (Jaccard):** removed default suptitle and the "not a reproduction of Svellingen Jaccard 0.14" footer; kept the two-panel layout.
+4. **Figure 4 (adaptive):** removed `score_col=` implementation note; added direct numeric labels on the three bars.
+
+All four figures regenerated as PNG + PDF; `tests/test_figures.py` passes. Science and numbers unchanged.
+
+## R17 (submission readiness + immutable release) — live ChatGPT reply received 2026-08-18
+
+**Paste package:** `artifacts/chatgpt_paste_R17.md`. **Reply archived:** `artifacts/chatgpt_reply_R17.md`. **Backup:** `docs/paper/backups/20260818_0420_preR17/`.
+
+**ChatGPT verdict:** Manuscript is close to submission-ready in scientific structure; remaining work is submission metadata, abstract compression, immutable reproducibility packaging, and declaration hygiene. Do NOT delay submission for observed rainfall / citywide / FloodNet — document as limitations.
+
+| Feedback | Independent verification | Verdict |
+|----------|--------------------------|---------|
+| Abstract ~330 words too long → 220–250 unstructured | word count confirmed | **ACCEPTED** — compressed to ≈240 words |
+| Add CRediT / Funding / competing-interest / AI-use declarations | none present | **ACCEPTED** — added (CRediT left as 待补充 placeholder; no author names invented) |
+| Reference style: IJDRR numbered [n], but YPYW permits any consistent format → make consistent now | list was numbered but in-text author-date; Saito & H3 (h3geo) were dangling (uncited) | **ACCEPTED** — converted to alphabetical author-date; cited Saito (§4.4) and Uber H3 (§1); added Agonafir 2022a/b; SSRN preprint year = 2025 (WebSearch-verified) |
+| Data/code availability must cite immutable release, not moving master | pointed at master only | **ACCEPTED** — added `paper-v1` tag + exact commit reference |
+| Create Highlights (3–5 bullets ≤85 chars) | none present | **ACCEPTED** — `docs/paper/highlights.md` (4 bullets, 70–80 chars each) |
+| Preserve audit.md as reproducibility doc, not Methods substitute | already true | **NO CHANGE** |
+
+**Applied edits:** `manuscript.md` (abstract compressed; end-matter declarations added; references → alphabetical author-date with Saito + Uber H3 now cited; in-text "Svellingen et al., SSRN" → 2025; Data/code availability → immutable `paper-v1` tag); `docs/paper/highlights.md` (new). All numbers/results/claims unchanged.
+
 ## Prior R1–R5
 
 See earlier section of this file / `acceptance_report_5rounds.md`. ChatGPT substantive replies remain uncaptured pending manual URL paste.
