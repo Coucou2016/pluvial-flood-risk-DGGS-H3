@@ -195,6 +195,8 @@ All four figures regenerated as PNG + PDF; `tests/test_figures.py` passes. Scien
 
 **Applied edits:** `manuscript.md` (abstract compressed; end-matter declarations added; references → alphabetical author-date with Saito + Uber H3 now cited; in-text "Svellingen et al., SSRN" → 2025; Data/code availability → immutable `paper-v1` tag); `docs/paper/highlights.md` (new). All numbers/results/claims unchanged.
 
+**Commits:** `e4ab9ac` (R17 submission-readiness edits) + `fd9950e` (audit hash). **Tag:** `paper-v1` → `e4ab9acd7439491d7bc5908be550876aaa503cf2`. **Push:** **BLOCKED** — `github.com:443` unreachable from this environment (TCP connect failed, "Connection was reset"); local commits + tag are intact and will be pushed once network is available.
+
 ## Prior R1–R5
 
 See earlier section of this file / `acceptance_report_5rounds.md`. ChatGPT substantive replies remain uncaptured pending manual URL paste.
