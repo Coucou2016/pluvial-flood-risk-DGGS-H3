@@ -271,8 +271,8 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 | extreme | 100 | 0.802888 |
 
 **核验：** 按 `h3_index` 分组，`max(PFI_h)-min(PFI_h)` 的全局最大值为 **0.0**。  
-**来龙去脉：** 情景循环本应只改 `rainfall_mm_h` 再预测；当前产物显示预测对降雨列无响应（可能训练特征未有效纳入降雨，或预测路径未替换该列——机制 **待补充**）。  
-**结论：** **定义保留**；**经验判别力本轮不成立**。禁止在摘要写“情景响应已验证”。
+**来龙去脉（根因已确诊，2026-08-17）：** 情景循环本身正确——只改 `rainfall_mm_h` 再预测，产物里 4 个情景的 `rainfall_mm_h` 也确实分别是 25/40/75/100。平坦的真正原因是**训练阶段降雨是常数**：训练表 `data/processed/nyc_h3_cells.parquet` 的 141 个单元 `rainfall_mm_h` 全部为 **75.0**（`rainfall_source=event_raster` 的合成常数钩子），因此 `rainfall_mm_h` 在训练特征矩阵中方差为 0；`GradientBoostingClassifier` 对该列的特征重要性为 **0.0**（`models/nyc_smoke/classifier.joblib`）。模型从未见过降雨变化，自然无法对情景做出响应。  
+**结论：** **定义保留**；**经验判别力本轮不成立**，且成因不是 bug 而是“训练降雨恒为常数”。要得到非零响应，必须先引入 I2 观测事件降雨（多强度、非合成 provenance），再重训；在此之前禁止在摘要写“情景响应已验证”。
 
 ---
 

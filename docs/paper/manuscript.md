@@ -175,7 +175,7 @@ Adaptive mixed grids use fewer cells than uniform R11 (~57%) while refining 79/1
 
 141 cells × scenarios {moderate 25, heavy 40, ida_like 75, extreme 100 mm/h}; rainfall provenance remains event-raster (synthetic constant hook); assembly is open-data.  
 **Observed:** mean `PFI_h` ≈ **0.802888** for every scenario; **within-cell range across scenarios = 0**.  
-**Interpretation:** the current pilot does **not** demonstrate rainfall-conditioned discrimination. Treat scenario maps as schema/QA until the predict path / feature set yields non-zero response (待补充). Definition of `PFI_h(c,r)` remains binding for future runs.
+**Interpretation:** the current pilot does **not** demonstrate rainfall-conditioned discrimination. The scenario loop is correct (only `rainfall_mm_h` varies); the flat response is explained by **constant training rainfall** — all 141 training cells carry `rainfall_mm_h = 75` from the synthetic constant event-raster hook, so rainfall has zero training variance and a classifier feature importance of **0.0**. The model has never observed rainfall variation, so `PFI_h` cannot respond to it. Non-zero response requires ingested observed event rainfall (multi-intensity, non-synthetic provenance) and retraining; definition of `PFI_h(c,r)` remains binding for future runs.
 
 ### 6.5 Sandy negative control
 
