@@ -106,6 +106,21 @@ None — all ChatGPT numeric claims were independently reproduced. Minor wording
 
 **Applied edits (manuscript.md):** §1 contribution contrast sentence; §1 PFI_h disambiguation (data/construction/meaning differences); §2 new "open urban flood observations" paragraph + Agonafir 2022a/2022b + adaptive-resolution antecedent; references 16–17 added. Science/results unchanged.
 
+## R13 (Methods clarity & completeness) — live ChatGPT reply received 2026-08-18
+
+**Paste package:** `artifacts/chatgpt_paste_R13.md` (Methods text pasted inline since ChatGPT could not fetch raw endpoints in-session).
+
+**ChatGPT's core verdict:** Methods structurally coherent but 3 definitions below reproducibility standard: target construction, exact spatial grouping, adaptive selection. Plus AP-vs-PR-AUC terminology mismatch.
+
+**All code-verified values used (from `labels.py`, `baselines.py`, `spatial_cv.py`, `config.py`, `negative_control.py`, `adaptive.py`, `rollups.py`):**
+- flood_class = 1[flood_risk ≥ 1e-9] (any positive evidence); flood_risk = max(area fraction, point-presence) clipped [0,1].
+- Spatial grouping: R9 cell → R7 parent (k=2); GroupKFold 5 folds; seed 42.
+- Ponding rule: 0.40·(1−elev_norm) + 0.35·imperv + 0.15·(1−min(slope,15°)/15°) + 0.10·TWI_norm; classify ≥0.5.
+- Hotspot quantile 0.9; adaptive score_quantile 0.8 (selected R9 → R11 descendants).
+- Negative control: coastal-only fraction + pluvial-minus-coastal mean score; Sandy excluded from fit.
+
+**Applied edits (manuscript.md §4.1–4.8 rewritten for reproducibility):** R9/R10/R8/R11 role separation; exact target construction; seed 42 + ponding equation + fold-mean-vs-pooled baseline clarification; R7 parent + AP definition; hotspot quantile 0.9; adaptive 0.8-quantile screen; PFI_h Y_c=flood_class + no-calibration clause; Sandy exclusion scope. Terminology: "PR-AUC" → "average precision (AP)" consistently. Science/results unchanged (all values are code-verified, none fabricated).
+
 ## Prior R1–R5
 
 See earlier section of this file / `acceptance_report_5rounds.md`. ChatGPT substantive replies remain uncaptured pending manual URL paste.
