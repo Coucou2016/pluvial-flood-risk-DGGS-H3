@@ -145,7 +145,7 @@ configs/nyc.yaml
 
 ### 3.3 快照完整性与外部可访问性
 
-- **不可变发布（immutable release）：** 论文发布版本在仓库中以**注释标签 `paper-v1`** 固化；标签即不可变引用，指向生成全部论文输出的确切 commit，而非移动中的 `master` 分支。复核方执行 `git rev-list -n 1 paper-v1` 即可取得该确切 commit hash；GitHub 上同一标签对同一 commit 可见。
+- **不可变发布（immutable release）：** 论文发布版本在仓库中以**注释标签 `paper-v1`** 固化；标签即不可变引用，指向生成全部论文输出的确切 commit，而非移动中的 `master` 分支。**标签 `paper-v1` → commit `e4ab9acd7439491d7bc5908be550876aaa503cf2`**（`git rev-list -n 1 paper-v1` 可复核）；GitHub 上同一标签对同一 commit 可见。
 - **原始数据可溯源：** 不强制再分发全部原始栅格/矢量（体积与许可考虑），但 `data/raw/*/DOWNLOAD_MANIFEST.json` 已逐层记录 **来源 URL + 检索日期 + 许可/状态**；`data/raw/DATA_SOURCES.md` 记录 observed / synthetic / fixture 三态约定。
 - **审计文档定位：** `docs/paper/audit.md` 作为**支撑性可复现文档**（supplementary reproducibility doc），不替代正文 Methods / Results；审稿人可脱离本文档判断论文本身，本文档仅用于对账与复算。
 
