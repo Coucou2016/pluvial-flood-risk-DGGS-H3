@@ -48,6 +48,8 @@ outputs/adaptive_screen/
 outputs/*.txt
 models/*.joblib
 models/run_metadata.json
+# Local timestamped paper backups (git commits are the public version history)
+docs/paper/backups/
 # Root report copies are regenerated; prefer docs/paper/ as canonical
 # (still commit root copies for convenience — keep them)
 

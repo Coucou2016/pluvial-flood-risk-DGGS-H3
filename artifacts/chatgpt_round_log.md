@@ -92,6 +92,20 @@ None — all ChatGPT numeric claims were independently reproduced. Minor wording
 
 **Interpretation (locked):** expanded pilot is still not citywide; it shows the 80% prevalence was a small-window artifact; the model now beats the majority baseline on accuracy with moderate R² but not on F1 — "classification discrimination partially evidenced, not claimed as skill." Paste package: `artifacts/chatgpt_paste_R11.md`.
 
+## R12 (innovation/novelty positioning + related work) — live ChatGPT reply received 2026-08-18
+
+**Paste package:** `artifacts/chatgpt_paste_R12.md`. ChatGPT responded live in the advisor conversation (browser MCP active this time). Caveat: ChatGPT could not fetch the raw GitHub endpoint in-session, so it answered from the text summary; every point was independently verified against local files + WebSearch before acceptance.
+
+| Feedback | Independent verification | Verdict |
+|----------|--------------------------|---------|
+| Contribution reads as a feature list; sharpen to architecture-level contrast vs Svellingen (learn on H3 support, not post-hoc aggregation) | manuscript §1 already had "not PFIb" but listed three parts | **ACCEPTED** — rewrote §1 contribution paragraph |
+| Related-work gap: NYC 311/open-report literature missing; add Agonafir et al. + reporting bias | WebSearch confirmed both refs real: CEUS 97:101854 (2022) and J. Hydrol. 605:127300 (2022) | **ACCEPTED** — added both refs + new "open urban flood observations" paragraph |
+| Adaptive resolution needs its own antecedent (not just "multi-resolution H3") | manuscript lacked it | **ACCEPTED** — added adaptive/non-uniform-resolution sentence |
+| PFI_h(c,r) notation collision → recommend renaming | manuscript already disambiguated; rename is a larger cross-cutting decision (code/figures/config) | **PARTIAL** — strengthened §1 disambiguation; full rename deferred & flagged to user |
+| Over-sell risk: "we introduce spatial CV" | manuscript did not claim this | **NO CHANGE** |
+
+**Applied edits (manuscript.md):** §1 contribution contrast sentence; §1 PFI_h disambiguation (data/construction/meaning differences); §2 new "open urban flood observations" paragraph + Agonafir 2022a/2022b + adaptive-resolution antecedent; references 16–17 added. Science/results unchanged.
+
 ## Prior R1–R5
 
 See earlier section of this file / `acceptance_report_5rounds.md`. ChatGPT substantive replies remain uncaptured pending manual URL paste.
