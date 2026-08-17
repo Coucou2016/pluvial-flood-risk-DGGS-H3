@@ -1,0 +1,14 @@
+{
+  "n_test": 956,
+  "n_positive": 458,
+  "n_negative": 498,
+  "positive_prevalence": 0.4790794979079498,
+  "always_positive_acc": 0.4790794979079498,
+  "always_positive_f1": 0.6478076379066479,
+  "always_negative_acc": 0.5209205020920502,
+  "always_negative_f1": 0.0,
+  "model_mean_acc": 0.6419745944085997,
+  "model_mean_f1": 0.6083648651688762,
+  "model_beats_majority_acc": true,
+  "model_beats_majority_f1": false
+}

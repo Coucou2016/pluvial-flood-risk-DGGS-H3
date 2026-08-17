@@ -25,6 +25,7 @@
 | **R8** | Results honesty (live tables only) | `chatgpt_paste_R8.md` | **No** | Recomputed PFI flatness; CV folds; Jaccard; adaptive; negative control | Soft-claim scrub; Fold4 / flat PFI emphasis | Any fabricated discrimination |
 | **R9** | Discussion / limitations / captions | `chatgpt_paste_R9.md` | **No** | Figures under `docs/paper/figures/` | Caption academicization; limitations table tone | Inventing F1 schematic |
 | **R10** | Full polish + README abstract pointer | `chatgpt_paste_R10.md` | **No** | README academic abstract blurb; HTML rebuild | Manuscript polish; README pointer; acceptance | Force-push / repo recreate |
+| **R11** | Figure 1 + expanded-bbox primary table | `chatgpt_paste_R11.md` | **pending** | Expanded n=956 table vs majority baseline | Expanded-pilot honesty framing; Figure 1 caption | — |
 
 ## Live numbers lock (verified 2026-08-17)
 
@@ -71,6 +72,25 @@ ChatGPT fetched the R6–R10 packages, manuscript/report/README, live JSON/CSV, 
 ### Rejected / modified
 
 None — all ChatGPT numeric claims were independently reproduced. Minor wording accepted with edits (e.g. absence/rarity claims softened to "the present study combines…" rather than "Few combine…").
+
+## R11 (expanded bbox + Figure 1) — local execution complete, awaiting ChatGPT reply
+
+**Executed 2026-08-17 (Cursor only, no ChatGPT live reply yet):**
+
+1. **Figure 1 workflow schematic** generated (`docs/paper/figures/workflow_schematic.png`; `plot_workflow_schematic` in `src/pluvial_flood_risk/figures.py`; test `tests/test_figures.py::test_plot_workflow_schematic`). Four stages: inputs → H3 assembly → learning/blocked eval → diagnostics/outputs.
+2. **Figure numbering standardized** to workflow=Fig1, spatial CV=Fig2, Jaccard=Fig3, adaptive=Fig4 (manuscript + report + HTML builder agree).
+3. **Expanded-bbox primary table** downloaded (`data/raw/nyc_expanded/`: 69,718 buildings, 1,134 311 points, 45 Sandy, 117 hydro) and run (`scripts/run_expanded_study.py` → `outputs/expanded_primary_table.json`, `models/nyc_expanded/`).
+
+| Expanded (n=956, 28 blocks) | Value | vs smoke (n=141, 7 blocks) |
+|------------------------------|-------|-----------------------------|
+| positive prevalence | 0.479 | 0.801 |
+| spatial CV accuracy | 0.642 ± 0.148 | 0.784 ± 0.069 |
+| spatial CV F1 | 0.608 | 0.866 |
+| spatial CV R² | 0.525 ± 0.112 | 0.030 ± 0.343 |
+| always-positive acc / F1 | 0.479 / 0.648 | 0.808 / 0.893 |
+| beats majority acc / F1 | **true** / false | false / false |
+
+**Interpretation (locked):** expanded pilot is still not citywide; it shows the 80% prevalence was a small-window artifact; the model now beats the majority baseline on accuracy with moderate R² but not on F1 — "classification discrimination partially evidenced, not claimed as skill." Paste package: `artifacts/chatgpt_paste_R11.md`.
 
 ## Prior R1–R5
 

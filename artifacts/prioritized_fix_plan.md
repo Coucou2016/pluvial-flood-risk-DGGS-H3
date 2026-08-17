@@ -29,18 +29,20 @@
 |----|------|--------|------------|
 | I1 | FloodNet optional GeoJSON join | **Done** | Config flag; empty/absent → no-op |
 | I2 | Observed event rainfall ingest | **Blocked** | Non-synthetic manifest; synthetic `event_raster` only |
-| I3 | Citywide download profile | **Blocked** | Separate config |
+| I3 | Citywide download profile | **Partial (2026-08-17)** | Expanded `manhattan_expanded` n=956 archived; full citywide still 待补充 |
 | I4 | Manuscript skeleton | **Done** | `docs/paper/manuscript_skeleton.md` (Methods prose filled) |
 | I5 | Paper + report package from live outputs | **Done (2026-08-16)** | `docs/paper/manuscript.md`, `report.html`, figures SciencePlots |
 | I6 | Non-degenerate `PFI_h` across rainfall scenarios | **Open** | Current CSV within-cell range = 0 |
+| I7 | Figure 1 workflow schematic | **Done (2026-08-17)** | `docs/paper/figures/workflow_schematic.png` + `plot_workflow_schematic` + test |
+| I8 | Majority-class baseline (imbalance honesty) | **Done (2026-08-17)** | `outputs/classification_baselines*.json/csv` for smoke + expanded |
 
 ## Suggested next coding pass
 
 1. **I2 Observed event rainfall ingest** remains scientific priority (still blocked — no gauge/radar grid).
 2. Investigate why scenario `PFI_h` is flat across rainfall (I6) before claiming event conditioning empirically.
-3. I3 citywide profile after rainfall honesty is stable.
+3. **I3 citywide profile**: expanded `manhattan_expanded` (n=956) is now run; next is a full citywide (or larger multi-borough) extent after rainfall honesty is stable.
 4. Do **not** regress H1 / E1–E6 / I1 (FloodNet remains opt-in).
-5. Paper writing path advanced: fill Results from live metadata (done); polish figures with SciencePlots (done).
+5. Paper writing path advanced: fill Results from live metadata (done); polish figures with SciencePlots (done); workflow F1 + expanded table (done).
 
 ## Gates (must stay green)
 

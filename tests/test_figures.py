@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from pluvial_flood_risk.figures import plot_jaccard_ladder
+from pluvial_flood_risk.figures import plot_jaccard_ladder, plot_workflow_schematic
 from pluvial_flood_risk.rollups import write_jaccard_diagnostics
 from pluvial_flood_risk.synthetic import build_demo_dataset
 
@@ -22,5 +22,13 @@ def test_plot_jaccard_ladder(tmp_path: Path):
     if sidecar.exists():
         assert sidecar.stat().st_size > 0
     out = plot_jaccard_ladder(table, png)
+    assert out.exists()
+    assert out.stat().st_size > 0
+
+
+def test_plot_workflow_schematic(tmp_path: Path):
+    pytest.importorskip("matplotlib")
+    png = tmp_path / "workflow_schematic.png"
+    out = plot_workflow_schematic(png)
     assert out.exists()
     assert out.stat().st_size > 0

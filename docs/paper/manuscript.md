@@ -14,12 +14,13 @@
 | `PFI_h(c,r)` | Model rainfall-conditioned flood probability/index for cell `c` under rainfall condition `r` |
 | PFIb | 7Analytics / Svellingen building-level pluvial flood index — **not used here** |
 | LM pilot | Lower Manhattan open-data pilot (`n_cells=141`) |
+| Expanded pilot | `manhattan_expanded` open-data pilot (`n_cells=956`), still not citywide |
 
 ---
 
 ## Abstract
 
-Urban pluvial flood screening increasingly relies on machine learning and multi-resolution grids, yet many operational indices remain tied to proprietary insurance labels and evaluation protocols that ignore spatial leakage. Building on the H3 DGGS framing popularised for scalable pluvial mapping, we present an **open-label** hexagonal **learning protocol** for a Lower Manhattan pilot: multi-source public flood indicators are joined to H3 cells, gradient-boosting models are assessed with **H3-block spatial cross-validation**, scale-loss is quantified with a Jaccard/F1 hotspot ladder, and an **adaptive** refinement stage screens parents using trained cell scores. We define `PFI_h(c,r)` explicitly as a rainfall-conditioned hex flood probability/index — a model output, not feature importance and not the proprietary PFIb product. On the live open-data pilot table (`n=141` cells; open-data assembly), spatial CV accuracy was **0.784 ± 0.069** (5 folds) with mean F1 **0.866**, but the positive class dominates (80% of held-out cells), and a trivial always-positive majority baseline reaches **0.808** accuracy and **0.893** F1 — so these blocked metrics are **not** reported as classification skill; continuous-risk R² under the same folds was near zero (**0.030 ± 0.343**) and is likewise not claimed as skill. Adaptive refinement used about **57%** as many cells as a uniform R11 grid while refining high-score parents — a **cell-count** comparison only. We do **not** claim citywide skill, PFIb reproduction, radar rainfall, or rainfall-conditioned discrimination: event rainfall remains a synthetic constant hook, and scenario tables show **no within-cell `PFI_h` change across rainfall intensities** (待补充). Synthetic demonstrations are excluded from scientific evidence.
+Urban pluvial flood screening increasingly relies on machine learning and multi-resolution grids, yet many operational indices remain tied to proprietary insurance labels and evaluation protocols that ignore spatial leakage. Building on the H3 DGGS framing popularised for scalable pluvial mapping, we present an **open-label** hexagonal **learning protocol** for Manhattan pilots: multi-source public flood indicators are joined to H3 cells, gradient-boosting models are assessed with **H3-block spatial cross-validation**, scale-loss is quantified with a Jaccard/F1 hotspot ladder, and an **adaptive** refinement stage screens parents using trained cell scores. We define `PFI_h(c,r)` explicitly as a rainfall-conditioned hex flood probability/index — a model output, not feature importance and not the proprietary PFIb product. On the live open-data pilot table (`n=141` cells; open-data assembly), spatial CV accuracy was **0.784 ± 0.069** (5 folds) with mean F1 **0.866**, but the positive class dominates (80% of held-out cells), and a trivial always-positive majority baseline reaches **0.808** accuracy and **0.893** F1 — so these blocked metrics are **not** reported as classification skill; continuous-risk R² under the same folds was near zero (**0.030 ± 0.343**) and is likewise not claimed as skill. A second, larger open-data pilot (`manhattan_expanded`; `n=956` cells, 28 blocks, 47.9% positive) is more balanced: spatial CV accuracy **0.642 ± 0.148** exceeds the always-positive majority baseline (**0.479**), and continuous-risk R² is **0.525 ± 0.112**, while mean F1 (**0.608**) remains below the always-positive F1 (**0.648**) — so classification discrimination is still not claimed, but the model shows above-majority accuracy and non-trivial continuous signal at this larger scale. Adaptive refinement used about **57%** as many cells as a uniform R11 grid while refining high-score parents — a **cell-count** comparison only. We do **not** claim citywide skill, PFIb reproduction, radar rainfall, or rainfall-conditioned discrimination: event rainfall remains a synthetic constant hook, and scenario tables show **no within-cell `PFI_h` change across rainfall intensities** (待补充). Synthetic demonstrations are excluded from scientific evidence.
 
 ---
 
@@ -186,52 +187,71 @@ Adaptive mixed grids use about **57%** as many cells as a **uniform R11** grid (
 
 Open-data assembly: n_cells=141; n_coastal=31; n_pluvial=71; n_both=23; n_coastal_only=8; frac_coastal_only≈0.057; pluvial_minus_coastal_mean_score≈0.120. Coastal overlay is **not** a training label.
 
+### 6.6 Expanded open-data pilot (`manhattan_expanded`)
+
+| Metric | Value |
+|--------|-------|
+| n_cells | 956 |
+| spatial_cv_n_folds | 5 |
+| spatial_cv_n_blocks | 28 |
+| spatial_cv_accuracy_mean ± std | 0.642 ± 0.148 |
+| spatial_cv_f1_mean | 0.608 |
+| spatial_cv_r2_mean ± std | 0.525 ± 0.112 |
+| spatial_cv_mae_mean | 0.112 |
+| random_split_val_accuracy (diagnostic only) | 0.667 |
+| positive-class prevalence (held-out) | 0.479 |
+| always-positive (majority) baseline accuracy | 0.479 |
+| always-positive (majority) baseline F1 | 0.648 |
+
+Per-fold accuracy/F1: Fold0 0.801 / 0.832; Fold1 0.419 / 0.442; Fold2 0.759 / 0.736; Fold3 0.516 / 0.343; Fold4 0.715 / 0.689.
+
+**Reading.** The expanded extent (`manhattan_expanded`, ≈0.09° × 0.12°) is a second, larger open-data pilot (956 cells over 28 blocks), still **not** citywide. Its held-out labels are near-even (47.9% positive), in contrast to the 80% prevalence of the smaller Lower Manhattan table. Under the same H3-block protocol, the model's spatial CV accuracy **0.642 ± 0.148** exceeds the always-positive majority baseline (**0.479**), and continuous-risk R² (**0.525 ± 0.112**) is substantially higher than the smaller pilot's near-zero value, indicating non-trivial continuous signal at this scale. Mean F1 (**0.608**) nevertheless remains below the always-positive F1 (**0.648**), so classification discrimination in F1 terms is **not** claimed; the per-fold spread (accuracy 0.419–0.801; F1 0.343–0.832) reflects folds whose held-out blocks are majority-negative (Fold1, Fold3) versus majority-positive (Fold0, Fold4). This is reported as a robustness check on the protocol, not as citywide skill.
+
 ---
 
 ## 7 Discussion
 
 ### 7.1 Implications under stated boundaries
 
-The LM pilot **indicates** that an open-label H3 table can be trained and evaluated with blocked CV, that mean rollups substantially alter fine-hotspot membership (scale-loss), and that trained-score adaptive refinement reduces uniform-fine **cell count**. These results demonstrate execution of the protocol under the stated pilot design; they do **not** establish product-ready city maps, classification skill (the model does not beat the majority-class baseline), or rainfall-responsive screening under the current synthetic rainfall hook.
+The Manhattan pilots **indicate** that an open-label H3 table can be trained and evaluated with blocked CV, that mean rollups substantially alter fine-hotspot membership (scale-loss), and that trained-score adaptive refinement reduces uniform-fine **cell count**. These results demonstrate execution of the protocol under the stated pilot design; they do **not** establish product-ready city maps or rainfall-responsive screening under the current synthetic rainfall hook. On classification discrimination the two pilots differ: the smaller table does **not** beat its majority-class baseline, while the expanded table beats it on **accuracy** (0.642 vs 0.479) but **not** on F1 (0.608 vs 0.648), so discrimination remains only partially evidenced and is not claimed as skill.
 
 Relative to Svellingen et al. (2026), the dialogue is conceptual: they aggregate a proprietary building index (PFIb) into H3 for scalable communication; we learn on public labels with spatial holdouts and an explicit non-PFIb `PFI_h(c,r)`. Our open-label Jaccard under mean aggregation R10→R8 (0.167) should **not** be narrated as matching their PFIb Jaccard ≈ 0.14 — different labels, resolutions, and hotspot definitions. Proximity of 0.167 to 0.14 is coincidental and must not be used as validation.
 
 ### 7.2 Limitations
 
-1. **Spatial extent.** Results use a Lower Manhattan pilot (`n=141` cells), not citywide New York City.
+1. **Spatial extent.** Results use two Manhattan pilots — Lower Manhattan (`n=141` cells) and an expanded extent (`n=956` cells) — neither of which is citywide New York City.
 2. **Label bias.** 311 and related open indicators reflect reporting and mapping processes, not complete ground truth.
 3. **Hydro proxy.** Distance-to-water from NHDPlus in a tidal/shoreline setting is a proxy, not inland drainage density.
 4. **Rainfall provenance.** Event rainfall remains a synthetic constant hook; gauge/radar event ingest is 待补充.
 5. **Flat `PFI_h(c,r)`.** Within-cell range across rainfall scenarios is currently **0**; rainfall-conditioned discrimination is not demonstrated.
-6. **Class imbalance / no demonstrated discrimination.** The pilot is highly imbalanced (80% positive); accuracy and positive-class F1 fall **below** an always-positive majority baseline (0.808 / 0.893 vs model 0.784 / 0.866), so no classification skill is claimed. A class-imbalance-aware ranking metric (ROC-AUC) should be reported once archived.
-7. **Small blocked design.** Only 7 H3 blocks are distributed over 5 folds, with per-fold test sizes 21–49 and some folds containing a single block; this limits uncertainty and generalisation claims.
-8. **Continuous skill.** Spatial-CV R² is near zero and is not claimed as predictive skill.
+6. **Class imbalance / no demonstrated discrimination.** The smaller pilot is highly imbalanced (80% positive); its accuracy and positive-class F1 fall **below** an always-positive majority baseline (0.808 / 0.893 vs model 0.784 / 0.866). The expanded pilot is near-even (47.9% positive) and beats the majority baseline on accuracy (0.642 vs 0.479) but **not** on F1 (0.608 vs 0.648). Classification discrimination is therefore only partially evidenced and is **not** claimed as skill; a class-imbalance-aware ranking metric (ROC-AUC) should be reported once archived.
+7. **Small blocked design.** The smaller pilot distributes only 7 H3 blocks over 5 folds (per-fold test 21–49, some folds a single block); the expanded pilot uses 28 blocks (per-fold test 190–193), which is more defensible but still a limited, non-citywide design.
+8. **Continuous skill.** Spatial-CV R² is near zero in the smaller pilot (0.030) and moderate in the expanded pilot (0.525); the latter is reported as a scale-sensitive signal, not as citywide predictive skill.
 9. **Held-out sensors.** FloodNet validation is unavailable under the default stub/opt-in path.
-10. **Figure 1.** Workflow schematic is 待补充.
 
-Random-split accuracy must not displace spatial CV in claims. Fold-level variance (including Fold4 on `n_test=24`) further warns against over-interpreting a single pilot run.
+Random-split accuracy must not displace spatial CV in claims. Fold-level variance (including Fold4 on `n_test=24` in the smaller pilot) further warns against over-interpreting a single pilot run.
 
 ### 7.3 Completion criteria
 
-(i) ingest observed event rainfall with non-synthetic provenance; (ii) non-flat scenarios — within-cell `PFI_h` range > 0 across rainfall intensities on the same static \(X_c\); (iii) expanded bbox / citywide profile with the same spatial CV protocol; (iv) FloodNet held-out validation when a non-empty layer exists.
+(i) ingest observed event rainfall with non-synthetic provenance; (ii) non-flat scenarios — within-cell `PFI_h` range > 0 across rainfall intensities on the same static \(X_c\); (iii) citywide (or larger) profile with the same spatial CV protocol — the expanded `manhattan_expanded` pilot (`n=956`) is now archived, but a full citywide run remains 待补充; (iv) FloodNet held-out validation when a non-empty layer exists.
 
 ---
 
 ## 8 Conclusions
 
-We present a reproducible open-label H3+ML **protocol** — spatial block CV, scale-loss diagnostics, adaptive cell-count refinement, and an explicit non-PFIb `PFI_h(c,r)` definition — evaluated on a Lower Manhattan open-data pilot. Live metrics demonstrate execution of the protocol under the stated boundaries; they do not establish citywide operational skill, and classification accuracy/F1 do not beat a majority-class baseline. Observed event rainfall, non-degenerate rainfall response, expanded spatial extent, class-imbalance-aware discrimination metrics, and FloodNet validation remain 待补充.
+We present a reproducible open-label H3+ML **protocol** — spatial block CV, scale-loss diagnostics, adaptive cell-count refinement, and an explicit non-PFIb `PFI_h(c,r)` definition — evaluated on two Manhattan open-data pilots. Live metrics demonstrate execution of the protocol under the stated boundaries; they do not establish citywide operational skill. The smaller pilot does not beat a majority-class baseline; the expanded pilot beats it on accuracy but not F1 and shows moderate continuous R², so classification discrimination remains only partially evidenced. Observed event rainfall, non-degenerate rainfall response, a full citywide extent, class-imbalance-aware discrimination metrics, and FloodNet validation remain 待补充.
 
 ---
 
 ## Figure captions
 
-**Figure 2. Open-label scale-loss across H3 resolutions.** Jaccard similarity and F1 between fine-resolution (R10) hotspot parent sets and coarse (R8/R9) hotspot sets under mean, max, and p90 aggregation. Mean aggregation at R8 yields Jaccard ≈ 0.167, consistent with smoothing of local extremes; max/p90 preserve extrema by construction. Values are diagnostics on the Lower Manhattan open-label pilot and must not be equated to Svellingen et al.’s PFIb Jaccard ≈ 0.14.
+**Figure 1. Open-label H3 pluvial flood learning protocol (workflow).** Conceptual pipeline: (1) open multi-source inputs — open flood labels (DEP stormwater polygons, 311 flooding points, USGS Ida high-water marks), static predictors (elevation, slope, impervious fraction, building density, distance-to-water), a rainfall condition `r` (a synthetic constant hook in this pilot, not radar), and a FEMA Sandy negative control that is never a training label; (2) H3 assembly at R9 with provenance tags (`assembly_mode`, `feature_source`, `label_source`, `rainfall_source`); (3) learning and blocked evaluation — a gradient-boosting classifier with continuous risk regressor, H3-block `GroupKFold` spatial cross-validation as the primary blocked evaluation, a disclosed majority-class baseline, and logistic/ponding-rule baselines; (4) diagnostics and outputs — the rainfall-conditioned `PFI_h(c,r)` index, a scale-loss Jaccard ladder (R10→R9/R8), adaptive refinement screened by trained `PFI_h` (→R11), and a Sandy negative-control check.
 
-**Figure 3. Adaptive refinement versus uniform fine grids (cell counts).** Fixed coarse (R9), adaptive mixed, and uniform fine (R11) cell counts for the pilot table (adaptive/uniform ≈ 0.569; 79 of 141 parents refined). The comparison is restricted to cell counts; it is not a wall-clock or citywide runtime claim.
+**Figure 2. Spatial H3-block cross-validation fold metrics.** Per-fold classification accuracy and F1 on the Lower Manhattan pilot (`n=141` cells; 5 folds; 7 blocks). Primary reporting uses the mean ± standard deviation across folds; individual high folds (e.g. Fold4) are not interpreted as citywide skill, and accuracy/F1 are reported alongside a majority-class baseline (see Table in §6.1).
 
-**Figure 4. Spatial H3-block cross-validation fold metrics.** Per-fold classification accuracy and F1 on the Lower Manhattan pilot (`n=141` cells; 5 folds). Primary reporting uses the mean ± standard deviation across folds; individual high folds (e.g. Fold4) are not interpreted as citywide skill.
+**Figure 3. Open-label scale-loss across H3 resolutions.** Jaccard similarity and F1 between fine-resolution (R10) hotspot parent sets and coarse (R8/R9) hotspot sets under mean, max, and p90 aggregation. Mean aggregation at R8 yields Jaccard ≈ 0.167, consistent with smoothing of local extremes; max/p90 preserve extrema by construction. Values are diagnostics on the Lower Manhattan open-label pilot and must not be equated to Svellingen et al.’s PFIb Jaccard ≈ 0.14.
 
-**Figure 1 (workflow schematic).** 待补充.
+**Figure 4. Adaptive refinement versus uniform fine grids (cell counts).** Fixed coarse (R9), adaptive mixed, and uniform fine (R11) cell counts for the pilot table (adaptive/uniform ≈ 0.569; 79 of 141 parents refined). The comparison is restricted to cell counts; it is not a wall-clock or citywide runtime claim.
 
 ---
 

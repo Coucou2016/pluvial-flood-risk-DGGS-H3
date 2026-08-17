@@ -206,6 +206,159 @@ def plot_spatial_cv_bars(
     return out_path
 
 
+def plot_workflow_schematic(
+    out_path: Path | str,
+    title: str | None = None,
+    chinese: bool = False,
+) -> Path:
+    """
+    Figure 1 — conceptual workflow schematic (no data dependency).
+
+    Four stages, left to right: open multi-source inputs → H3 assembly → learning
+    & blocked evaluation → diagnostics & outputs. Draws labelled boxes with
+    FancyBboxPatch and arrows; Times New Roman via ``apply_paper_style``.
+    """
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    apply_paper_style(chinese=chinese)
+
+    stages = [
+        {
+            "title": "Open multi-source inputs",
+            "color": "#4C72B0",
+            "items": [
+                "Open flood labels\n(DEP stormwater, 311, USGS Ida HWM)",
+                "Static predictors\n(elevation, slope, impervious,\nbuilding density, distance-to-water)",
+                "Rainfall condition r\n(synthetic constant hook; radar TBD)",
+                "Negative control\n(FEMA Sandy — never a label)",
+            ],
+        },
+        {
+            "title": "H3 assembly (R9)",
+            "color": "#55A868",
+            "items": [
+                "Join layers to H3 cells",
+                "Provenance tags:\nassembly_mode · feature_source\nlabel_source · rainfall_source",
+            ],
+        },
+        {
+            "title": "Learning & blocked evaluation",
+            "color": "#C44E52",
+            "items": [
+                "Gradient-boosting classifier\n+ continuous risk regressor",
+                "H3-block GroupKFold spatial CV\n(primary blocked evaluation)",
+                "Majority-class baseline\n(always-positive) disclosed",
+                "Baselines: logistic / ponding rule",
+            ],
+        },
+        {
+            "title": "Diagnostics & outputs",
+            "color": "#8172B2",
+            "items": [
+                "PFI_h(c,r) — rainfall-conditioned\ncell probability/index (not PFIb)",
+                "Scale-loss Jaccard ladder\n(R10 → R9 / R8)",
+                "Adaptive refinement\n(PFI_h screens parents → R11)",
+                "Sandy negative-control check",
+            ],
+        },
+    ]
+
+    n = len(stages)
+    fig, ax = plt.subplots(figsize=(11.2, 6.4))
+    ax.set_xlim(0, n)
+    ax.set_ylim(0, 1)
+    ax.axis("off")
+
+    col_w = 0.92
+    gap = (1.0 - col_w) / 2.0
+    x_left = 0.02
+
+    # Title inside each column, body boxes below
+    top = 0.90
+    for i, st in enumerate(stages):
+        cx = x_left + gap + i * 1.0 + col_w / 2.0
+        # column header
+        ax.text(
+            cx,
+            top + 0.03,
+            st["title"],
+            ha="center",
+            va="center",
+            fontsize=10.5,
+            fontweight="bold",
+            color=st["color"],
+        )
+        # body boxes stacked
+        n_items = len(st["items"])
+        body_top = top - 0.04
+        body_bottom = 0.05
+        avail = body_top - body_bottom
+        box_h = avail / n_items
+        for j, item in enumerate(st["items"]):
+            y0 = body_top - (j + 1) * box_h
+            y1 = body_top - j * box_h
+            box = FancyBboxPatch(
+                (cx - col_w / 2.0, y0),
+                col_w,
+                box_h * 0.92,
+                boxstyle="round,pad=0.006,rounding_size=0.012",
+                linewidth=0.9,
+                edgecolor=st["color"],
+                facecolor=st["color"],
+                alpha=0.10,
+                mutation_aspect=1.0,
+            )
+            ax.add_patch(box)
+            ax.text(
+                cx,
+                (y0 + y1) / 2.0,
+                item,
+                ha="center",
+                va="center",
+                fontsize=7.4,
+                color="#1a1a1a",
+                linespacing=1.25,
+            )
+
+    # Arrows between columns
+    for i in range(n - 1):
+        x_from = x_left + gap + (i + 1) * 1.0 - gap + 0.01
+        x_to = x_left + gap + (i + 1) * 1.0 - 0.01
+        for yy in (0.62, 0.30):
+            arr = FancyArrowPatch(
+                (x_from, yy),
+                (x_to, yy),
+                arrowstyle="-|>",
+                mutation_scale=12,
+                linewidth=1.0,
+                color="#555555",
+            )
+            ax.add_patch(arr)
+
+    fig.suptitle(
+        title
+        or "Open-label H3 pluvial flood learning protocol (workflow)",
+        fontsize=12,
+    )
+    fig.text(
+        0.5,
+        0.005,
+        "PFI_h(c,r) is a model output, not feature importance and not PFIb. "
+        "Lower Manhattan open-data pilot; not citywide.",
+        ha="center",
+        va="bottom",
+        fontsize=7.5,
+        color="#555555",
+    )
+    fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    return out_path
+
+
 def plot_adaptive_ablation(
     ablation_csv: pd.DataFrame | Path | str,
     out_path: Path | str,

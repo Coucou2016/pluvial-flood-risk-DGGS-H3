@@ -1,0 +1,27 @@
+{
+  "created_utc": "2026-08-17T15:36:24.413759+00:00",
+  "random_seed": 42,
+  "data_provenance": "observed",
+  "h3_version": "4.4.2",
+  "sklearn_version": "1.8.0",
+  "framework": "pluvial-flood-risk-dggs-h3",
+  "framework_version": "0.1.0",
+  "n_cells": 956,
+  "metrics": {
+    "random_split_val_accuracy": 0.6666666666666666,
+    "random_split_val_r2": 0.43827572723943475,
+    "val_accuracy": 0.6666666666666666,
+    "val_r2": 0.43827572723943475,
+    "spatial_cv_n_folds": 5.0,
+    "spatial_cv_n_blocks": 28.0,
+    "spatial_cv_accuracy_mean": 0.6419745944085997,
+    "spatial_cv_accuracy_std": 0.1483789803337715,
+    "spatial_cv_r2_mean": 0.5246602554147421,
+    "spatial_cv_r2_std": 0.1115798248619264,
+    "spatial_cv_f1_mean": 0.6083648651688762,
+    "spatial_cv_mae_mean": 0.11225336106029046,
+    "spatial_cv_fold_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_expanded\\spatial_cv_folds.csv"
+  },
+  "spatial_cv_k": 2,
+  "spatial_cv_folds": 5
+}

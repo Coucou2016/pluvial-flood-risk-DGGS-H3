@@ -25,6 +25,8 @@ models/*
 !models/.gitkeep
 !models/nyc_smoke/
 models/nyc_smoke/*.joblib
+!models/nyc_expanded/
+models/nyc_expanded/*.joblib
 # Keep tiny test rasters; ignore large user downloads
 data/raw/**/*.tif
 data/raw/**/*.tiff

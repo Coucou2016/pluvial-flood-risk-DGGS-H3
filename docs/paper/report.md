@@ -114,6 +114,13 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 
 静态特征 \(X_c\) 固定，降雨条件 \(r\) 在命名情景间变化。这是 **model output（模型输出）**，不是 SHAP/permutation importance，也不是 PFIb。当前 smoke 的情景表**尚未**显示非零响应（见 §5.6）。
 
+#### 图 1 · `docs/paper/figures/workflow_schematic.png`
+
+**来龙去脉：** 这是论文的 Figure 1 概念工作流图（SciencePlots + Times New Roman），由 `src/pluvial_flood_risk/figures.py` 的 `plot_workflow_schematic` 生成，无数据依赖，对应手稿 Methods 的四个阶段。  
+**如何读：** 从左到右四列——(1) 开放多源输入（开放标签 + 静态特征 + 降雨条件 r + FEMA Sandy 负对照）；(2) H3 组装（R9，带 provenance 标签）；(3) 学习与分块评价（梯度提升 + H3 块 GroupKFold 空间 CV + 多数类平凡基线 + 逻辑/积水规则基线）；(4) 诊断与输出（`PFI_h(c,r)`、Jaccard 尺度损失阶梯、自适应加密、Sandy 负对照检查）。  
+**意义：** 一张图讲清整条协议与「证据—边界」纪律，帮助审稿人快速定位每一步对应的结果小节。  
+**结论：** `PFI_h(c,r)` 是模型输出，不是特征重要性，也不是 PFIb；证据仅限 Lower Manhattan 开放数据试点，非全市。
+
 ---
 
 ## 4. 过程 Process（怎么跑到这些图）
@@ -172,7 +179,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 **意义：** 展示评价协议的折间不稳定性，而不是“挑最好一折”。  
 **结论：** 均值有效，但外部效度仍受小样本与块不均限制。
 
-#### 图 1 · `docs/paper/figures/spatial_cv_folds.png`
+#### 图 2 · `docs/paper/figures/spatial_cv_folds.png`
 
 **来龙去脉：** 由 `spatial_cv_folds.csv` 经 `src/pluvial_flood_risk/figures.py`（SciencePlots + TNR）绘制 Accuracy/F1 成对柱。  
 **如何读：** 横轴 fold_id；纵轴 0–1；每折两柱。  
@@ -202,7 +209,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 **结论（允许）：** 开放标签下，mean 上卷到 R8 会严重改变热点集合。  
 **结论（禁止）：** “我们得到了与 Svellingen 相同的 Jaccard 0.14”；把 max/p90=1 写成模型完美。
 
-#### 图 2 · `docs/paper/figures/jaccard_by_resolution.png`
+#### 图 3 · `docs/paper/figures/jaccard_by_resolution.png`
 
 **来龙去脉：** 同 CSV 的 SciencePlots 折线（左 Jaccard、右 F1；线型区分 agg）。  
 **如何读：** 随 coarse_res 变粗，看 mean 线是否下降。  
@@ -232,7 +239,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 **结论（允许）：** 本 smoke 设定下自适应降低均匀细网格单元数约四成多。  
 **结论（禁止）：** 全市算力节省；自适应已提高泛化技能（本表是**单元数**消融，不是技能提升表）。
 
-#### 图 3 · `docs/paper/figures/adaptive_ablation.png`
+#### 图 4 · `docs/paper/figures/adaptive_ablation.png`
 
 **来龙去脉：** 三柱条形图对应表 4 三个单元数。  
 **如何读：** 中间柱应介于左右之间。  
@@ -279,6 +286,49 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 **来龙去脉（根因已确诊，2026-08-17）：** 情景循环本身正确——只改 `rainfall_mm_h` 再预测，产物里 4 个情景的 `rainfall_mm_h` 也确实分别是 25/40/75/100。平坦的真正原因是**训练阶段降雨是常数**：训练表 `data/processed/nyc_h3_cells.parquet` 的 141 个单元 `rainfall_mm_h` 全部为 **75.0**（`rainfall_source=event_raster` 的合成常数钩子），因此 `rainfall_mm_h` 在训练特征矩阵中方差为 0；`GradientBoostingClassifier` 对该列的特征重要性为 **0.0**（`models/nyc_smoke/classifier.joblib`）。模型从未见过降雨变化，自然无法对情景做出响应。  
 **结论：** **定义保留**；**经验判别力本轮不成立**，且成因不是 bug 而是“训练降雨恒为常数”。要得到非零响应，必须先引入 I2 观测事件降雨（多强度、非合成 provenance），再重训；在此之前禁止在摘要写“情景响应已验证”。
 
+### 5.7 扩展 bbox 主表（`manhattan_expanded`，`n=956`）
+
+**来源：** `outputs/expanded_primary_table.json`、`models/nyc_expanded/spatial_cv_folds.csv`、`outputs/classification_baselines_expanded.{json,csv}`；原始数据在 `data/raw/nyc_expanded/`（`DOWNLOAD_MANIFEST.json` 可溯源）。
+
+**来龙去脉：** §5.1 的 `n=141` 表只覆盖 Lower Manhattan 极小窗口，正类占比高达 80.1%，被 ChatGPT R8 评审判为“material issue”——因为 80% 的正类意味着“永远说会淹”的平凡基线就能拿到 0.808 accuracy / 0.893 F1，模型反而打不过它。为验证这是否只是“小窗口被 DEP 洪泛多边形覆盖”导致的空间伪象，本小节把同样的开放数据协议跑在更大的 `manhattan_expanded` 范围（`[-74.03, 40.68, -73.94, 40.80]`，约 0.09° × 0.12°，从曼哈顿下城向上城/中城南扩展），得到 `n=956` 个 R9 单元、28 个空间块。
+
+**如何读：** 下表与 §5.1 表 1 同构，便于直接对照“小窗口 vs 扩展窗口”。
+
+| Metric | 扩展窗口 (`manhattan_expanded`) | 小窗口 (LM smoke) |
+|--------|-------------------------------|-------------------|
+| n_cells | **956** | 141 |
+| spatial_cv_n_blocks | **28** | 7 |
+| spatial_cv_n_folds | 5 | 5 |
+| 正类占比（held-out） | **0.479** | 0.801 |
+| spatial_cv_accuracy_mean ± std | **0.642 ± 0.148** | 0.784 ± 0.069 |
+| spatial_cv_f1_mean | **0.608** | 0.866 |
+| spatial_cv_r2_mean ± std | **0.525 ± 0.112** | 0.030 ± 0.343 |
+| spatial_cv_mae_mean | **0.112** | 0.332 |
+| random_split_val_accuracy（仅诊断） | 0.667 | 0.690 |
+| always-positive（多数类）accuracy | **0.479** | 0.808 |
+| always-positive（多数类）F1 | **0.648** | 0.893 |
+| 模型是否超过多数类 accuracy | **是（0.642 > 0.479）** | 否（0.784 < 0.808） |
+| 模型是否超过多数类 F1 | 否（0.608 < 0.648） | 否（0.866 < 0.893） |
+
+**逐折明细（`models/nyc_expanded/spatial_cv_folds.csv`）：**
+
+| fold | n_test | 正/负 | accuracy | f1 | r2 |
+|------|--------|-------|----------|----|----|
+| 0 | 191 | 119 / 72 | 0.801 | 0.832 | 0.486 |
+| 1 | 191 | 66 / 125 | 0.419 | 0.442 | 0.713 |
+| 2 | 191 | 97 / 94 | 0.759 | 0.736 | 0.533 |
+| 3 | 190 | 73 / 117 | 0.516 | 0.343 | 0.525 |
+| 4 | 193 | 103 / 90 | 0.715 | 0.689 | 0.366 |
+
+**意义（为什么这个表重要）：**
+
+1. **类别失衡得到缓解。** 扩展窗口正类占比 47.9%，接近均衡；这证明小窗口的 80.1% 正类主要是“极小 bbox 落在 DEP 洪泛多边形内”的空间伪象，而不是模型本身的问题。
+2. **accuracy 首次超过多数类平凡基线。** 扩展窗口模型 0.642 的 accuracy 明显高于“永远说会淹”的 0.479，说明模型在更大的空间范围里确实学到了可迁移的判别信息；这与小窗口“打不过平凡基线”形成鲜明对比。
+3. **连续风险 R² 从近零跃升到 0.525。** 小窗口 R²≈0.030（近乎无用），扩展窗口 R²≈0.525（中等偏强），说明连续风险回归器在更大、更均衡的样本上具有真实信号。这一点也反过来支持“小窗口 R² 近零是样本规模/空间覆盖不足所致”的判断。
+4. **F1 仍低于多数类基线（0.608 < 0.648）。** F1 是对正类的调和平均；在均衡设定下，“永远说会淹”仍有 recall=1、precision=0.479，F1≈0.648。模型为了提升精度而牺牲了部分 recall，导致 F1 略低于平凡基线。因此**分类判别力仍只能算“部分建立”**，不能用 F1 主张“分类技能”。
+
+**结论（honest）：** 扩展窗口主表**不是全市结果**（仍是曼哈顿中城南+下城北的试点），但它把“小窗口因类别失衡而打不过平凡基线”这一最严重短板缓解了：模型在 accuracy 上超过多数类基线，连续 R² 显著增强。下一步仍缺：真正的 citywide 范围、ROC-AUC 等失衡感知判别指标、观测事件降雨、FloodNet 留出验证。
+
 ---
 
 ## 6. 讨论 Discussion
@@ -291,7 +341,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 4. **自适应**由 trained `PFI_h` 驱动；  
 5. **语义澄清**：`PFI_h(c,r)` ≠ importance ≠ PFIb。
 
-证据强度仅支撑“协议可跑通 + 尺度损失可见 + 单元数可降”，**不支撑**“全市可部署事件响应系统”，也**不支撑**“分类有判别技能”（模型未超过多数类平凡基线）。311 报告偏差、潮汐岸线水文代理、合成降雨、平坦情景 PFI、**类别严重失衡（80% 正类）**、小样本块不均（仅 7 块分 5 折，单折 21–49 个测试单元），是主要科学风险。
+证据强度仅支撑“协议可跑通 + 尺度损失可见 + 单元数可降”，**不支撑**“全市可部署事件响应系统”。分类判别力方面：小窗口（80% 正类）模型打不过多数类平凡基线；扩展窗口（`manhattan_expanded`，47.9% 正类，28 块）模型在 accuracy 上**超过**多数类基线（0.642 > 0.479）、连续 R² 跃升到 0.525，但 F1 仍低于平凡基线（0.608 < 0.648），故**判别力只算部分建立、仍不主张“分类技能”**。311 报告偏差、潮汐岸线水文代理、合成降雨、平坦情景 PFI、小样本块不均（小窗口仅 7 块分 5 折），是主要科学风险。
 
 独立 WebSearch（本轮）再次确认：Svellingen DOI 与 Jaccard≈0.14 / ~98% 效率叙述；spatial CV / GroupKFold 是 GeoAI 诚实评价的标准关切。ChatGPT 顾问若稍后回复，只合并**不冲突**建议；冲突时以 locked science 为准。
 
@@ -299,10 +349,10 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 
 ## 7. 结论 Conclusions
 
-1. 开放标签 H3+ML + 空间块 CV 的 LM smoke 已产生可引用元数据与三张 SciencePlots 主图。  
+1. 开放标签 H3+ML + 空间块 CV 已产生两个试点（LM smoke `n=141`、扩展窗口 `n=956`）的可引用元数据，以及四张 SciencePlots 主图（工作流 F1、空间 CV F2、Jaccard F3、自适应 F4）。  
 2. Jaccard 与自适应消融提供了与 PFIb 文献可**概念对话**、但不可**数值等同**的证据。  
 3. `PFI_h(c,r)` 定义已绑定；情景响应与 I2 观测降雨为下一步（待补充）。  
-4. **分类判别力未建立**：模型 accuracy/F1（0.784/0.866）低于多数类平凡基线（0.808/0.893），故不主张分类技能；失衡感知指标（ROC-AUC）待补充。  
+4. **分类判别力部分建立、仍未主张“分类技能”**：小窗口 accuracy/F1（0.784/0.866）低于多数类平凡基线（0.808/0.893）；扩展窗口 accuracy 超过多数类基线（0.642 > 0.479）且连续 R²=0.525，但 F1（0.608）仍低于平凡基线（0.648）。失衡感知指标（ROC-AUC）待补充。  
 5. 可主张创新点见 `docs/paper/innovation_and_framework.md` 的 I1–I5；拒绝 PFIb 复现、Jaccard 0.14 等同、LM→citywide、雷达降雨、平坦情景判别、以及“分类有技能”的表述。
 
 ---
@@ -312,13 +362,14 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 | 局限 | 状态 |
 |------|------|
 | LM smoke n=141 ≠ citywide | 锁定 |
-| 类别失衡（80% 正类）；模型未超多数类基线 | **锁定**（`outputs/classification_baselines.json`） |
+| 扩展窗口 `manhattan_expanded` n=956 ≠ citywide | 锁定（`outputs/expanded_primary_table.json`） |
+| 类别失衡（小窗口 80% 正类 → 模型未超多数类基线；扩展窗口 47.9% → accuracy 超基线、F1 未超） | **锁定**（`outputs/classification_baselines.json` / `classification_baselines_expanded.json`） |
 | 合成 `event_raster`；I2 阻塞 | 锁定 |
 | 情景 PFI_h 单元内极差=0 | 锁定（待补充修复） |
 | FloodNet 默认关闭 | 锁定 |
 | Oslo / fixture ≠ science | 锁定 |
 | ROC-AUC 等失衡感知判别指标 | 待补充（尚未归档为 live 产物） |
-| 工作流图 F1 schematic | 待补充 |
+| 工作流图 F1 schematic | **完成**（`docs/paper/figures/workflow_schematic.png`，SciencePlots + TNR） |
 | ChatGPT web-search 顾问回复 | 已收到 R6–R10 活体评审（2026-08-17 人工粘贴），正在合并 |
 | GitHub 远程仓库 | **已公开** https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3（勿重复 `gh repo create`；勿 force-push） |
 
@@ -346,6 +397,9 @@ R6 applied: stripped advisor-chat URLs, nature-writing axes metadata, and `outpu
 | Figures | `docs/paper/figures/*.png` |
 | Metadata | `models/nyc_smoke/run_metadata.json` |
 | Classification baselines | `outputs/classification_baselines.json` / `.csv`（脚本 `scripts/compute_classification_baselines.py`） |
+| Expanded-bbox primary table | `outputs/expanded_primary_table.json`（脚本 `scripts/run_expanded_study.py`） |
+| Expanded-bbox baselines | `outputs/classification_baselines_expanded.json` / `.csv` |
+| Expanded-bbox models/folds | `models/nyc_expanded/`（`run_metadata.json`, `spatial_cv_folds.csv`） |
 | Literature conclusions | `artifacts/literature_architecture_conclusions.md` |
 | ChatGPT brief | `artifacts/chatgpt_literature_brief.md` |
 | Collaboration | `artifacts/chatgpt_collaboration_report.md` |

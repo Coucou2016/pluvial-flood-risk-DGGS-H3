@@ -1,0 +1,47 @@
+{
+  "bbox_profile": "manhattan_expanded",
+  "bbox": [
+    -74.03,
+    40.68,
+    -73.94,
+    40.8
+  ],
+  "resolution": 9,
+  "raw_dir": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc_expanded",
+  "n_cells": 956,
+  "assembly_mode": "opendata",
+  "data_provenance": "observed",
+  "flood_class_positive_frac": 0.4790794979079498,
+  "spatial_cv": {
+    "random_split_val_accuracy": 0.6666666666666666,
+    "random_split_val_r2": 0.43827572723943475,
+    "val_accuracy": 0.6666666666666666,
+    "val_r2": 0.43827572723943475,
+    "spatial_cv_n_folds": 5.0,
+    "spatial_cv_n_blocks": 28.0,
+    "spatial_cv_accuracy_mean": 0.6419745944085997,
+    "spatial_cv_accuracy_std": 0.1483789803337715,
+    "spatial_cv_r2_mean": 0.5246602554147421,
+    "spatial_cv_r2_std": 0.1115798248619264,
+    "spatial_cv_f1_mean": 0.6083648651688762,
+    "spatial_cv_mae_mean": 0.11225336106029046,
+    "spatial_cv_fold_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_expanded\\spatial_cv_folds.csv"
+  },
+  "majority_baseline": {
+    "n_test": 956,
+    "n_positive": 458,
+    "n_negative": 498,
+    "positive_prevalence": 0.4790794979079498,
+    "always_positive_acc": 0.4790794979079498,
+    "always_positive_f1": 0.6478076379066479,
+    "always_negative_acc": 0.5209205020920502,
+    "always_negative_f1": 0.0,
+    "model_mean_acc": 0.6419745944085997,
+    "model_mean_f1": 0.6083648651688762,
+    "model_beats_majority_acc": true,
+    "model_beats_majority_f1": false
+  },
+  "fold_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_expanded\\spatial_cv_folds.csv",
+  "table_path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\processed\\nyc_h3_cells_expanded.parquet",
+  "note": "Expanded-bbox primary table (manhattan_expanded). Separate from the n=141 Lower Manhattan smoke. accuracy/F1 are reported alongside a majority-class baseline; do not claim classification skill without beating that baseline."
+}
