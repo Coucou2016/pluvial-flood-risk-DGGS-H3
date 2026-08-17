@@ -240,6 +240,25 @@ All four figures regenerated as PNG + PDF; `tests/test_figures.py` passes. Scien
 
 **Applied edits:** `manuscript.md` (§1, §3, §4.2, §5 E5, §6.4, §7.2 #6). No number/result/claim changed.
 
+## R20 (framing + Results prose + figure captions) — live ChatGPT reply received 2026-08-18
+
+**Paste package:** `artifacts/chatgpt_paste_R20.md`. **Reply archived:** `artifacts/chatgpt_reply_R20.md`. **Backup:** `docs/paper/backups/20260818_0418_preR19/` (R20 applied on top).
+
+**ChatGPT verdict:** Abstract still permitted the "ML on an H3 grid" reading; Results prose still applied "moderate" jointly to ROC-AUC/AP in §6.1/§6.6; figure captions and future-work needed minor polish.
+
+| Feedback | Verdict |
+|----------|---------|
+| Abstract underclaim → state H3 as common spatial support | **ACCEPTED** — replaced third sentence |
+| §6.1 "threshold-independent … moderate" → separate ROC-AUC (ranking) from AP (prevalence-relative) | **ACCEPTED** |
+| §6.6 "discrimination is moderate" → same split | **ACCEPTED** |
+| §6.6 "positive blocked signal" → "positive predictive performance under blocked evaluation" | **ACCEPTED** |
+| Fig 2 caption: mention mean±SD bands | **ACCEPTED** |
+| Fig 3 caption: no change | **ACCEPTED** (no change) |
+| Fig 4 caption: "R9 cells refined" + "adaptive-to-uniform cell-count ratio" | **ACCEPTED** |
+| §7.3 future work: item (ii) as a scientific test, "documented provenance", broadened (iii)/(iv) | **ACCEPTED** |
+
+**Applied edits:** `manuscript.md` (Abstract, §6.1, §6.6, Fig 2/Fig 4 captions, §7.3). No number/result/claim changed.
+
 ## Prior R1–R5
 
 See earlier section of this file / `acceptance_report_5rounds.md`. ChatGPT substantive replies remain uncaptured pending manual URL paste.
