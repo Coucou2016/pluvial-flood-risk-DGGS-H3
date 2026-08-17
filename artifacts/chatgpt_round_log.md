@@ -275,6 +275,13 @@ All four figures regenerated as PNG + PDF; `tests/test_figures.py` passes. Scien
 
 **Applied edits:** `manuscript.md` (Abstract — one sentence). No number/result/claim changed. **This concludes the ChatGPT collaboration rounds (R12–R21 = 10 live rounds).**
 
+## Publishing status (final, 2026-08-18)
+
+- **Push:** SUCCEEDED after network recovered — `master` `49e756e..a733068` pushed (R14–R21 + audit update).
+- **Tag:** `paper-v1` moved to final R21 commit `b49379c5361f82587439afcfba13be33bb0b5910` and pushed (`git rev-list -n 1 paper-v1` verifies). Numeric outputs unchanged since R17; R18–R21 are prose-only.
+- **Final acceptance report:** `artifacts/acceptance_report_R12_R21.md`.
+- **Remaining hard todo before submission:** replace CRediT placeholder with real authors (not fabricated).
+
 ## Prior R1–R5
 
 See earlier section of this file / `acceptance_report_5rounds.md`. ChatGPT substantive replies remain uncaptured pending manual URL paste.
