@@ -129,13 +129,14 @@ def plot_jaccard_ladder(
         "max": ("s", "#C44E52"),
         "p90": ("^", "#55A868"),
     }
+    display = {"mean": "Mean", "max": "Maximum", "p90": "P90"}
     offsets = {"mean": -0.06, "max": 0.0, "p90": 0.06}
     for agg in aggs:
         sub = df.loc[df["aggregation"] == agg].sort_values("coarse_res")
         xv = sub["coarse_res"].astype(float).to_numpy() + offsets[agg]
         marker, color = style[agg]
-        axes[0].plot(xv, sub["jaccard"], marker=marker, linestyle="", color=color, label=agg)
-        axes[1].plot(xv, sub["f1"], marker=marker, linestyle="", color=color, label=agg)
+        axes[0].plot(xv, sub["jaccard"], marker=marker, linestyle="", color=color, label=display[agg])
+        axes[1].plot(xv, sub["f1"], marker=marker, linestyle="", color=color, label=display[agg])
 
     coarse_ticks = sorted(int(r) for r in df["coarse_res"].unique())
     axes[0].set_title("Jaccard similarity")
@@ -228,7 +229,7 @@ def plot_spatial_cv_bars(
     ax.set_xticklabels([f"Fold {i}" for i in df["fold_id"].astype(int)] + ["Mean ± SD"])
     ax.set_ylim(0.0, 1.05)
     ax.set_ylabel("Score")
-    ax.set_xlabel("H3-block spatial CV fold")
+    ax.set_xlabel("H3-block spatial CV")
     ax.legend()
     ax.grid(True, axis="y", alpha=0.3)
     if title:
@@ -266,7 +267,7 @@ def plot_workflow_schematic(
             "color": "#4C72B0",
             "items": [
                 "Flood labels\n(DEP stormwater, 311, USGS Ida HWM)",
-                "Static predictors\n(elevation, slope, impervious,\nbuilding density, distance-to-water)",
+                "Static predictors\n(terrain, flow-accumulation proxy, land cover,\nbuildings, hydrologic proximity)",
                 "Rainfall condition r\n(constant synthetic; not radar)",
             ],
         },
@@ -283,7 +284,7 @@ def plot_workflow_schematic(
             "color": "#C44E52",
             "items": [
                 "Gradient-boosting classifier\n+ continuous-risk regressor",
-                "H3-block GroupKFold spatial CV",
+                "H3-block GroupKFold spatial CV\n(R7 parent blocks)",
                 "Logistic, ponding & constant-class baselines",
             ],
         },
@@ -291,9 +292,9 @@ def plot_workflow_schematic(
             "title": "Diagnostics & outputs",
             "color": "#8172B2",
             "items": [
-                "PFI_h(c,r)",
+                "$\\mathrm{PFI}_h$(c,r)",
                 "Scale-loss Jaccard ladder\n(R10 \u2192 R9 / R8)",
-                "Adaptive refinement\n(PFI_h-guided \u2192 R11)",
+                "Adaptive refinement\n($\\mathrm{PFI}_h$-guided \u2192 R11)",
                 "Sandy coastal-overlap diagnostic",
             ],
         },
