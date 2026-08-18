@@ -164,7 +164,7 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 figs["workflow"],
                 "Workflow schematic",
                 "<strong>图 1 · Figure 1</strong> — 开放标签 H3 雨洪学习协议的概念工作流（SciencePlots + Times New Roman）。"
-                "<br/><em>如何读：</em>从左到右四列——(1) 开放多源输入；(2) H3 组装（R9 + provenance 标签）；(3) 学习与分块评价（GBM + H3 块 GroupKFold 空间 CV + 常量类基线恒判正/恒判负）；(4) 诊断与输出（PFI_h(c,r)、Jaccard 阶梯、自适应加密、Sandy 负对照，其中 Sandy 为虚线旁路、绕过学习框）。"
+                "<br/><em>如何读：</em>从左到右四列——(1) 开放多源输入；(2) H3 组装（R9 + provenance 标签）；(3) 学习与分块评价（GBM + H3 块 GroupKFold 空间 CV + 常量类基线恒判正/恒判负）；(4) 诊断与输出（PFI_h(c,r)、Jaccard 阶梯、自适应加密、Sandy 海岸淹没重叠诊断，其中 Sandy 为虚线旁路、绕过学习框、只进入 Sandy 诊断框）。"
                 "<br/><em>意义：</em>一张图讲清整条协议与「证据—边界」纪律，对应手稿 Methods。"
                 "<br/><em>结论：</em>PFI_h(c,r) 是模型输出，不是特征重要性，也不是 PFIb；当前情景响应平坦；证据仅限 Manhattan 开放数据试点，非全市。",
             ),
@@ -174,9 +174,9 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
             figure_block(
                 "spatial",
                 figs["spatial"],
-                "Spatial CV fold bars",
+                "Spatial CV fold markers",
                 "<strong>图 2 · Figure 2</strong> — 空间 H3 块 CV 各折 Accuracy 与 F1（SciencePlots + Times New Roman）。"
-                "<br/><em>如何读：</em>横轴为折号，纵轴为 0–1 分数；成对柱表示同一折的 Accuracy/F1。"
+                "<br/><em>如何读：</em>横轴为折号 + Mean±SD，纵轴为 0–1 分数；成对标记点表示同一折的 Accuracy/F1，末位为 Mean±SD 误差棒。"
                 "<br/><em>意义：</em>展示评价协议的折间稳定性，而非单一乐观分数。"
                 "<br/><em>结论：</em>多数折 Accuracy≈0.71–0.77，Fold4 更高；与表 1 均值一致。样本仍是 Lower Manhattan smoke。",
             ),
@@ -188,7 +188,7 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 figs["jaccard"],
                 "Jaccard ladder",
                 "<strong>图 3 · Figure 3</strong> — 开放标签热点 Jaccard/F1 随粗分辨率变化（SciencePlots + TNR）。"
-                "<br/><em>如何读：</em>左 Jaccard、右 F1；线型区分 mean/max/p90 上卷。"
+                "<br/><em>如何读：</em>左 Jaccard similarity、右 F1；标记形状/颜色区分 mean/max/p90 上卷（共享图例）。"
                 "<br/><em>意义：</em>量化 MAUP/尺度损失：决策尺度变粗时，热点集合可能面目全非。"
                 "<br/><em>结论：</em>mean@R8 损失最大；不得与 PFIb 文献的 0.14 直接等同。",
             ),
@@ -199,10 +199,10 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 "adaptive",
                 figs["adaptive"],
                 "Adaptive ablation",
-                "<strong>图 4 · Figure 4</strong> — 固定粗网格 / 自适应混合 / 均匀细网格单元数。"
-                "<br/><em>如何读：</em>三柱分别为 R9 全保留、自适应混合、R11 均匀。"
+                "<strong>图 4 · Figure 4</strong> — 固定 R9 / 自适应 R9/R11 / 均匀 R11 单元数。"
+                "<br/><em>如何读：</em>三柱分别为 Fixed R9、Adaptive R9/R11、Uniform R11；顶部标注「27.9× fixed R9 = 56.9% of uniform R11」。"
                 "<br/><em>意义：</em>展示自适应在计算预算与局部细化之间的折中。"
-                "<br/><em>结论：</em>自适应单元数介于粗与均匀细之间；比率≈0.57。非全市成本声明。",
+                "<br/><em>结论：</em>自适应 = 27.9× 固定 R9 = 56.9% 均匀 R11；非全市成本声明。",
             ),
         ),
     ]

@@ -38,7 +38,7 @@
 
 本报告是仓库 **live Lower Manhattan open-data smoke** 的教师向（teacher-like）过程说明：不只贴图，而是交代每张表/图的**来龙去脉、如何读、意义、可下的结论、不可下的结论**。
 
-在 H3 分辨率 R9 上组装 **n_cells = 141** 个六边形单元，`assembly_mode=opendata`。主（**分块评价**）指标为 **spatial H3-block CV（空间 H3 块交叉验证）**：准确率均值 **0.783756 ± 0.069280**，F1 均值 **0.865748**（来源：`models/nyc_smoke/run_metadata.json`，`created_utc=2026-08-16T06:36:48Z`）。**关键诚实修正（2026-08-17）：** 留出样本正类占比 **80.1%**，恒判正的多数类平凡基线在同样折上可达 accuracy **0.808**、F1 **0.893**，**高于**模型的 0.784 / 0.866——故这两个数**不得**被称为“分类技能”（来源：`outputs/classification_baselines.json`）。尺度损失用开放标签 **Jaccard ladder** 诊断：细 R10→粗 R8 的 **mean** 聚合 Jaccard = **0.1667**（不得写成“复现了 Svellingen 的 0.14”）。自适应相对均匀细网格（R11）单元数比 **adaptive_cell_count_ratio ≈ 0.569**。
+在 H3 分辨率 R9 上组装 **n_cells = 141** 个六边形单元，`assembly_mode=opendata`。主（**分块评价**）指标为 **spatial H3-block CV（空间 H3 块交叉验证）**：准确率均值 **0.783756 ± 0.069280**，F1 均值 **0.865748 ± 0.043729**（来源：`models/nyc_smoke/run_metadata.json`，`created_utc=2026-08-16T06:36:48Z`）。**关键诚实修正（2026-08-17）：** 留出样本正类占比 **80.1%**，恒判正的多数类平凡基线在同样折上可达 accuracy **0.808**、F1 **0.893**，**高于**模型的 0.784 / 0.866——故这两个数**不得**被称为“分类技能”（来源：`outputs/classification_baselines.json`）。尺度损失用开放标签 **Jaccard ladder** 诊断：细 R10→粗 R8 的 **mean** 聚合 Jaccard = **0.1667**（不得写成“复现了 Svellingen 的 0.14”）。自适应相对均匀细网格（R11）单元数比 **adaptive_cell_count_ratio ≈ 0.569**。
 
 **诚实缺口（待补充）：** (1) I2 观测事件降雨仍阻塞，`rainfall_source=event_raster` 为合成常数钩子；(2) `outputs/pfi_h_scenarios.csv` 四情景（25/40/75/100 mm/h）下，**单元内 PFI_h 极差 = 0**，情景均值同为 ≈0.802888，故**不宣称**已观察到降雨条件判别力；(3) LM ≠ citywide；(4) ChatGPT 浏览器 MCP 本会话不可用，顾问 web-search 回复待人工粘贴 brief。
 
@@ -117,7 +117,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 #### 图 1 · `docs/paper/figures/workflow_schematic.png`
 
 **来龙去脉：** 这是论文的 Figure 1 概念工作流图（SciencePlots + Times New Roman），由 `src/pluvial_flood_risk/figures.py` 的 `plot_workflow_schematic` 生成，无数据依赖，对应手稿 Methods 的四个阶段。  
-**如何读：** 从左到右四列——(1) 开放多源输入（开放标签 + 静态特征 + 降雨条件 r）；(2) H3 组装（R9，带 provenance 标签）；(3) 学习与分块评价（梯度提升 + H3 块 GroupKFold 空间 CV + 常量类基线（恒判正/恒判负）+ 逻辑/积水规则基线）；(4) 诊断与输出（`PFI_h(c,r)`、Jaccard 尺度损失阶梯、自适应加密、Sandy 负对照检查）。FEMA Sandy 是一条**虚线旁路**，绕过学习框、只进入负对照诊断，绝非训练标签。  
+**如何读：** 从左到右四列——(1) 开放多源输入（开放标签 + 静态特征 + 降雨条件 r）；(2) H3 组装（R9，带 provenance 标签）；(3) 学习与分块评价（梯度提升 + H3 块 GroupKFold 空间 CV + 常量类基线（恒判正/恒判负）+ 逻辑/积水规则基线）；(4) 诊断与输出（`PFI_h(c,r)`、Jaccard 尺度损失阶梯、自适应加密、Sandy 海岸淹没重叠诊断）。FEMA Sandy 是一条**虚线旁路**，绕过学习框、只进入 Sandy 诊断，绝非训练标签。  
 **意义：** 一张图讲清整条协议与「证据—边界」纪律，帮助审稿人快速定位每一步对应的结果小节。  
 **结论：** `PFI_h(c,r)` 是模型输出，不是特征重要性，也不是 PFIb；当前情景响应平坦（定义/接口已绑定，响应待观测降雨）；证据仅限两个 Manhattan 开放数据试点，非全市。
 
@@ -147,7 +147,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 | n_cells | 141 |
 | spatial_cv_n_folds / n_blocks | 5 / 7 |
 | accuracy mean ± std | 0.783756 ± 0.069280 |
-| F1 mean | 0.865748 |
+| F1 mean ± std | 0.865748 ± 0.043729 |
 | R² mean ± std | 0.030333 ± 0.342841 |
 | MAE mean | 0.332182 |
 | random_split_val_accuracy（诊断） | 0.689655 |
@@ -183,8 +183,8 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 
 #### 图 2 · `docs/paper/figures/spatial_cv_folds.png`
 
-**来龙去脉：** 由 `spatial_cv_folds.csv` 经 `src/pluvial_flood_risk/figures.py`（SciencePlots + TNR）绘制 Accuracy/F1 成对柱。  
-**如何读：** 横轴 fold_id；纵轴 0–1；每折两柱。  
+**来龙去脉：** 由 `spatial_cv_folds.csv` 经 `src/pluvial_flood_risk/figures.py`（SciencePlots + TNR）绘制 Accuracy/F1 成对标记点，末位为 Mean±SD 误差棒。  
+**如何读：** 横轴 fold_id + Mean±SD；纵轴 0–1；每折两个偏移标记点（圆=Accuracy、方=F1）。  
 **意义：** 把表 2 变成可一眼比较的稳定性图。  
 **结论：** 多数折 Accuracy≈0.71–0.77，Fold4 抬高均值；与表 1 一致。仍是 LM smoke。
 
@@ -213,8 +213,8 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 
 #### 图 3 · `docs/paper/figures/jaccard_by_resolution.png`
 
-**来龙去脉：** 同 CSV 的 SciencePlots 折线（左 Jaccard、右 F1；线型区分 agg）。  
-**如何读：** 随 coarse_res 变粗，看 mean 线是否下降。  
+**来龙去脉：** 同 CSV 的 SciencePlots 偏移标记散点（左 Jaccard similarity、右 F1；标记形状/颜色区分 mean/max/p90，共享图例）。  
+**如何读：** 随 coarse_res 变粗，看 mean 标记在 R8 是否明显下降；max/p90 接近 1 是极值保留机制。  
 **意义：** 可视化尺度损失。  
 **结论：** mean 在 R8 损失最大；禁止与 PFIb 的 0.14 数值等同。
 
@@ -236,15 +236,15 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 | coarse→fine | 9→11 |
 
 **来龙去脉：** 训练后用 `PFI_h` 筛高分父单元，再加密到 R11，形成混合分辨率网格；与“全部留在 R9”和“全部升到 R11”对比单元数。  
-**如何读：** 141 → 3933 → 6909；比率 0.569 表示自适应约为均匀细网格 **57%** 的单元数。  
+**如何读：** 141 → 3933 → 6909；自适应 = 27.9× 固定 R9 = 56.9% 均匀 R11（比率 0.569）。  
 **意义：** 在计算预算与局部细化之间的工程折中；分数来源写明为 trained PFI_h。  
 **结论（允许）：** 本 smoke 设定下自适应降低均匀细网格单元数约四成多。  
 **结论（禁止）：** 全市算力节省；自适应已提高泛化技能（本表是**单元数**消融，不是技能提升表）。
 
 #### 图 4 · `docs/paper/figures/adaptive_ablation.png`
 
-**来龙去脉：** 三柱条形图对应表 4 三个单元数。  
-**如何读：** 中间柱应介于左右之间。  
+**来龙去脉：** 三柱条形图对应表 4 三个单元数，顶部标注「Adaptive = 27.9× fixed R9 = 56.9% of uniform R11」。  
+**如何读：** 中间柱应介于左右之间；顶部标注直接给出两个比率。  
 **意义：** 一眼看到成本折中。  
 **结论：** 与表 4 一致；非全市声明。
 

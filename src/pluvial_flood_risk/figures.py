@@ -124,39 +124,47 @@ def plot_jaccard_ladder(
 
     fig, axes = plt.subplots(1, 2, figsize=(9.2, 3.6), sharex=True)
     aggs = [a for a in ("mean", "max", "p90") if a in set(df["aggregation"].astype(str))]
-    styles = {"mean": "-", "max": "--", "p90": ":"}
+    style = {
+        "mean": ("o", "#4C72B0"),
+        "max": ("s", "#C44E52"),
+        "p90": ("^", "#55A868"),
+    }
+    offsets = {"mean": -0.06, "max": 0.0, "p90": 0.06}
     for agg in aggs:
         sub = df.loc[df["aggregation"] == agg].sort_values("coarse_res")
-        axes[0].plot(
-            sub["coarse_res"],
-            sub["jaccard"],
-            marker="o",
-            linestyle=styles.get(agg, "-"),
-            label=agg,
-        )
-        axes[1].plot(
-            sub["coarse_res"],
-            sub["f1"],
-            marker="o",
-            linestyle=styles.get(agg, "-"),
-            label=agg,
-        )
+        xv = sub["coarse_res"].astype(float).to_numpy() + offsets[agg]
+        marker, color = style[agg]
+        axes[0].plot(xv, sub["jaccard"], marker=marker, linestyle="", color=color, label=agg)
+        axes[1].plot(xv, sub["f1"], marker=marker, linestyle="", color=color, label=agg)
 
-    fine = int(df["fine_res"].iloc[0]) if "fine_res" in df.columns else None
+    coarse_ticks = sorted(int(r) for r in df["coarse_res"].unique())
+    axes[0].set_title("Jaccard similarity")
+    axes[1].set_title("F1")
     axes[0].set_ylabel("Hotspot Jaccard")
     axes[1].set_ylabel("Hotspot F1")
     for ax in axes:
         ax.set_xlabel("Coarse H3 resolution")
+        ax.set_xticks(coarse_ticks)
+        ax.set_xticklabels([f"R{r}" for r in coarse_ticks])
         ax.set_ylim(0.0, 1.05)
+        ax.set_xlim(coarse_ticks[0] - 0.6, coarse_ticks[-1] + 0.6)
         ax.grid(True, alpha=0.3)
-        ax.legend(title="Rollup")
-        if fine is not None:
-            ax.set_title(f"Fine = R{fine}" if ax is axes[0] else "")
+
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(
+        handles,
+        labels,
+        title="Rollup",
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.03),
+        ncol=3,
+        frameon=False,
+    )
 
     if title:
         fig.suptitle(title, fontsize=11)
 
-    fig.tight_layout()
+    fig.tight_layout(rect=[0, 0.08, 1, 1])
     fig.savefig(out_path, dpi=300, bbox_inches="tight")
     fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
     plt.close(fig)
@@ -168,7 +176,7 @@ def plot_spatial_cv_bars(
     out_path: Path | str,
     title: str | None = None,
 ) -> Path:
-    """Per-fold spatial CV accuracy and F1 bars (live fold CSV only)."""
+    """Per-fold spatial CV accuracy and F1 as paired markers + mean±SD error bars."""
     require_matplotlib()
     import matplotlib.pyplot as plt
     import numpy as np
@@ -182,21 +190,42 @@ def plot_spatial_cv_bars(
     apply_paper_style(chinese=_needs_cjk(title))
 
     x = np.arange(len(df))
-    width = 0.35
     colors = {"accuracy": "#4C72B0", "f1": "#C44E52"}
+    markers = {"accuracy": "o", "f1": "s"}
+    offsets = {"accuracy": -0.08, "f1": 0.08}
     fig, ax = plt.subplots(figsize=(6.4, 3.4))
-    ax.bar(x - width / 2, df["accuracy"], width, label="Accuracy", color=colors["accuracy"])
-    ax.bar(x + width / 2, df["f1"], width, label="F1", color=colors["f1"])
 
-    # Mean ± SD across folds, drawn as reference lines with a shaded band.
-    for metric, color in colors.items():
+    for metric in ("accuracy", "f1"):
+        ax.plot(
+            x + offsets[metric],
+            df[metric],
+            marker=markers[metric],
+            linestyle="",
+            color=colors[metric],
+            label=metric.capitalize(),
+            markersize=5,
+        )
+
+    # Mean ± SD at a final x-position (extra half-step gap so it does not read
+    # as a sixth fold), with error bars (no overlapping shaded bands).
+    # ddof=0 matches the population-SD convention used in the manuscript table
+    # (accuracy 0.784 ± 0.069), so the figure and table are numerically identical.
+    mx = float(len(df)) + 0.5
+    for metric in ("accuracy", "f1"):
         mean = float(df[metric].mean())
-        sd = float(df[metric].std())
-        ax.axhline(mean, color=color, linestyle="--", linewidth=0.9, alpha=0.85)
-        ax.axhspan(mean - sd, mean + sd, color=color, alpha=0.10)
+        sd = float(df[metric].std(ddof=0))
+        ax.errorbar(
+            mx + offsets[metric],
+            mean,
+            yerr=sd,
+            fmt="D",
+            color=colors[metric],
+            capsize=4,
+            markersize=5,
+        )
 
-    ax.set_xticks(x)
-    ax.set_xticklabels([f"Fold {i}" for i in df["fold_id"].astype(int)])
+    ax.set_xticks(list(range(len(df))) + [mx])
+    ax.set_xticklabels([f"Fold {i}" for i in df["fold_id"].astype(int)] + ["Mean ± SD"])
     ax.set_ylim(0.0, 1.05)
     ax.set_ylabel("Score")
     ax.set_xlabel("H3-block spatial CV fold")
@@ -236,9 +265,9 @@ def plot_workflow_schematic(
             "title": "Open multi-source inputs",
             "color": "#4C72B0",
             "items": [
-                "Open flood labels\n(DEP stormwater, 311, USGS Ida HWM)",
+                "Flood labels\n(DEP stormwater, 311, USGS Ida HWM)",
                 "Static predictors\n(elevation, slope, impervious,\nbuilding density, distance-to-water)",
-                "Rainfall condition r\n(constant synthetic rainfall;\nnot observed radar)",
+                "Rainfall condition r\n(constant synthetic; not radar)",
             ],
         },
         {
@@ -246,27 +275,26 @@ def plot_workflow_schematic(
             "color": "#55A868",
             "items": [
                 "Join layers to H3 cells",
-                "Provenance tags:\nassembly_mode · feature_source\nlabel_source · rainfall_source",
+                "Provenance tags\n(assembly \u00b7 feature \u00b7 label \u00b7 rainfall)",
             ],
         },
         {
             "title": "Learning & blocked evaluation",
             "color": "#C44E52",
             "items": [
-                "Gradient-boosting classifier\n+ continuous risk regressor",
-                "H3-block GroupKFold spatial CV\n(primary blocked evaluation)",
-                "Constant-class baselines\n(always-positive & always-negative)",
-                "Baselines: logistic / ponding rule",
+                "Gradient-boosting classifier\n+ continuous-risk regressor",
+                "H3-block GroupKFold spatial CV",
+                "Logistic, ponding & constant-class baselines",
             ],
         },
         {
             "title": "Diagnostics & outputs",
             "color": "#8172B2",
             "items": [
-                "PFI_h(c,r) — rainfall-conditioned\ncell probability/index (not PFIb;\ndefinition/interface, scenario response flat)",
-                "Scale-loss Jaccard ladder\n(R10 → R9 / R8)",
-                "Adaptive refinement\n(PFI_h screens parents → R11)",
-                "Sandy negative-control check",
+                "PFI_h(c,r)",
+                "Scale-loss Jaccard ladder\n(R10 \u2192 R9 / R8)",
+                "Adaptive refinement\n(PFI_h-guided \u2192 R11)",
+                "Sandy coastal-overlap diagnostic",
             ],
         },
     ]
@@ -361,7 +389,7 @@ def plot_workflow_schematic(
     ax.text(
         0.56,
         0.16,
-        "Negative control\n(FEMA Sandy — never a label)",
+        "FEMA Sandy negative control\n(never a training label)",
         ha="center",
         va="center",
         fontsize=7.4,
@@ -411,20 +439,35 @@ def plot_adaptive_ablation(
     out_path.parent.mkdir(parents=True, exist_ok=True)
     apply_paper_style(chinese=_needs_cjk(title))
 
-    labels = ["Fixed coarse", "Adaptive mixed", "Uniform fine"]
+    labels = ["Fixed R9", "Adaptive R9/R11", "Uniform R11"]
     values = [
         float(row["n_fixed_coarse"]),
         float(row["n_adaptive_mixed"]),
         float(row.get("adaptive_n_uniform_fine", float("nan"))),
     ]
-    fig, ax = plt.subplots(figsize=(5.6, 3.4))
+    fig, ax = plt.subplots(figsize=(6.0, 3.4))
     ax.bar(labels, values, color=["#4C72B0", "#55A868", "#C44E52"])
     ax.set_ylabel("Cell count")
     for i, v in enumerate(values):
         if pd.notna(v):
             ax.text(i, float(v), f"{int(v):,}", ha="center", va="bottom", fontsize=9)
     ymax = max(v for v in values if pd.notna(v))
-    ax.set_ylim(0, ymax * 1.12)
+    ax.set_ylim(0, ymax * 1.22)
+
+    # The fixed-coarse bar is visually tiny on a linear axis; state the two
+    # comparisons in a single top-band line so the efficiency message is not lost.
+    fixed, adaptive, uniform = values[0], values[1], values[2]
+    if pd.notna(fixed) and pd.notna(adaptive) and pd.notna(uniform) and fixed > 0:
+        ax.text(
+            1.0,
+            ymax * 1.10,
+            f"Adaptive = {adaptive / fixed:.1f}\u00d7 fixed R9\n= {adaptive / uniform * 100:.1f}% of uniform R11",
+            ha="center",
+            va="bottom",
+            fontsize=8.5,
+            color="#1a1a1a",
+            linespacing=1.3,
+        )
     if title:
         fig.suptitle(title, fontsize=11)
     ax.grid(True, axis="y", alpha=0.3)

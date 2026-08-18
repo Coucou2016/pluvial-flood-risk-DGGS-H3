@@ -285,3 +285,12 @@ All four figures regenerated as PNG + PDF; `tests/test_figures.py` passes. Scien
 ## Prior R1–R5
 
 See earlier section of this file / `acceptance_report_5rounds.md`. ChatGPT substantive replies remain uncaptured pending manual URL paste.
+
+## Figure audit rounds FIG-A–E (2026-08-18)
+
+Five live rounds with ChatGPT reviewing **verbatim plotting code + locked data + structured visual findings** (image upload to ChatGPT blocked in this env — `DOM.setFileInputFiles` denied — so review was code/data/description based, plus my own dual-line visual self-audit via reading every regenerated PNG).
+
+- **Findings fixed:** Fig 4 invisible fixed bar (annotation), Fig 3 coincident line series (offset markers), Fig 3 off-axis R10 (caption), Fig 2 band clutter (markers + Mean±SD), Fig 1 text overflow/redundancy (noun phrases), **Fig 2 SD ddof bug** (figure used ddof=1 but table locked ddof=0).
+- **Artifacts:** `artifacts/chatgpt_paste_fig{A..E}.md`, `artifacts/chatgpt_reply_fig{A..E}.md`, `artifacts/figure_code_map.md`, `scripts/make_figures.py`.
+- **Tests:** `tests/test_figures.py` 2 passed. Regenerated PNG+PDF and rebuilt HTML.
+- **Verdict:** ChatGPT FIG-E ACCEPT; remaining = defer-to-submission final column-width typography.

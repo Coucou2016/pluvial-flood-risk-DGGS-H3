@@ -110,7 +110,7 @@ All figures are computed from the two Manhattan pilots and do not describe cityw
 | Spatial-CV folds | 5 |
 | Spatial-CV blocks | 7 |
 | Spatial-CV accuracy, mean ± SD | 0.784 ± 0.069 |
-| Spatial-CV F1, mean | 0.866 |
+| Spatial-CV F1, mean ± SD | 0.866 ± 0.044 |
 | Spatial-CV R², mean ± SD | 0.030 ± 0.343 |
 | Spatial-CV MAE, mean | 0.332 |
 | Random-split accuracy (diagnostic only) | 0.690 |
@@ -121,7 +121,7 @@ All figures are computed from the two Manhattan pilots and do not describe cityw
 | ROC-AUC, pooled out-of-fold | 0.683 |
 | Average precision (AP), pooled out-of-fold | 0.861 |
 
-Per-fold accuracy/F1: Fold0 0.755 / 0.850; Fold1 0.760 / 0.850; Fold2 0.773 / 0.872; Fold3 0.714 / 0.813; Fold4 0.917 / 0.944 (Figure 2).
+Per-fold accuracy/F1: Fold0 0.755 / 0.850; Fold1 0.760 / 0.850; Fold2 0.773 / 0.872; Fold3 0.714 / 0.813; Fold4 0.917 / 0.944 (Figure 2). In the table, SD denotes the population standard deviation across the five held-out folds (ddof = 0).
 
 The held-out labels are highly imbalanced (80.1% positive). A trivial always-positive classifier would reach mean accuracy 0.808 and mean F1 0.893 across the same folds, which exceeds the model's 0.784 accuracy and 0.866 F1. Spatial blocking makes the evaluation design more defensible but does not by itself establish discrimination. Pooled out-of-fold ROC-AUC is 0.683, indicating modest ranking discrimination. Pooled average precision is 0.861, only slightly above the 0.801 positive-class prevalence baseline. Fold4 accuracy (0.917) coincides with a small test set (n = 24, two blocks) and is not interpreted in isolation. Continuous-risk R² (0.030 ± 0.343) is weak and reported for completeness. Random-split accuracy (0.690) remains diagnostic only.
 
@@ -234,13 +234,13 @@ The authors declare that they have no known competing financial interests or per
 
 ## Figure captions
 
-**Figure 1. Open-label H3 pluvial-flood learning workflow.** Open flood observations (DEP stormwater polygons, 311 flooding reports, and USGS Ida high-water marks), static predictors (elevation, slope, impervious fraction, building density, distance-to-water), and a rainfall condition `r` (a constant synthetic rainfall condition in the present pilot, not observed radar rainfall) are assembled into H3 cells at R9 with provenance tags (`assembly_mode`, `feature_source`, `label_source`, `rainfall_source`), fitted with a gradient-boosting classifier and a continuous-risk regressor under H3-block `GroupKFold` cross-validation against constant-class (always-positive and always-negative) and logistic/ponding-rule baselines, and passed to diagnostics: the rainfall-conditioned `PFI_h(c,r)` index (currently flat scenario response), a scale-loss Jaccard ladder (R10 to R9/R8), adaptive refinement to R11, and a Sandy negative-control check. The FEMA Sandy layer is a dashed side-channel that bypasses learning and enters only the negative-control diagnostic; it is never a training label.
+**Figure 1. Open-label H3 pluvial-flood learning workflow.** Open flood observations (DEP stormwater polygons, 311 flooding reports, and USGS Ida high-water marks), static predictors (elevation, slope, impervious fraction, building density, distance-to-water), and a rainfall condition `r` (a constant synthetic rainfall condition in the present pilot, not observed radar rainfall) are assembled into H3 cells at R9 with provenance tags (`assembly_mode`, `feature_source`, `label_source`, `rainfall_source`), fitted with a gradient-boosting classifier and a continuous-risk regressor under H3-block `GroupKFold` cross-validation against constant-class (always-positive and always-negative) and logistic/ponding-rule baselines, and passed to diagnostics: the rainfall-conditioned `PFI_h(c,r)` index (currently flat scenario response), a scale-loss Jaccard ladder (R10 to R9/R8), adaptive refinement to R11, and a Sandy coastal-overlap diagnostic. The FEMA Sandy layer is a dashed side-channel that bypasses learning and enters only the Sandy diagnostic; it is never a training label.
 
-**Figure 2. Spatial H3-block cross-validation performance for the Lower Manhattan pilot.** Classification accuracy and F1 are shown for each of five held-out folds formed from seven R7 H3 blocks (n = 141 cells); horizontal reference bands show the corresponding fold mean ± SD.
+**Figure 2. Spatial H3-block cross-validation performance for the Lower Manhattan pilot.** Classification accuracy and F1 are shown as paired markers for each of five held-out folds formed from seven R7 H3 blocks (n = 141 cells); a final x-position shows the fold mean ± SD with error bars.
 
-**Figure 3. Open-label hotspot scale-loss diagnostics across H3 resolutions.** Jaccard similarity and F1 compare R10-derived hotspot sets (top decile, quantile 0.9) with R9 and R8 representations under mean, maximum, and p90 aggregation.
+**Figure 3. Open-label hotspot scale-loss diagnostics across H3 resolutions.** Jaccard similarity and F1 compare hotspot sets defined on the reference fine support, H3 R10 (top decile, quantile 0.9), with R9 and R8 representations under mean, maximum, and p90 aggregation.
 
-**Figure 4. Adaptive refinement versus uniform fine grids by cell count.** Fixed R9, adaptive mixed R9/R11, and uniform R11 representations are compared for the Lower Manhattan pilot (adaptive-to-uniform cell-count ratio ≈ 0.569; 79 of 141 R9 cells refined).
+**Figure 4. Adaptive refinement versus uniform fine grids by cell count.** Fixed R9 (141), adaptive mixed R9/R11 (3,933), and uniform R11 (6,909) representations are compared for the Lower Manhattan pilot (adaptive = 27.9× fixed R9 = 56.9% of uniform R11; 79 of 141 R9 cells refined).
 
 ---
 
