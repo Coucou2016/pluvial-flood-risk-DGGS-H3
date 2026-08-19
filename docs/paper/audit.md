@@ -400,4 +400,4 @@ PNG+PDF 均已按新尺寸重生成到 `docs/paper/figures/`。图号/正文 fir
 
 ### 8.8 W8 提交与 tag 记录（2026-08-19）
 
-`submission-v1` tag 已在 W8 最终 commit 上创建并推送（`git rev-list -n 1 submission-v1` 可复核），manuscript Data availability 声明指向该 tag。
+`submission-v1` tag 已在 W8 主修复 commit `c76be2c` 上创建并推送（tag 对象 `66cc7ac`；`git rev-list -n 1 submission-v1` 可复核），manuscript Data availability 声明指向该 tag。后续 report 产物刷新 commit `aabc449`（仅 HTML/PDF 渲染产物，不改变论文文本），未移动 `submission-v1`；`paper-v1` 保持指向 R21 commit `b49379c` 不变。
