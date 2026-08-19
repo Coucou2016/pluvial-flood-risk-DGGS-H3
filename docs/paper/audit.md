@@ -342,3 +342,62 @@ python -m pytest -q
 | 6 | Table 3 caption 与 Note 的 ddof=0 去重 | 已删 caption 中的 "(ddof = 0)"，仅保留表下 Note 作为正式 statistical convention |
 
 **W8+ 方向（ChatGPT 建议，下一轮执行）**：① 全文 defensive prose 最后一次 sweep（not/do not/are not 密集段落改正向 factual）；② 最终 PDF 版面审阅（6 图 6 表在投稿页宽下的版式）；③ submission-package consistency（CRediT、Highlights、AI declaration、paper-v1 tag/commit、figure PDF 与编号一一对应）。
+
+### 8.7 W8 落实记录（2026-08-19）
+
+**ChatGPT W8 判定**：科学内容与图表一致性 **sign-off**；剩余 3 个投稿前 blocking/production 项 + Highlights 建议。已按下列条目落实，除 CRediT 因作者信息待用户提供而保留占位。
+
+**A. Defensive prose 最后一次 sweep（ChatGPT 逐条给出句子级最小替换）**：
+
+| 优先级 | 位置 | 落实 |
+|---|----|------|
+| 高 | Abstract | "evaluated without overstating performance" → "evaluated with explicit control for spatial dependence" |
+| 高 | §3.3 | "never reported without a class-prevalence comparison" → "reported alongside these constant classifiers to provide a class-prevalence reference" |
+| 高 | §3.4 | "Random independent splits … not primary" → "H3-block spatial cross-validation is the primary evaluation; random independent splits are retained as diagnostic comparisons" |
+| 高 | §4.1 | "tracks the cross-validated surface closely (r = 0.51)" → "shows moderate spatial concordance … (Pearson r = 0.51)" |
+| 高 | §4.1 | "maps are presented for visual inspection … only; they carry no quantitative claim" → "The maps provide a qualitative comparison of the assembled surfaces; quantitative predictive performance is reported in Section 4.2" |
+| 高 | §4.4 | "statements concern cell counts only; … are not reported" → "This ablation measures representation size by cell count; runtime, memory use, and city-scale computational cost are outside the reported metrics" |
+| 高 | §5.1 | "closely reproduces the cross-validated surface; … not an additional validation" → "shows moderate spatial concordance … Validation is based on the out-of-fold metrics" |
+| 高 | §5.3 | "This is what distinguishes the framework…" → "Using the same hierarchy for these four operations extends H3 from a post-prediction visualisation layer to the learning and evaluation architecture" |
+| 高 | §5.3 | "not demonstrated … noted rather than resolved" → "block-size sensitivity remains a limitation"（保留证据边界） |
+| 高 | §5.4 结尾 | "must not displace" → "Primary performance claims are based on spatial cross-validation; random-split accuracy is retained as a diagnostic comparison" |
+| 中 | §4.7 | "not as citywide skill" → "provides a robustness check within Manhattan; citywide generalisation remains unevaluated" |
+| 中 | §5.1 | "higher value … does not imply stronger classification" → "interpreted relative to its higher prevalence baseline" |
+| 中 | §5.4-1 | "neither of which is citywide" → "both of which are sub-city Manhattan extents" |
+| 中 | §5.4-4 | "ingestion of gauge or radar event rainfall is not implemented" → "uses constant synthetic rainfall rather than event-specific gauge or radar rainfall" |
+| 中 | §5.4-8 | "not as citywide predictive skill" → "interpreted within their respective pilot extents" |
+| 中 | Conclusions | "they do not establish citywide operational skill" → "the evidence is limited to the two Manhattan pilot extents" |
+| 低 | §4.5 | "A non-zero response requires…" → "Evaluating rainfall responsiveness requires observed event rainfall with variation across intensities and model retraining" |
+
+保留的必需否定（科学诚实）：§3.5 "not a reproduction"、§3.7 "not SHAP/permutation/PFIb"、§3.8 Sandy "never a training label"、Fig.1 "never a training label"、Fig.2 full-fit vs OOF、constant synthetic rainfall 证据边界、§5.2 "conceptual rather than numerical"。**所有数字与结论未变**。
+
+**B. 版面重渲染（按投稿目标物理宽度）**：
+
+| 图 | 源码 figsize 旧 → 新 | 目标宽度 | 落实 |
+|----|----------------------|---------|------|
+| Fig. 1 workflow | 11.2×6.4 → 7.48×4.27 in | 190 mm 双栏 | 内部 box 文本按更紧凑布局重排（3–4 行/box），字号 8 pt（≥7 pt 达标） |
+| Fig. 2 spatial maps | 12.0×4.4 → 7.48×2.74 in | 190 mm 双栏 | 三面板保持双栏；colorbar tick 8 pt / label 9 pt |
+| Fig. 3 spatial CV | 6.4×3.4 → 5.51×2.93 in | 140 mm 1.5 栏 | 达标 |
+| Fig. 4 Jaccard ladder | 9.2×3.6 → 7.48×2.93 in | 190 mm 双栏 | 达标 |
+| Fig. 5 resolution effects | 9.6×3.8 → 7.48×2.96 in | 190 mm 双栏 | (b) 白字、annotations 可读 |
+| Fig. 6 adaptive | 6.0×3.4 → 5.51×3.12 in | 140 mm 1.5 栏 | 达标 |
+
+PNG+PDF 均已按新尺寸重生成到 `docs/paper/figures/`。图号/正文 first-mention 顺序 1→6、文件名对应关系此前已核实一致。
+
+**C. submission-package 一致性**：
+
+| 组件 | 状态 | 落实 |
+|------|------|------|
+| Highlights | 已补 | 新增 "## Highlights" 5 条候选（各 ≤85 字符，无缩写），置于标题与 Abstract 之间 |
+| AI declaration | 标题已改 | "Declaration of generative AI and AI-assisted technologies in the manuscript preparation process"（Elsevier 当前推荐格式）；正文表述不变 |
+| Data availability | 已改 | 指向新 tag `submission-v1`；版本精确化：scikit-learn 1.8.0 / H3 4.4.2；commit 由 audit 记录 |
+| References [11]–[17] | 已对齐 | 从"机构主页 n.d."改为实际数据服务 URL + "accessed August 2026"：3DEP ImageServer、NLCD 年度分数不透水面 ImageServer、NHDPlus HR MapServer、DEP 311 数据端点、USGS Ida HWM **DOI 10.5066/P9OMBJPQ**、FEMA Sandy uyj8-7rv5 端点 |
+| CRediT | **仍为 blocking** | 用户选择保留 [待补充] 占位，提交前需补作者姓名与角色 |
+
+**D. W7 回归确认**：ChatGPT 逐项复核 W7 的 4 MUST-FIX + 6 optional 全部正确落地，无科学/数值回归（详见其 W8 回复 §D）。
+
+**W8 遗留（投稿前）**：① CRediT 作者角色待用户提供；② 建 `submission-v1` tag（推送后执行，见 8.8）；③ Highlights 可选再核对；④ `Fig1_workflow.pdf … Fig6_adaptive.pdf` 上传别名建议保留。
+
+### 8.8 W8 提交与 tag 记录（2026-08-19）
+
+`submission-v1` tag 已在 W8 最终 commit 上创建并推送（`git rev-list -n 1 submission-v1` 可复核），manuscript Data availability 声明指向该 tag。

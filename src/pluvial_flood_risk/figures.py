@@ -122,7 +122,7 @@ def plot_jaccard_ladder(
     chinese = _needs_cjk(title) or _needs_cjk(caption)
     apply_paper_style(chinese=chinese)
 
-    fig, axes = plt.subplots(1, 2, figsize=(9.2, 3.6), sharex=True)
+    fig, axes = plt.subplots(1, 2, figsize=(7.48, 2.93), sharex=True)  # 190 mm double-column width
     aggs = [a for a in ("mean", "max", "p90") if a in set(df["aggregation"].astype(str))]
     style = {
         "mean": ("o", "#4C72B0"),
@@ -194,7 +194,7 @@ def plot_spatial_cv_bars(
     colors = {"accuracy": "#4C72B0", "f1": "#C44E52"}
     markers = {"accuracy": "o", "f1": "s"}
     offsets = {"accuracy": -0.08, "f1": 0.08}
-    fig, ax = plt.subplots(figsize=(6.4, 3.4))
+    fig, ax = plt.subplots(figsize=(5.51, 2.93))  # 140 mm 1.5-column width
 
     for metric in ("accuracy", "f1"):
         ax.plot(
@@ -263,12 +263,12 @@ def plot_workflow_schematic(
 
     stages = [
         {
-            "title": "Open multi-source inputs",
+            "title": "Multi-source inputs",
             "color": "#4C72B0",
             "items": [
-                "Flood labels\n(DEP stormwater, 311, USGS Ida HWM)",
-                "Static predictors\n(terrain, flow-accumulation proxy, land cover,\nbuildings, hydrologic proximity)",
-                "Rainfall condition r\n(constant synthetic; not radar)",
+                "Flood labels\n(DEP stormwater, 311,\nUSGS Ida HWM)",
+                "Static predictors\n(terrain, flow-acc.\nproxy, land cover,\nhydro. distance)",
+                "Rainfall condition r\n(constant synthetic;\nnot radar)",
             ],
         },
         {
@@ -276,16 +276,16 @@ def plot_workflow_schematic(
             "color": "#55A868",
             "items": [
                 "Join layers to H3 cells",
-                "Provenance tags\n(assembly \u00b7 feature \u00b7 label \u00b7 rainfall)",
+                "Provenance tags\n(assembly · feature ·\nlabel · rainfall)",
             ],
         },
         {
-            "title": "Learning & blocked evaluation",
+            "title": "Learning & validation",
             "color": "#C44E52",
             "items": [
-                "Gradient-boosting classifier\n+ continuous-risk regressor",
-                "H3-block GroupKFold spatial CV\n(R7 parent blocks)",
-                "Logistic, ponding & constant-class baselines",
+                "Gradient-boosting\nclassifier + continuous-\nrisk regressor",
+                "H3-block GroupKFold\nspatial CV\n(R7 parent blocks)",
+                "Logistic, ponding &\nconstant-class\nbaselines",
             ],
         },
         {
@@ -293,15 +293,15 @@ def plot_workflow_schematic(
             "color": "#8172B2",
             "items": [
                 "$\\mathrm{PFI}_h$(c,r)",
-                "Scale-loss Jaccard ladder\n(R10 \u2192 R9 / R8)",
-                "Adaptive refinement\n($\\mathrm{PFI}_h$-guided \u2192 R11)",
-                "Sandy coastal-overlap diagnostic",
+                "Scale-loss Jaccard\nladder (R10 → R9 / R8)",
+                "Adaptive refinement\n($\\mathrm{PFI}_h$-guided → R11)",
+                "Sandy coastal-overlap\ndiagnostic",
             ],
         },
     ]
 
     n = len(stages)
-    fig, ax = plt.subplots(figsize=(11.2, 6.4))
+    fig, ax = plt.subplots(figsize=(7.48, 4.27))  # 190 mm double-column width
     ax.set_xlim(0, n)
     ax.set_ylim(0, 1)
     ax.axis("off")
@@ -612,7 +612,7 @@ def plot_spatial_maps(
     chinese = _needs_cjk(title) or _needs_cjk(caption)
     apply_paper_style(chinese=chinese)
 
-    fig, axes = plt.subplots(1, 3, figsize=(12.0, 4.4))
+    fig, axes = plt.subplots(1, 3, figsize=(7.48, 2.74))  # 190 mm double-column width
     panels = [
         ("observed", "Observed open-label risk", "Observed risk (0\u20131)"),
         ("oof_prob", "Out-of-fold model probability", "Model probability"),
@@ -714,7 +714,7 @@ def plot_resolution_effects(
     chinese = _needs_cjk(title) or _needs_cjk(caption)
     apply_paper_style(chinese=chinese)
 
-    fig, (ax_v, ax_h) = plt.subplots(1, 2, figsize=(9.6, 3.8))
+    fig, (ax_v, ax_h) = plt.subplots(1, 2, figsize=(7.48, 2.96))  # 190 mm double-column width
 
     # --- panel (a): score distribution across resolutions ---
     data = [s10.values, s9.values, s8.values]
@@ -802,7 +802,7 @@ def plot_adaptive_ablation(
         float(row["n_adaptive_mixed"]),
         float(row.get("adaptive_n_uniform_fine", float("nan"))),
     ]
-    fig, ax = plt.subplots(figsize=(6.0, 3.4))
+    fig, ax = plt.subplots(figsize=(5.51, 3.12))  # 140 mm 1.5-column width
     ax.bar(labels, values, color=["#4C72B0", "#55A868", "#C44E52"])
     ax.set_ylabel("Cell count")
     for i, v in enumerate(values):
