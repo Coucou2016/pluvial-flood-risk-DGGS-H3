@@ -434,3 +434,21 @@ PNG+PDF 均已按新尺寸重生成到 `docs/paper/figures/`。图号/正文 fir
 **科学内容/结果/核心结论/全部数字未变**：本轮仅图体系对齐 + 图质量 + 排版体例；无任何数值改动。R10=991 / R9=160 / R8=31、Jaccard ladder（R8 mean 0.167/F1 0.286、R9 mean 0.977/0.988、max/p90=1.000）等数字原样保留，仅从主文 Fig.4 迁至 Table 4 + 补充图 S1。
 
 **W9 未补项（诚实边界，ChatGPT 确认不补）**：watershed/catchment vs H3 空间对比图——本仓库无 HUC-12/流域/行政区 polygon 数据，不新增数据、不伪造。
+
+### 8.10 W10 复核与锁稿记录（2026-08-20）
+
+**W10 目标**：确认 W9 图体系对齐落地正确、无回归。注入 9 文件（`manuscript.md`、`audit.md`、`chatgpt_context_W10.md` + 6 图）至 ChatGPT 复核。
+
+**ChatGPT W10 判定**：**W9 核心调整正确落地，无科学/数值回归，图体系对齐完成**。仅 1 个 MUST-FIX（Fig.4 caption 措辞精度）+ 1 个建议（Fig.4(c) 标签对比度）+ 1 个语言顺滑建议。
+
+**已落实**：
+
+| 项 | 动作 | 说明 |
+|----|------|------|
+| Fig.4 caption 措辞（MUST-FIX） | `same geographic footprint` → `same map extent and derive from the same R10 label-assembly footprint`；`Hotspot similarities and aggregation-rule sensitivity are quantified in Table 4 and Fig. 5` → `Figure 5 summarises cross-resolution hotspot similarity, while Table 4 quantifies sensitivity to the aggregation rule` | 修正"footprint 过强"表述，并把 aggregation-rule sensitivity 职责准确归位 Table 4；保留 smoothing 科学信息 |
+| Fig.4 panel 标签对比度（建议） | `(a)/(b)/(c)` 标签统一加半透明白色底框（`bbox facecolor=white, alpha=0.75`） | 解决 (c) 黑字位于深紫 R8 单元上对比度低的问题；比"仅 (c) 改白"更稳健（(a)/(b) 位于浅色 DEM 背景时白字会不清） |
+| §4.3 语言顺滑（建议） | `Fig. 5a shows the same scale dependence as score compression` → `Fig. 5a summarises the same scale dependence through the score distributions` | 纯语言自然度，不含数值 |
+
+**回归确认（ChatGPT 独立逐行 diff）**：W9 前后 manuscript 文本变化仅集中在 §4.3 Fig.4→Table4、新增 multi-resolution Fig.4 描述、Fig.4 caption 替换、Fig.5 Fig.4→Table4、Table4 note 加 S1、新增 S1 caption。**Table 1–5 任何数值单元格均无变化**；R10=991 / R9=160 / R8=31 / R10 hotspot=571/991 / R8 mean 0.167/0.286 / R9 mean 0.977/0.988 / max·p90=1.000 / Adaptive=141/3933/6909 等关键值全部原样保留。旧 "Fig.4=Jaccard ladder" 残留引用已精确查找确认无残留。
+
+**锁稿结论**：W10 caption 微调完成后正式 sign-off，图体系对齐完成。主图叙事链条：Fig.1 framework → Fig.2 spatial outputs → Fig.3 blocked validation → Fig.4 spatial coarsening → Fig.5 statistical resolution effects → Fig.6 adaptive representation。

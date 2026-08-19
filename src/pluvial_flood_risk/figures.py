@@ -844,6 +844,7 @@ def plot_multi_resolution_spatial(
             ha="left",
             va="top",
             zorder=10,
+            bbox=dict(facecolor="white", edgecolor="none", alpha=0.75, pad=1.5),
         )
     for ax in axes[1:]:
         ax.set_ylabel("")

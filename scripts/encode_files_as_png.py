@@ -14,7 +14,7 @@ OUT.mkdir(parents=True, exist_ok=True)
 files = {
     "manuscript.md": ROOT / "docs/paper/manuscript.md",
     "audit.md": ROOT / "docs/paper/audit.md",
-    "chatgpt_context_W9.md": ROOT / "artifacts/chatgpt_context_W9.md",
+    "chatgpt_context_W10.md": ROOT / "artifacts/chatgpt_context_W10.md",
 }
 
 WIDTH = 200
