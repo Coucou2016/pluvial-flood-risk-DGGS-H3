@@ -452,3 +452,28 @@ PNG+PDF 均已按新尺寸重生成到 `docs/paper/figures/`。图号/正文 fir
 **回归确认（ChatGPT 独立逐行 diff）**：W9 前后 manuscript 文本变化仅集中在 §4.3 Fig.4→Table4、新增 multi-resolution Fig.4 描述、Fig.4 caption 替换、Fig.5 Fig.4→Table4、Table4 note 加 S1、新增 S1 caption。**Table 1–5 任何数值单元格均无变化**；R10=991 / R9=160 / R8=31 / R10 hotspot=571/991 / R8 mean 0.167/0.286 / R9 mean 0.977/0.988 / max·p90=1.000 / Adaptive=141/3933/6909 等关键值全部原样保留。旧 "Fig.4=Jaccard ladder" 残留引用已精确查找确认无残留。
 
 **锁稿结论**：W10 caption 微调完成后正式 sign-off，图体系对齐完成。主图叙事链条：Fig.1 framework → Fig.2 spatial outputs → Fig.3 blocked validation → Fig.4 spatial coarsening → Fig.5 statistical resolution effects → Fig.6 adaptive representation。
+
+### 8.11 W11 写作风格 humanize 落实记录（2026-08-20）
+
+**W11 目标**：按用户持续不满意的维度——写作风格/措辞的"研究工作总结 / 审稿答辩 / AI 整理稿"气质——做 humanize。注入 4 文件（`manuscript.md`、`audit.md`、`reference_paper.md` 参考论文全文、`chatgpt_context_W11.md`）至 ChatGPT 逐段诊断并给精确 diff。
+
+**ChatGPT W11 判定**：稿件已无"AI 套话"（Moreover/Furthermore/Additionally 链式堆叠）；残余人工感来自三类结构问题——贡献段像组件清单、Results/Discussion 多次解释"应该怎样解读"、Limitations/Future work 仍像审稿答辩清单。给 6 MUST-FIX + 约 16 建议 + 3 可选。
+
+**已落实（6 MUST-FIX）**：
+
+| 项 | 动作 |
+|----|------|
+| Abstract | 保持 unstructured 单段，按 problem→method→results→evidence-boundary 重排；`demonstrates ... lists everything` → `evaluates ... uses H3 as the common spatial support`；`On a small Manhattan pilot` → `Under this blocked evaluation, a small Manhattan pilot`；末两句由"功能说明+自我限定"改结果意义 |
+| Introduction contribution paragraph | 组件清单 → "H3 hierarchy 连接哪些科学环节"；PFI 句改 `distinct from both feature-importance measures and the H3-aggregated building index` |
+| Research questions | 去掉 (i)/(ii)/(iii)，改自然连续表述（三问科学内容不变，结尾保留 `rather than on a citywide scale` 边界） |
+| §4.1 重复 validation disclaimer | 两句 `This correlation is descriptive... / The maps provide a qualitative comparison...` 合并为一句 `The spatial concordance is descriptive; predictive performance is assessed separately from the out-of-fold metrics reported in Section 4.2.` |
+| §5.4 Limitations | 9 条 numbered → 3 个主题段落（所有边界与数字原样保留） |
+| Conclusion | `This study shows / The experiments demonstrate / The results indicate` 三连 → 连续论证 |
+
+**已落实（建议，高收益 humanize）**：§2 去掉 `Extent./Data sources./What the labels mean./Rainfall.` 行内标签；Methods 加整体入口句；§3.1/3.6/3.7 防御性否定 → 正向方法定义；§4.4/§4.5 否定自然化；§4.7 删中途 `still not citywide`（结尾保留 `citywide generalisation remains unevaluated`）；§5.1 Discussion 开头三项罗列 → synthesis；§5.2 Svellingen 比较改写（保留 `rather than reproducing their metric`）；§5.3 四角色句压缩；Fig.1 caption `bypasses learning` → `represents the post-fit coastal-overlap diagnostic`；Fig.2 caption `not an out-of-fold prediction` → `fitted using all 141 cells`。
+
+**已落实（可选）**：Highlight 5 改 `Constant training rainfall produces a flat rainfall-conditioned response`；§5.5 Future work 去 (i)–(iv) 编号。
+
+**回归确认**：全部关键数字经 grep 复核原样保留——0.784/0.866/0.683/0.861/0.642/0.525/0.703/0.723/0.808/0.893/0.167/0.977/0.988/1.000、571 of 991、3,933/6,909、56.9%/27.9×、0.030/0.343、80.1%/47.9%、0.14、0.51、0.803、n=141/956、21–49/190–193、Fold4 n=24 等全部未变。表结构、图编号、引用编号未变。`build_manuscript_html.py` 的 Fig.2 锚文本同步更新（因 §4.1 删除了原锚句）。
+
+**诚实边界保留（未被 humanize 掉）**：open labels ≠ verified inundation；PFI_h ≠ feature importance / PFIb；0.167 ≠ reproduction of 0.14；Sandy 不进训练；constant rainfall → flat response；pilots ≠ citywide；no separate calibration；no R11 retraining。这些与本文档 §1–§7 的真实性约束一致。

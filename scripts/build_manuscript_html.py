@@ -30,7 +30,7 @@ FIG = PAPER / "figures"
 #  text ends with the anchor.
 FIGURES = [
     ("workflow_schematic.png", "summarised in Fig. 1.", 1),
-    ("spatial_maps.png", "The maps provide a qualitative comparison of the assembled surfaces; quantitative predictive performance is reported in Section 4.2.", 2),
+    ("spatial_maps.png", "predictive performance is assessed separately from the out-of-fold metrics reported in Section 4.2.", 2),
     ("spatial_cv_folds.png", "and is not interpreted in isolation.", 3),
     ("multi_resolution_spatial.png", "does not imply an absence of scale loss.", 4),
     ("resolution_effects.png", "Table 4 lists the full ladder.", 5),
