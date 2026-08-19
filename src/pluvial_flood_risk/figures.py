@@ -616,7 +616,7 @@ def plot_spatial_maps(
     panels = [
         ("observed", "Observed open-label risk", "Observed risk (0\u20131)"),
         ("oof_prob", "Out-of-fold model probability", "Model probability"),
-        ("pfi", "Full-fit PFI_h(c, r)", "PFI_h"),
+        ("pfi", r"Full-fit $\mathrm{PFI}_h(c,r)$", r"$\mathrm{PFI}_h$"),
     ]
     cmap = "viridis"
     for ax, (col, ptitle, clabel) in zip(axes, panels):
@@ -762,7 +762,7 @@ def plot_resolution_effects(
     ax_h.set_xticks(np.arange(3))
     ax_h.set_yticks(np.arange(3))
     ax_h.set_title("Cross-resolution hotspot Jaccard similarity (q = 0.9)")
-    ax_h.text(0.02, 0.97, "(b)", transform=ax_h.transAxes, fontsize=12, fontweight="bold", ha="left", va="top")
+    ax_h.text(0.02, 0.97, "(b)", transform=ax_h.transAxes, fontsize=12, fontweight="bold", ha="left", va="top", color="white")
     fig.colorbar(im, ax=ax_h, fraction=0.046, pad=0.04, label="Jaccard similarity")
 
     if title:

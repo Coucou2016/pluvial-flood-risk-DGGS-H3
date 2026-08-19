@@ -185,7 +185,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 
 **来源：** `data/processed/nyc_h3_cells.parquet`（观测 flood_risk）＋ `models/nyc_smoke/spatial_cv_oof_predictions.csv`（留出概率）＋ `outputs/pfi_h_scenarios.parquet`（PFI_h，ida_like 情景）＋ `data/raw/nyc/dem.tif`（地形底图）＋ `data/raw/nyc/hydro_streams.geojson`（岸线水系统）。
 
-**来龙去脉：** 这是对照参考论文（Svellingen et al. 2026 IJDRR）"结果先行出空间图"体例新增的**直观结果图**。用 `h3.cell_to_boundary` 生成 141 个 R9 六边形面片，三面板同支撑：**(a)** 观测开放标签分 `flood_risk`（双峰构造：无证据=0、任一证据=高值，中位数 1.0、均值 0.605，≥0.8 共 84 格）；**(b)** H3 块空间 CV 的留出概率（均值 0.798）；**(c)** 全拟合指数 `PFI_h(c,r)`（ida_like r=75 mm/h，均值 0.803；**全拟合模型输出，非留出验证图**）。底图为 DEM 灰阶地形 + NHDPlus 岸线水系（浅蓝）。
+**来龙去脉：** 这是对照参考论文（Svellingen et al. 2026 IJDRR）"结果先行出空间图"体例新增的**直观结果图**。用 `h3.cell_to_boundary` 生成 141 个 R9 六边形面片，三面板同支撑：**(a)** 观测开放标签分 `flood_risk`（双峰构造：无证据=0、任一证据=高值，中位数 1.0、均值 0.605，≥0.8 共 84 格）；**(b)** H3 块空间 CV 的留出概率（均值 0.798）；**(c)** 全拟合指数 `PFI_h(c,r)`（合成 ida_like 情景 r=75 mm/h，均值 0.803；**全拟合模型输出，非留出验证图**）。底图为 DEM 灰阶地形 + NHDPlus 岸线水系（浅蓝）。
 
 **如何读：** 三面板同色标 0–1。(a) 呈强二元对比；(b)(c) 平均概率高且更平滑。观测~留出 Pearson r=0.245，观测~PFI_h r=0.468，留出~PFI_h r=0.509——与 §5.1 的"排序判别中等"叙事一致：模型表面在 80% 正类的极小窗口下偏乐观，不构成强判别证据。
 

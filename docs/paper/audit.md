@@ -300,3 +300,45 @@ python -m pytest -q
 **本轮统计量复核（§4.1）**：n=141；observed min/med/mean/q75/max = 0/1.0/0.6051/1.0/1.0；≥0.8 共 84；OOF mean=0.7983；PFI mean=0.8029；Pearson obs~oof=0.245、obs~pfi=0.468、oof~pfi=0.509——脚本重算全部与正文一致。
 
 **ChatGPT 未能独立复核项（诚实记录）**：§4.1 的精确统计量与 caption 逐句文本，因其会话内未挂载 manuscript.md/数据文件。已在下一轮准备把 `spatial_cv_oof_predictions.csv` 等数据文件一并注入供其复核。
+
+### 8.6 ChatGPT W7 复核与修复记录（2026-08-19，第 7 轮协作）
+
+**评审方式**：向 ChatGPT 注入 8 个文件（manuscript.md / audit.md / figures.py / spatial_cv_oof_predictions.csv / nyc_h3_cells.parquet / pfi_h_scenarios.parquet / spatial_maps.png / resolution_effects.png），请求逐条验证 W6 修复并**用注入数据独立重算 §4.1 统计量**。回复存档：`artifacts/chatgpt_reply_W7.md`。
+
+**W6 修复复核结论**：W6 的 8 个 MUST-FIX + 8 个 optional **全部正确落实**（ChatGPT 逐条确认代码与 PNG）。
+
+**§4.1 独立重算（ChatGPT 直接从注入的 3 个数据文件重新读取/join）**：
+
+| 量 | ChatGPT 重算 | 项目/手稿 |
+|----|-------------|-----------|
+| n | 141 | 141 ✓ |
+| observed min / median / mean | 0 / 1.000 / 0.605075 | 0 / 1.0 / 0.605 ✓ |
+| observed ≥ 0.8 | 84 / 141 | 84 / 141 ✓ |
+| observed exactly 0 / 1 | 28 / 84 | 28 / 84 ✓ |
+| OOF probability mean | 0.798305 | 0.798 ✓ |
+| Ida-like full-fit PFI mean | 0.802888 | 0.803 ✓ |
+| Pearson obs~OOF / obs~PFI / OOF~PFI | 0.244801 / 0.467873 / 0.508675 | 0.245 / 0.468 / 0.509 ✓ |
+
+全部一致。手稿 §4.1 只打印 OOF~PFI r=0.51，正文与重算一致。
+
+**W7 新 MUST-FIX 4 项落实情况**：
+
+| # | 项 | 落实 |
+|---|----|------|
+| 1 | §3.5 删除对 Fig. 5 的提前编号引用，恢复 first-mention 1→6 | 已删：改为 "The same diagnostics are additionally summarised through score distributions across resolutions and a pairwise hotspot-similarity matrix."；grep 复核首次出现顺序为 Fig.1(§3.1)→2(§4.1)→3(§4.2)→4(§4.3)→5(§4.3)→6(§4.4) |
+| 2 | §4.1 "These correlations" → "This correlation" | 已改（正文只报告一个 Pearson r=0.51） |
+| 3 | §4.1 "any positive evidence…lifts the score to a high value" 过强（真实含 29 个 0–1 中间值） | 已改为 "positive evidence yields either a fractional polygon-overlap score or a point-presence score of 1"，与 `labels.py` 构造（面积分数 / 点存在记 1）一致 |
+| 4 | Fig. 5(b) "(b)" 标签黑字落在深蓝 1.000 cell 内 | 已改为白字 `color="white"` |
+
+**W7 optional 落实情况**：
+
+| # | 项 | 落实 |
+|---|----|------|
+| 1 | Fig. 1 caption 拆超长首句、passed to diagnostics → diagnostics include | 已拆句改写 |
+| 2 | Fig. 2 caption 将 "not an OOF validation map" 压入 panel (c)；Ida-like → synthetic Ida-like | 已改："…shown at a synthetic Ida-like rainfall condition r = 75 mm/h and not an out-of-fold prediction…" |
+| 3 | Fig. 5 caption 两句 defensive 改正向 factual | 已改："The R10 label-assembly footprint contains 991 cells and aggregates to 160 R9 and 31 R8 parents, distinct from the 141-cell R9 supervised modelling table…"；"For the realised hotspot sets, both comparisons involving R8 yield Jaccard similarity 0.167." |
+| 4 | Fig. 5(a) 说明 violin 内部 mean/extrema | 已加 "internal bars mark the mean and extrema" |
+| 5 | Fig. 2 PFI_h 用 mathtext 与 Fig. 1 统一 | 已改：panel (c) 标题 `Full-fit $\mathrm{PFI}_h(c,r)$`、colorbar `$\mathrm{PFI}_h$` |
+| 6 | Table 3 caption 与 Note 的 ddof=0 去重 | 已删 caption 中的 "(ddof = 0)"，仅保留表下 Note 作为正式 statistical convention |
+
+**W8+ 方向（ChatGPT 建议，下一轮执行）**：① 全文 defensive prose 最后一次 sweep（not/do not/are not 密集段落改正向 factual）；② 最终 PDF 版面审阅（6 图 6 表在投稿页宽下的版式）；③ submission-package consistency（CRediT、Highlights、AI declaration、paper-v1 tag/commit、figure PDF 与编号一一对应）。
