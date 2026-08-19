@@ -4,6 +4,8 @@
 
 **审查对象：** `docs/paper/manuscript.md`、`docs/paper/report.md`、`README.md` 中的全部量化结论。
 
+> **版本说明（2026-08-19 W1/W2 写作重写）：** 手稿 `manuscript.md` 在 2026-08-19 进行了**仅写作/逻辑/投稿体例**的重写（编号引用、单主线叙事、创新点重组为 "H3-native 学习-评估架构"），**所有数字、结果与核心结论未做任何改动**。因此本文档 §2 的逐条对账（按数值与产物字段，而非章节号）依然有效；本重写仅使手稿章节号从旧 8 章结构变为新 6 章结构（旧 §6 Results → 新 §4 Results；旧 §7 Discussion → 新 §5 Discussion）。下文引用的产物字段路径均未变。
+
 **口径约定（贯穿全文）：**
 
 - **本方法自己算出的数字**：全部来自 `src/pluvial_flood_risk/` 与 `scripts/` 在本机 `data/raw/` 上的运行产物（`outputs/*.json/csv`、`models/*/*.csv/joblib`、`data/processed/*.parquet`）。
@@ -52,7 +54,7 @@ configs/nyc.yaml
 |------|------|
 | 标签来源 | `expanded_primary_table.json → data_provenance = "observed"`，`assembly_mode = "opendata"`（非 PFIb/保险） |
 | 明确排除 | `data/raw/DATA_SOURCES.md`：“This repository does not reproduce 7Analytics PFIb and does not ship insurance claims.” |
-| Jaccard 说明 | 手稿 §6.2 与图注明确：0.167 是本仓库开放标签在 R10→R8 mean 聚合下的结果，**不得**等同 Svellingen 0.14 |
+| Jaccard 说明 | 手稿 Results §4.2 / Discussion §5.2 与图注明确：0.167 是本仓库开放标签在 R10→R8 mean 聚合下的结果，**不得**等同 Svellingen 0.14 |
 | 合成项显式标注 | 降雨为合成常数、情景 `PFI_h` 平坦（within-cell range = 0）——文中作为“未演示降雨条件判别”如实报告，而非编造响应 |
 
 ---
@@ -196,3 +198,67 @@ python -m pytest -q
 1. **真实**：所有量化结论均由本仓库代码在本机 `data/raw/`（开放数据 + 明确标注的合成降雨）上计算，来源可逐层溯源到 `DOWNLOAD_MANIFEST.json` 与 `DATA_SOURCES.md`；不使用 PFIb / 保险索赔，不抄录 Svellingen 等文献的 Jaccard 0.14 / 效率数字。
 2. **准确**：手稿/报告每个数字均可映射到 `outputs/*.json`、`models/*/*.csv` 的具体字段，且逐条对账一致（§2）。R11 的“always-positive vs majority”混用缺陷已修复并重算归档。
 3. **完整**：代码路径完整、测试通过（58 passed, 1 skipped）、seed 固定可复现；未完成项均以“待补充/尚未建立”显式标注，**无“做一半臆断一半”**。
+
+---
+
+## 7. 方法学表述与代码一致性核查（2026-08-19 W3）
+
+第 3 轮 ChatGPT 评审要求把“我们自己的方法”写得更清楚、更详细，并核对数据真实性。**所有新增表述均已逐条与源码比对，不写入任何代码未实现的细节。** 核查记录：
+
+| 手稿位置 | 代码依据 | 结论 |
+|----------|----------|------|
+| §3.3 模型超参 | `src/pluvial_flood_risk/estimators.py`：`GradientBoostingClassifier/Regressor(n_estimators=80, max_depth=4, learning_rate=0.08, random_state=42)` + `StandardScaler`；`LogisticRegression(max_iter=500, random_state=42)`（默认 C=1.0 / L2 / lbfgs） | 已写入超参与 sklearn 1.8 默认；版本来自 `models/nyc_smoke/run_metadata.json`（sklearn 1.8.0，h3 4.4.2） |
+| §3.4 AP 定义 | `metrics.py` / `spatial_cv.py` 使用 `sklearn.metrics.average_precision_score` | 改为“recall-weighted mean of precision”，不再写作“PR-AUC 面积” |
+| §3.6 自适应加密 | `pipeline.py nyc_smoke_test` + `adaptive.py` + `outputs/adaptive_vs_fixed_ablation.csv`：`score_col=PFI_h`、`proba_col=flood_probability`、`score_quantile=0.8`、`uncertainty_min=0.7`（即 p∈[0.35,0.65]）、`expand_k=1`；79/141 → 3933 vs 6909；**未重训练 R11**；**未计算 hotspot recall** | 补不确定性准则 + 一环邻域扩展；删除“hotspot recall”（代码未产出该指标）；明确“仅改变表征、不重训 R11” |
+| §3.8 / §4.5 负对照 | `negative_control.py` + `outputs/negative_control.json`：`score_col = flood_risk`（**观测标签分**），非模型预测 | 改为“观测标签分”表述，不再误写“预测” |
+| §3.1/§3.2 特征与度量 | `raster.py`（D8 单流、`np.gradient` 坡度）、`features.py`（haversine 距离、`h3.cell_area`）、`crs_warp.py`（EPSG:4326） | 已补：面积 = H3 原生六边形面积、距离 = 大圆 haversine、地形导数 = 栅格计算后分区平均 |
+| §3.5/§4.2 尺度损失饱和 | `rollups.py` + `outputs/jaccard_by_resolution.csv`：`fine_hotspot_threshold=1.0`，`n_hotspot_fine=571/991`（开放标签分饱和于最大值，0.9 分位与最大值重合） | 已如实披露“0.9 分位因分数饱和而退化” |
+
+**数据真实性结论：** `models/nyc_smoke/run_metadata.json → data_provenance="observed"`；`outputs/negative_control.json → assembly_mode="opendata"`；`data/raw/nyc/` 无 `SCHEMA_FIXTURE.txt` 标记且含 `DOWNLOAD_MANIFEST.json`（逐层记录 USGS 3DEP / Esri NLCD / NHDPlus HR / NYC DEP / NYC 311 / USGS Ida HWM / FEMA Sandy 的来源、n_features 与状态）。唯一合成项为 `event_rainfall.tif`（常数 75 mm/h，已显式声明）。故静态特征与标签均为真实开放数据，仅降雨条件为合成常数——与正文声明一致。
+
+---
+
+## 8. 图表补全与数值一致性核查（2026-08-19 W6）
+
+用户要求对照参考论文（Svellingen et al. 2026 IJDRR）的图表类型：**先有直观空间结果图，再有多分辨率/高阶统计图；表格要足够**。本轮新增 **Fig 2（空间结果图）** 与 **Fig 5（分辨率效应图）**，并把手稿从"4 图 0 表"升级为"**6 图 6 表**"。全部数值再次与磁盘 live 文件对账，逐条记录如下。
+
+### 8.1 参考论文图表类型清单（对照基准）
+
+| 参考论文图 | 类型 | 本项目对应 |
+|-----------|------|-----------|
+| Fig 1 概念工作流 | 流程图 | **Fig 1** workflow_schematic ✓ |
+| Fig 2 H3 层级/分辨率/分类色标 | 概念多面板 | 以 Fig 1 + Fig 5 覆盖（不复制其 5 级色标阈值，避免 PFIb 校准等同） |
+| Fig 3 PFI_b→PFI_h 转换 | 空间图 | **Fig 2** 三面板空间结果图 ✓ |
+| Fig 4 多分辨率空间图 | 空间图 | **Fig 2**（同支撑三面板；本工作数据为 R9 支撑，不做 R6/R8/R10/R13 伪多分辨率） |
+| Fig 5a 分辨率分布 | 统计图（violin） | **Fig 5a** ✓ |
+| Fig 5b Jaccard 持久性矩阵 | 统计图（heatmap） | **Fig 5b** ✓ |
+| Fig 6 流域 vs H3 对比 | 空间对比图 | **未做**：需 HUC-12 子流域多边形，项目无此数据；以 Fig 2 的空间结果图覆盖"空间直观图"类型 |
+
+### 8.2 新增图的数据来源与数值复核
+
+| 图 | 数据文件 | 复核项 | 结果 |
+|----|----------|--------|------|
+| Fig 2a 观测 | `data/processed/nyc_h3_cells.parquet` | median=1.0, mean=0.605, ≥0.8 共 84/141 | 脚本重算一致 |
+| Fig 2b 留出概率 | `models/nyc_smoke/spatial_cv_oof_predictions.csv` | mean=0.798；pooled ROC-AUC=0.683、AP=0.861 与手稿一致 | `sklearn.metrics` 重算一致 |
+| Fig 2c PFI_h | `outputs/pfi_h_scenarios.parquet`（ida_like） | mean=0.803；与 §4.5 四情景均值 0.8029 一致；面板（c）仅展示一个情景，正文说明全情景不变 | 一致 |
+| Fig 2 相关性 | 同上两两 Pearson | observed~oof=0.245, observed~pfi=0.468, oof~pfi=0.509 | 脚本重算一致；正文如实写入 |
+| Fig 5a 小提琴 | `data/processed/nyc_h3_cells_r10_labels.parquet`（991 R10）→ `h3.cell_to_parent` mean 上卷 R9(160)/R8(31) | 单元数与 `jaccard_by_resolution.csv` 的 n_fine/n_coarse 一致 | 一致 |
+| Fig 5b 热力矩阵 | 同上 + q=0.9 分位 | J(R10,R9)=0.977、J(R10,R8)=0.167 与阶梯 mean 行一致；新增 J(R9,R8)=0.167 | 脚本重算一致 |
+
+### 8.3 新增表的数据来源
+
+| 表 | 数据文件 | 说明 |
+|----|----------|------|
+| 表 1 数据层 | `data/raw/nyc/DOWNLOAD_MANIFEST.json` | 逐层来源/形态/角色，无编造 |
+| 表 2 模型规格 | `src/pluvial_flood_risk/estimators.py` | 与 §3.3 一致 |
+| 表 3 空间 CV 汇总 | `models/nyc_smoke/spatial_cv_folds.csv`、`outputs/expanded_primary_table.json`、`outputs/classification_baselines*.json` | 两试点同构；SD 为 ddof=0 |
+| 表 4 尺度损失阶梯 | `outputs/jaccard_by_resolution.csv` | 6 行逐值抄录 |
+| 表 5 自适应单元数 | `outputs/adaptive_vs_fixed_ablation.csv` | 141/3933/6909、27.9×、56.9% |
+| 表 6 Sandy 负对照 | `outputs/negative_control.json` | 逐字段抄录 |
+
+### 8.4 手稿一致性检查（W6 编辑后）
+
+- 图号引用重排：Fig 1 工作流 / Fig 2 空间结果图 / Fig 3 空间 CV / Fig 4 Jaccard 阶梯 / Fig 5 分辨率效应 / Fig 6 自适应消融；正文 `Fig. N` 引用逐一 grep 核对，无残留旧编号（Fig 2→3、3→4、4→6 已全部更新）。
+- `scripts/build_manuscript_html.py` 的 `FIGURES` 锚点已更新为 6 图；`manuscript.html` 中 6 个 `<figure id="fig-N">` 顺序为 1→6，与手稿顺序一致。
+- 结果小节重排：§4.1 空间模式（新）→ §4.2 空间 CV → §4.3 尺度损失 → §4.4 自适应 → §4.5 降雨情景 → §4.6 Sandy → §4.7 扩展试点。
+- 测试门禁：`pytest` 58 passed, 1 skipped；`figures.py` 无 lint 错误。

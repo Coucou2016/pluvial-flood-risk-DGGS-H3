@@ -47,12 +47,12 @@ def apply_paper_style(*, chinese: bool = False) -> None:
                 "DejaVu Serif",
             ],
             "mathtext.fontset": "stix",
-            "axes.labelsize": 10,
-            "axes.titlesize": 11,
-            "xtick.labelsize": 9,
-            "ytick.labelsize": 9,
-            "legend.fontsize": 8,
-            "figure.titlesize": 11,
+            "axes.labelsize": 11,
+            "axes.titlesize": 12,
+            "xtick.labelsize": 10,
+            "ytick.labelsize": 10,
+            "legend.fontsize": 9,
+            "figure.titlesize": 12,
             "axes.unicode_minus": False,
             "pdf.fonttype": 42,
             "ps.fonttype": 42,
@@ -321,7 +321,7 @@ def plot_workflow_schematic(
             st["title"],
             ha="center",
             va="center",
-            fontsize=10.5,
+            fontsize=11,
             fontweight="bold",
             color=st["color"],
         )
@@ -352,7 +352,7 @@ def plot_workflow_schematic(
                 item,
                 ha="center",
                 va="center",
-                fontsize=7.4,
+                fontsize=8.0,
                 color="#1a1a1a",
                 linespacing=1.25,
             )
@@ -393,7 +393,7 @@ def plot_workflow_schematic(
         "FEMA Sandy negative control\n(never a training label)",
         ha="center",
         va="center",
-        fontsize=7.4,
+        fontsize=8.0,
         color="#1a1a1a",
         linespacing=1.25,
     )
@@ -412,6 +412,342 @@ def plot_workflow_schematic(
 
     if title:
         fig.suptitle(title, fontsize=12)
+    fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
+    plt.close(fig)
+    return out_path
+
+
+# --------------------------------------------------------------------------- #
+# Spatial results map and resolution-effect diagnostics (reference-paper style)
+# --------------------------------------------------------------------------- #
+
+
+def _h3_polygon_xy(cell: str) -> list[tuple[float, float]]:
+    """H3 cell boundary as [(x=lng, y=lat), ...] for matplotlib Polygon patches."""
+    import h3
+
+    boundary = h3.cell_to_boundary(cell)
+    return [(lng, lat) for lat, lng in boundary]
+
+
+def _load_hydro_features(hydro_path: Path | str) -> list[tuple[list[tuple[float, float]], bool]]:
+    """Read NHDPlus hydro features as [(line_xy, is_polygon), ...]; empty if missing."""
+    import json
+
+    path = Path(hydro_path)
+    if not path.exists():
+        return []
+    with open(path, encoding="utf-8") as fh:
+        geojson = json.load(fh)
+    out = []
+    for feat in geojson.get("features", []):
+        geom = feat.get("geometry") or {}
+        if geom.get("type") in ("LineString", "MultiLineString"):
+            coords = geom["coordinates"]
+            if geom["type"] == "MultiLineString":
+                coords = [c for part in coords for c in part]
+            pts = [(x, y) for x, y in coords]
+            out.append((pts, False))
+        elif geom.get("type") in ("Polygon", "MultiPolygon"):
+            rings = geom["coordinates"]
+            if geom["type"] == "MultiPolygon":
+                rings = [ring for poly in rings for ring in poly]
+            out.append(([(x, y) for x, y in rings[0]], True))
+    return out
+
+
+def _draw_dem_background(ax, dem_path: Path | str, extent: tuple[float, float, float, float] | None = None) -> None:
+    """Low-contrast grayscale DEM relief behind the hexagons; no-op if raster missing."""
+    import numpy as np
+    import rasterio
+
+    path = Path(dem_path)
+    if not path.exists():
+        return
+    try:
+        with rasterio.open(path) as src:
+            band = src.read(1)
+            bounds = src.bounds
+            nodata = src.nodata
+    except Exception:
+        return
+    if nodata is not None:
+        band = np.where(band == nodata, np.nan, band)
+    band = band.astype(float)
+    lo, hi = np.nanpercentile(band, 2), np.nanpercentile(band, 98)
+    if hi > lo:
+        band = np.clip((band - lo) / (hi - lo), 0.0, 1.0)
+    ax.imshow(
+        band,
+        extent=[bounds.left, bounds.right, bounds.bottom, bounds.top],
+        cmap="Greys",
+        alpha=0.35,
+        interpolation="nearest",
+        zorder=0,
+    )
+    if extent is not None:
+        ax.set_xlim(extent[0], extent[1])
+        ax.set_ylim(extent[2], extent[3])
+
+
+def _draw_hydro_context(ax, hydro_path: Path | str) -> None:
+    """NHDPlus shoreline/flowline context: polygons as light blue fills, lines as strokes."""
+    import matplotlib as mpl
+    from matplotlib.patches import Polygon as MplPolygon
+
+    features = _load_hydro_features(hydro_path)
+    for pts, is_polygon in features:
+        if is_polygon:
+            ax.add_patch(
+                MplPolygon(
+                    pts,
+                    closed=True,
+                    facecolor="#A6CEE3",
+                    edgecolor="#74A9CF",
+                    linewidth=0.4,
+                    alpha=0.55,
+                    zorder=1,
+                )
+            )
+        else:
+            ax.plot(
+                [p[0] for p in pts],
+                [p[1] for p in pts],
+                color="#74A9CF",
+                linewidth=0.8,
+                alpha=0.8,
+                zorder=1,
+            )
+
+
+def _plot_cell_map(ax, cells: list[str], values, extent, vmin, vmax, cmap, label) -> None:
+    """Colour H3 hexagon patches by ``values`` on ``ax`` with a matching colorbar."""
+    import numpy as np
+    from matplotlib import pyplot as plt
+    from matplotlib.collections import PatchCollection
+    from matplotlib.patches import Polygon as MplPolygon
+    from matplotlib.colors import Normalize
+
+    polys = []
+    for cell in cells:
+        pts = _h3_polygon_xy(cell)
+        if pts:
+            polys.append(MplPolygon(pts, closed=True))
+    vals = np.asarray(values, dtype=float)
+    coll = PatchCollection(polys, cmap=cmap, norm=Normalize(vmin=vmin, vmax=vmax), edgecolor="#3a3a3a", linewidth=0.35, zorder=3)
+    coll.set_array(vals)
+    ax.add_collection(coll)
+    ax.set_xlim(extent[0], extent[1])
+    ax.set_ylim(extent[2], extent[3])
+    ax.set_aspect(1.0 / np.cos(np.deg2rad(extent[2]) if extent[2] else 1.0))
+    ax.tick_params(labelsize=9)
+    cb = None
+    if label is not None:
+        cb = plt.colorbar(coll, ax=ax, fraction=0.046, pad=0.04, aspect=24)
+        cb.set_label(label, fontsize=9)
+        cb.ax.tick_params(labelsize=8)
+    return cb
+
+
+def plot_spatial_maps(
+    observed_path: pd.DataFrame | Path | str,
+    oof_path: pd.DataFrame | Path | str,
+    pfi_path: pd.DataFrame | Path | str,
+    dem_path: Path | str,
+    hydro_path: Path | str,
+    out_path: Path | str,
+    title: str | None = None,
+    caption: str | None = None,
+) -> Path:
+    """
+    Three-panel H3 hexagon maps for the Lower Manhattan pilot (Figure, results).
+
+    Panels show (a) the observed open-label flood-risk score, (b) the pooled
+    out-of-fold gradient-boosting probability, and (c) the deployed
+    rainfall-conditioned index PFI_h(c, r). The DEM relief and NHDPlus
+    shoreline context are drawn underneath the hexagons. Only cells for which
+    all three quantities exist are drawn, so the three panels share one support.
+    """
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+    import pandas as pd
+
+    if isinstance(observed_path, pd.DataFrame):
+        obs = observed_path.copy()
+    else:
+        obs = pd.read_parquet(observed_path)
+    if isinstance(oof_path, pd.DataFrame):
+        oof = oof_path.copy()
+    else:
+        oof = pd.read_csv(oof_path)
+    if isinstance(pfi_path, pd.DataFrame):
+        pfi = pfi_path.copy()
+    else:
+        pfi = pd.read_parquet(pfi_path)
+
+    obs = obs[["h3_index", "flood_risk"]].rename(columns={"flood_risk": "observed"})
+    oof = oof[["h3_index", "y_proba"]].rename(columns={"y_proba": "oof_prob"})
+    if "scenario" in pfi.columns:
+        pfi = pfi[pfi["scenario"] == "ida_like"]
+    pfi = pfi[["h3_index", "PFI_h"]].rename(columns={"PFI_h": "pfi"})
+
+    df = obs.merge(oof, on="h3_index").merge(pfi, on="h3_index")
+    df = df.dropna(subset=["observed", "oof_prob", "pfi"])
+    if df.empty:
+        raise ValueError("No cells have all three of observed/OOF/PFI_h; check input paths.")
+
+    df = df.sort_values("h3_index")
+    cells = df["h3_index"].tolist()
+    lon_min, lon_max = df["h3_index"].map(lambda c: min(p[0] for p in _h3_polygon_xy(c))).min(), df[
+        "h3_index"
+    ].map(lambda c: max(p[0] for p in _h3_polygon_xy(c))).max()
+    lat_min, lat_max = df["h3_index"].map(lambda c: min(p[1] for p in _h3_polygon_xy(c))).min(), df[
+        "h3_index"
+    ].map(lambda c: max(p[1] for p in _h3_polygon_xy(c))).max()
+    extent = (lon_min - 0.004, lon_max + 0.004, lat_min - 0.004, lat_max + 0.004)
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    chinese = _needs_cjk(title) or _needs_cjk(caption)
+    apply_paper_style(chinese=chinese)
+
+    fig, axes = plt.subplots(1, 3, figsize=(12.0, 4.4))
+    panels = [
+        ("observed", "Observed open-label risk", "Observed risk (0\u20131)"),
+        ("oof_prob", "Out-of-fold model probability", "Model probability"),
+        ("pfi", "Deployed PFI_h(c, r)", "PFI_h"),
+    ]
+    cmap = "viridis"
+    for ax, (col, ptitle, clabel) in zip(axes, panels):
+        _draw_dem_background(ax, dem_path, extent)
+        _draw_hydro_context(ax, hydro_path)
+        _plot_cell_map(ax, cells, df[col], extent, 0.0, 1.0, cmap, clabel)
+        ax.set_title(ptitle, fontsize=11)
+        ax.set_xlabel("Longitude (\u00b0)", fontsize=10)
+        ax.set_ylabel("Latitude (\u00b0)", fontsize=10)
+    for ax in axes[1:]:
+        ax.set_ylabel("")
+
+    if title:
+        fig.suptitle(title, fontsize=12)
+    fig.tight_layout(w_pad=1.2)
+    fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
+    plt.close(fig)
+    return out_path
+
+
+def _resolution_rollups(r10_scores: pd.Series, out_res: int) -> pd.Series:
+    """Mean aggregation of R10 open-label scores onto ``out_res`` parent cells."""
+    import h3
+
+    parents = r10_scores.index.map(lambda c: h3.cell_to_parent(c, out_res))
+    tmp = pd.DataFrame({"parent": parents, "score": r10_scores.values})
+    return tmp.groupby("parent")["score"].mean()
+
+
+def _hotspot_cells(scores: pd.Series, quantile: float = 0.9) -> set[str]:
+    """Cells at or above the ``quantile`` of their resolution's own scores."""
+    thr = scores.quantile(quantile)
+    return set(scores[scores >= thr].index)
+
+
+def _pairwise_hotspot_jaccard(fine_scores: pd.Series, coarse_scores: pd.Series) -> float:
+    """Jaccard between fine hotspots projected to coarse parents and coarse hotspots."""
+    import h3
+
+    fine_hot = _hotspot_cells(fine_scores)
+    coarse_res = h3.get_resolution(next(iter(coarse_scores.index)))
+    fine_parents = {h3.cell_to_parent(c, coarse_res) for c in fine_hot}
+    coarse_hot = _hotspot_cells(coarse_scores)
+    inter = len(fine_parents & coarse_hot)
+    union = len(fine_parents | coarse_hot)
+    return inter / union if union else float("nan")
+
+
+def plot_resolution_effects(
+    r10_labels_path: pd.DataFrame | Path | str,
+    out_path: Path | str,
+    quantile: float = 0.9,
+    title: str | None = None,
+    caption: str | None = None,
+) -> Path:
+    """
+    Resolution-effect diagnostics (reference-paper style, one two-panel figure).
+
+    (a) Violin plots of the open-label score at R10, R9, and R8 (mean rollup),
+    showing the variance compression as the grid coarsens. (b) Jaccard
+    similarity between hotspot sets (top ``quantile``) at R10, R9, and R8,
+    computed on the coarser support in each pair so the R10-vs-R9 and
+    R10-vs-R8 entries reproduce the scale-loss ladder exactly.
+    """
+    require_matplotlib()
+    import h3
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    if isinstance(r10_labels_path, pd.DataFrame):
+        df = r10_labels_path[["h3_index", "flood_risk"]].copy()
+    else:
+        df = pd.read_parquet(r10_labels_path)[["h3_index", "flood_risk"]].copy()
+    if df.empty:
+        raise ValueError("R10 label table is empty.")
+    s10 = df.set_index("h3_index")["flood_risk"]
+    s9 = _resolution_rollups(s10, 9)
+    s8 = _resolution_rollups(s10, 8)
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    chinese = _needs_cjk(title) or _needs_cjk(caption)
+    apply_paper_style(chinese=chinese)
+
+    fig, (ax_v, ax_h) = plt.subplots(1, 2, figsize=(9.6, 3.8))
+
+    # --- panel (a): score distribution across resolutions ---
+    data = [s10.values, s9.values, s8.values]
+    vp = ax_v.violinplot(data, positions=[0, 1, 2], showmeans=True, showextrema=True, widths=0.7)
+    for i, body in enumerate(vp["bodies"]):
+        body.set_facecolor(["#4C72B0", "#55A868", "#DD8452"][i])
+        body.set_alpha(0.6)
+    ax_v.set_xticks([0, 1, 2])
+    ax_v.set_xticklabels([f"R10 (n={len(s10)})", f"R9 (n={len(s9)})", f"R8 (n={len(s8)})"])
+    ax_v.set_ylabel("Open-label score")
+    ax_v.set_ylim(0.0, 1.05)
+    ax_v.grid(True, axis="y", alpha=0.3)
+    ax_v.set_title("Score distribution by resolution (mean rollup)")
+
+    # --- panel (b): Jaccard hotspot-persistence matrix ---
+    j10_9 = _pairwise_hotspot_jaccard(s10, s9)
+    j10_8 = _pairwise_hotspot_jaccard(s10, s8)
+    j9_8 = _pairwise_hotspot_jaccard(s9, s8)
+    matrix = np.array(
+        [
+            [1.0, j9_8, j10_8],
+            [j9_8, 1.0, j10_9],
+            [j10_8, j10_9, 1.0],
+        ]
+    )
+    labels = ["R8", "R9", "R10"]
+    im = ax_h.imshow(matrix, cmap="YlGnBu", vmin=0.0, vmax=1.0)
+    ax_h.set_xticks(range(3))
+    ax_h.set_yticks(range(3))
+    ax_h.set_xticklabels(labels)
+    ax_h.set_yticklabels(labels)
+    ax_h.set_xlabel("Hotspot resolution")
+    ax_h.set_ylabel("Hotspot resolution")
+    for i in range(3):
+        for j in range(3):
+            ax_h.text(j, i, f"{matrix[i, j]:.3f}", ha="center", va="center", fontsize=9)
+    ax_h.grid(which="major", color="white", linewidth=1.2, alpha=0.7)
+    ax_h.set_xticks(np.arange(3))
+    ax_h.set_yticks(np.arange(3))
+    ax_h.set_title("Jaccard hotspot persistence (q = 0.9)")
+    fig.colorbar(im, ax=ax_h, fraction=0.046, pad=0.04)
+
+    if title:
+        fig.suptitle(title, fontsize=12)
+    fig.tight_layout()
     fig.savefig(out_path, dpi=300, bbox_inches="tight")
     fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
     plt.close(fig)

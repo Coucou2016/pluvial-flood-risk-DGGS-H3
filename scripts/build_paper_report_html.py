@@ -170,12 +170,24 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
             ),
         ),
         (
+            "docs/paper/figures/spatial_maps.png",
+            figure_block(
+                "spatial_maps",
+                figs["spatial_maps"],
+                "Spatial results maps",
+                "<strong>图 2 · Figure 2</strong> — 空间结果图：Lower Manhattan 试点（n=141 个 R9 六边形）三面板同支撑（SciencePlots + TNR）。"
+                "<br/><em>如何读：</em>(a) 观测开放标签分（二元化：无证据=0，任一证据=高值）；(b) H3 块空间 CV 留出概率；(c) 部署指数 PFI_h(c,r)（ida_like r=75 mm/h；全情景不变，见 §5.6）。同色标 0–1，灰色底图为 DEM 地形，浅蓝为 NHDPlus 岸线水系。"
+                "<br/><em>意义：</em>对照参考论文「先空间图后统计图」体例；三面板同源同支撑，观测~留出 r=0.245、观测~PFI_h r=0.468、留出~PFI_h r=0.509，与「排序判别中等」叙事一致。"
+                "<br/><em>结论：</em>仅视觉检视，非独立验证；不得把图面高低当作额外证据。",
+            ),
+        ),
+        (
             "docs/paper/figures/spatial_cv_folds.png",
             figure_block(
                 "spatial",
                 figs["spatial"],
                 "Spatial CV fold markers",
-                "<strong>图 2 · Figure 2</strong> — 空间 H3 块 CV 各折 Accuracy 与 F1（SciencePlots + Times New Roman）。"
+                "<strong>图 3 · Figure 3</strong> — 空间 H3 块 CV 各折 Accuracy 与 F1（SciencePlots + Times New Roman）。"
                 "<br/><em>如何读：</em>横轴为折号 + Mean±SD，纵轴为 0–1 分数；成对标记点表示同一折的 Accuracy/F1，末位为 Mean±SD 误差棒。"
                 "<br/><em>意义：</em>展示评价协议的折间稳定性，而非单一乐观分数。"
                 "<br/><em>结论：</em>多数折 Accuracy≈0.71–0.77，Fold4 更高；与表 1 均值一致。样本仍是 Lower Manhattan smoke。",
@@ -187,10 +199,22 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 "jaccard",
                 figs["jaccard"],
                 "Jaccard ladder",
-                "<strong>图 3 · Figure 3</strong> — 开放标签热点 Jaccard/F1 随粗分辨率变化（SciencePlots + TNR）。"
+                "<strong>图 4 · Figure 4</strong> — 开放标签热点 Jaccard/F1 随粗分辨率变化（SciencePlots + TNR）。"
                 "<br/><em>如何读：</em>左 Jaccard similarity、右 F1；标记形状/颜色区分 mean/max/p90 上卷（共享图例）。"
                 "<br/><em>意义：</em>量化 MAUP/尺度损失：决策尺度变粗时，热点集合可能面目全非。"
                 "<br/><em>结论：</em>mean@R8 损失最大；不得与 PFIb 文献的 0.14 直接等同。",
+            ),
+        ),
+        (
+            "docs/paper/figures/resolution_effects.png",
+            figure_block(
+                "resolution",
+                figs["resolution"],
+                "Resolution effects",
+                "<strong>图 5 · Figure 5</strong> — 分辨率效应：(a) 开放标签分在 R10/R9/R8 的分布压缩；(b) Jaccard 热点持久性矩阵（SciencePlots + TNR）。"
+                "<br/><em>如何读：</em>(a) 三条小提琴由宽双峰压缩为窄带；(b) 非对角项远离对角线衰减：J(R10,R9)=0.977、J(R10,R8)=0.167、J(R9,R8)=0.167。"
+                "<br/><em>意义：</em>把尺度损失从阶梯表扩展为「分布压缩 + 集合持久性」两种互补统计视图，对齐参考论文 Fig 5 类型。"
+                "<br/><em>结论：</em>数值与表 3/图 4 完全一致；粗化同时压缩分布并瓦解热点持久性。",
             ),
         ),
         (
@@ -199,7 +223,7 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 "adaptive",
                 figs["adaptive"],
                 "Adaptive ablation",
-                "<strong>图 4 · Figure 4</strong> — 固定 R9 / 自适应 R9/R11 / 均匀 R11 单元数。"
+                "<strong>图 6 · Figure 6</strong> — 固定 R9 / 自适应 R9/R11 / 均匀 R11 单元数。"
                 "<br/><em>如何读：</em>三柱分别为 Fixed R9、Adaptive R9/R11、Uniform R11；顶部标注「27.9× fixed R9 = 56.9% of uniform R11」。"
                 "<br/><em>意义：</em>展示自适应在计算预算与局部细化之间的折中。"
                 "<br/><em>结论：</em>自适应 = 27.9× 固定 R9 = 56.9% 均匀 R11；非全市成本声明。",
@@ -227,8 +251,10 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
 def main() -> None:
     figs = {
         "workflow": b64_png(FIG / "workflow_schematic.png"),
-        "jaccard": b64_png(FIG / "jaccard_by_resolution.png"),
+        "spatial_maps": b64_png(FIG / "spatial_maps.png"),
         "spatial": b64_png(FIG / "spatial_cv_folds.png"),
+        "jaccard": b64_png(FIG / "jaccard_by_resolution.png"),
+        "resolution": b64_png(FIG / "resolution_effects.png"),
         "adaptive": b64_png(FIG / "adaptive_ablation.png"),
     }
     meta = json.loads((ROOT / "models" / "nyc_smoke" / "run_metadata.json").read_text(encoding="utf-8"))
