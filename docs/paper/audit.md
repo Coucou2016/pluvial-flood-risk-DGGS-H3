@@ -401,3 +401,36 @@ PNG+PDF 均已按新尺寸重生成到 `docs/paper/figures/`。图号/正文 fir
 ### 8.8 W8 提交与 tag 记录（2026-08-19）
 
 `submission-v1` tag 已在 W8 主修复 commit `c76be2c` 上创建并推送（tag 对象 `66cc7ac`；`git rev-list -n 1 submission-v1` 可复核），manuscript Data availability 声明指向该 tag。后续 report 产物刷新 commit `aabc449`（仅 HTML/PDF 渲染产物，不改变论文文本），未移动 `submission-v1`；`paper-v1` 保持指向 R21 commit `b49379c` 不变。
+
+### 8.9 W9 图体系对齐落实记录（2026-08-20）
+
+**W9 目标**：按用户指令"让 ChatGPT 把参考论文 PDF 的图逐张看清，并与我方图做类型/数量/质量对照"。本轮从 `1-s2.0-S2212420926001032-main.pdf` 提取 6 张参考图（脚本 `scripts/extract_reference_figures.py`，输出 `artifacts/reference_paper_figures/`），连同我方 6 图 + `manuscript.md`/`audit.md`/`chatgpt_context_W9.md` 共 15 文件注入 ChatGPT（DataTransfer 机制）评审。
+
+**ChatGPT W9 判定**：图体系"基本达标但非完全一一对齐"。唯一值得进正文的缺失图型 = **多分辨率空间并排图**（参考 Fig.4）；H3 概念图（参考 Fig.2）仅可选；watershed vs H3（参考 Fig.6）**明确不补**（无 HUC/流域/行政区数据，禁止用 bbox/R7 parent 伪装）。
+
+**已落实（A. 图体系）**：
+
+| 项 | 动作 | 数据来源（真实、已核） |
+|----|------|------------------------|
+| 新增 Fig.4 `multi_resolution_spatial.png` | R10/R9/R8 三面板开放标签分空间图，共享 0–1 viridis 色标 | `data/processed/nyc_h3_cells_r10_labels.parquet`（991 个 R10 单元，`flood_risk` 0–1 连续）；`h3.cell_to_parent` mean 上卷 R9=160、R8=31，与 Fig.5 完全同源（已用脚本逐项复核计数一致） |
+| 旧 Fig.4 `jaccard_by_resolution.png` | 移至 `docs/paper/figures/supplementary/`，降级为补充图 S1 | `outputs/jaccard_by_resolution.csv`（数值已完整列于 manuscript Table 4 / report 表 3） |
+| 主图数量 | 仍 6 主图 + 1 补充图 + 6 表，不新增第 7 主图 | — |
+
+**已落实（B. 图质量 MUST-FIX / 建议）**：
+
+| 项 | 动作 |
+|----|------|
+| Fig.1 header 拥挤 | `Learning & validation`、`Diagnostics & outputs` 改为两行；删除 y=0.30 底部悬空灰色箭头（只留 y=0.62 stage-to-stage 箭头 + Sandy 虚线旁路） |
+| Fig.2 colorbar 术语 | `Observed risk (0–1)` → `Open-label risk (0–1)`，与 panel title/caption 统一 |
+| Fig.6 顶部 margin | ylim 上限 1.22→1.30、annotation y 1.10→1.02，消除"顶到轴框"感 |
+
+**已落实（C. 文字/体例同步）**：
+
+- `manuscript.md`：Fig.4 caption 重写为多分辨率空间图；§4.3 正文 `(Fig. 4)`→`(Table 4)`，新增 Fig.4 空间图描述句；Fig.5 caption `reproduce the ladder in Fig. 4`→`in Table 4`；Table 4 note 加 `Supplementary Fig. S1` 引用；新增 `Supplementary Figure S1` caption（置于 Figure 6 caption 之后）。正文图号 first-mention 顺序仍为 1→6。
+- `report.md`：图 4 描述改为多分辨率空间图，新增补充图 S1 说明，图 5 结论 `表 3/图 4`→`表 3`，完成度清单补 F4 条目。
+- `scripts/make_figures.py`：Fig.4 换新函数 + jaccard 移至 supplementary。
+- `scripts/build_manuscript_html.py` / `build_paper_report_html.py`：图文件名与锚文本同步（manuscript HTML 6 图、report HTML 7 图，均无 "Figure missing"）。
+
+**科学内容/结果/核心结论/全部数字未变**：本轮仅图体系对齐 + 图质量 + 排版体例；无任何数值改动。R10=991 / R9=160 / R8=31、Jaccard ladder（R8 mean 0.167/F1 0.286、R9 mean 0.977/0.988、max/p90=1.000）等数字原样保留，仅从主文 Fig.4 迁至 Table 4 + 补充图 S1。
+
+**W9 未补项（诚实边界，ChatGPT 确认不补）**：watershed/catchment vs H3 空间对比图——本仓库无 HUC-12/流域/行政区 polygon 数据，不新增数据、不伪造。

@@ -128,7 +128,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 1. 下载/校验 `data/raw/nyc/`，写入 `DOWNLOAD_MANIFEST.json` / `DATA_SOURCES.md`。  
 2. `build_nyc_h3.py --no-fixtures` → `data/processed/nyc_h3_cells.parquet`（opendata）。  
 3. `pluvial-nyc-smoke` → `models/nyc_smoke/*`、`outputs/*`（空间 CV、Jaccard、自适应、情景、负对照）。  
-4. SciencePlots + TNR 重绘六图到 `docs/paper/figures/`（工作流、空间结果图、空间 CV、Jaccard 阶梯、分辨率效应、自适应消融；脚本 `scripts/make_figures.py`）。  
+4. SciencePlots + TNR 重绘六图到 `docs/paper/figures/`（工作流、空间结果图、空间 CV、多分辨率空间图、分辨率效应、自适应消融；脚本 `scripts/make_figures.py`；另输出补充图 `supplementary/jaccard_by_resolution.png`）。  
 5. `scripts/build_paper_report_html.py` → 自包含 `report.html`（Base64 图、内联 CSS）。  
 6. Chrome headless `--print-to-pdf` → `report.pdf`（若失败，以 HTML 为准并记入 acceptance）。
 
@@ -224,11 +224,24 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 **结论（允许）：** 开放标签下，mean 上卷到 R8 会严重改变热点集合。  
 **结论（禁止）：** “我们得到了与 Svellingen 相同的 Jaccard 0.14”；把 max/p90=1 写成模型完美。
 
-#### 图 4 · `docs/paper/figures/jaccard_by_resolution.png`
+#### 图 4 · `docs/paper/figures/multi_resolution_spatial.png`
 
-**来龙去脉：** 同 CSV 的 SciencePlots 偏移标记散点（左 Jaccard similarity、右 F1；标记形状/颜色区分 mean/max/p90，共享图例）。  
+**来源：** `data/processed/nyc_h3_cells_r10_labels.parquet`（991 个 R10 单元）经 `h3.cell_to_parent` mean 上卷至 R9（160）/ R8（31），与图 5 完全同源。
+
+**来龙去脉：** 对照参考论文 Fig 4 体例新增的"多分辨率空间并排图"。(a) R10 开放标签分（n=991）；(b) R9 mean 上卷（n=160）；(c) R8 mean 上卷（n=31）。三面板同一地理足迹、共享 0–1 viridis 色标，把"粗化伴随的平滑"直接变成可视的空间压缩，不新增任何统计量。
+
+**如何读：** 三面板从细到粗，看细粒度热点在 R9/R8 均值上卷后如何被抹平；颜色只表达开放标签分（0–1），与图 5 的分布压缩互补。
+
+**意义：** 补齐参考论文最重要的"多分辨率空间图"图型，与图 5（统计视图）构成"空间效应 + 统计效应"双层证据。
+
+**结论（允许）：** 开放标签分在 R10 呈现局部热点，mean 上卷到 R8 后热点被平滑。  
+**结论（禁止）：** 把面板颜色深浅当作独立验证；声称该图证明"模型准确"。
+
+#### 补充图 S1 · `docs/paper/figures/supplementary/jaccard_by_resolution.png`
+
+**来龙去脉：** 表 3（Jaccard 阶梯）的偏移标记散点（左 Jaccard similarity、右 F1；标记形状/颜色区分 mean/max/p90，共享图例），与表 3 同 CSV。原为主文图 4，W9 按"多分辨率空间图优先"调整为补充材料。  
 **如何读：** 随 coarse_res 变粗，看 mean 标记在 R8 是否明显下降；max/p90 接近 1 是极值保留机制。  
-**意义：** 可视化尺度损失。  
+**意义：** 可视化尺度损失（数值已完整列于表 3）。  
 **结论：** mean 在 R8 损失最大；禁止与 PFIb 的 0.14 数值等同。
 
 #### 图 5 · `docs/paper/figures/resolution_effects.png`
@@ -241,7 +254,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 
 **意义：** 把"尺度损失"从一张阶梯表变成"分布压缩 + 集合持久性"两张互补的统计视图，直接对齐参考论文的类型覆盖。
 
-**结论（允许）：** 与表 3/图 4 数值一致；开放标签下粗化会同时压缩分布并降低跨分辨率热点相似度。  
+**结论（允许）：** 与表 3 数值一致；开放标签下粗化会同时压缩分布并降低跨分辨率热点相似度。  
 **结论（禁止）：** 把矩阵中的 0.977/0.167 与 Svellingen 的 PFIb Jaccard 0.14 做数值等同；把 max/p90=1 解释为"粗网格无损失"。
 
 ---
@@ -406,6 +419,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 | ROC-AUC / AP 留出判别指标 | **完成**（`models/*/spatial_cv_oof_predictions.csv`；小窗口 `outputs/smoke_discrimination.json`；扩展窗口 `outputs/expanded_primary_table.json`） |
 | 工作流图 F1 schematic | **完成**（`docs/paper/figures/workflow_schematic.png`，SciencePlots + TNR） |
 | 空间结果图 F2（观测/留出/PFI_h 三面板） | **完成**（`docs/paper/figures/spatial_maps.png`；仅视觉检视，非独立验证） |
+| 多分辨率空间图 F4（R10/R9/R8 开放标签分三面板） | **完成**（`docs/paper/figures/multi_resolution_spatial.png`；数据与 F5 同源，`nyc_h3_cells_r10_labels.parquet`） |
 | 分辨率效应图 F5（分布小提琴 + Jaccard 矩阵） | **完成**（`docs/paper/figures/resolution_effects.png`；数值与 Jaccard 阶梯表一致） |
 | ChatGPT web-search 顾问回复 | 已收到 R6–R10 活体评审（2026-08-17 人工粘贴），正在合并 |
 | GitHub 远程仓库 | **已公开** https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3（勿重复 `gh repo create`；勿 force-push） |

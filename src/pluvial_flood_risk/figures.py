@@ -280,7 +280,7 @@ def plot_workflow_schematic(
             ],
         },
         {
-            "title": "Learning & validation",
+            "title": "Learning &\nvalidation",
             "color": "#C44E52",
             "items": [
                 "Gradient-boosting\nclassifier + continuous-\nrisk regressor",
@@ -289,7 +289,7 @@ def plot_workflow_schematic(
             ],
         },
         {
-            "title": "Diagnostics & outputs",
+            "title": "Diagnostics &\noutputs",
             "color": "#8172B2",
             "items": [
                 "$\\mathrm{PFI}_h$(c,r)",
@@ -361,7 +361,7 @@ def plot_workflow_schematic(
     for i in range(n - 1):
         x_from = x_left + gap + (i + 1) * 1.0 - gap + 0.01
         x_to = x_left + gap + (i + 1) * 1.0 - 0.01
-        for yy in (0.62, 0.30):
+        for yy in (0.62,):
             arr = FancyArrowPatch(
                 (x_from, yy),
                 (x_to, yy),
@@ -614,7 +614,7 @@ def plot_spatial_maps(
 
     fig, axes = plt.subplots(1, 3, figsize=(7.48, 2.74))  # 190 mm double-column width
     panels = [
-        ("observed", "Observed open-label risk", "Observed risk (0\u20131)"),
+        ("observed", "Observed open-label risk", "Open-label risk (0\u20131)"),
         ("oof_prob", "Out-of-fold model probability", "Model probability"),
         ("pfi", r"Full-fit $\mathrm{PFI}_h(c,r)$", r"$\mathrm{PFI}_h$"),
     ]
@@ -774,6 +774,98 @@ def plot_resolution_effects(
     return out_path
 
 
+def plot_multi_resolution_spatial(
+    r10_labels_path: pd.DataFrame | Path | str,
+    dem_path: Path | str,
+    hydro_path: Path | str,
+    out_path: Path | str,
+    title: str | None = None,
+    caption: str | None = None,
+) -> Path:
+    """Figure 4 — multi-resolution open-label score surface (R10 / R9 / R8).
+
+    Three panels on the same label-assembly footprint: (a) R10 open-label
+    flood-risk score (n = 991), (b) mean rollup to R9 (n = 160), and (c) mean
+    rollup to R8 (n = 31). All panels share one 0-1 viridis colour scale so the
+    smoothing that accompanies coarsening is visible directly. The aggregation
+    is the same mean rollup used by the resolution-effect diagnostics; no new
+    statistics are introduced here.
+    """
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+    from matplotlib.cm import ScalarMappable
+    from matplotlib.colors import Normalize
+
+    if isinstance(r10_labels_path, pd.DataFrame):
+        df = r10_labels_path[["h3_index", "flood_risk"]].copy()
+    else:
+        df = pd.read_parquet(r10_labels_path)[["h3_index", "flood_risk"]].copy()
+    if df.empty:
+        raise ValueError("R10 label table is empty.")
+    s10 = df.set_index("h3_index")["flood_risk"]
+    s9 = _resolution_rollups(s10, 9)
+    s8 = _resolution_rollups(s10, 8)
+
+    # Common geographic footprint from the finest (R10) support.
+    r10_cells = list(s10.index)
+    lon_min = min(min(p[0] for p in _h3_polygon_xy(c)) for c in r10_cells)
+    lon_max = max(max(p[0] for p in _h3_polygon_xy(c)) for c in r10_cells)
+    lat_min = min(min(p[1] for p in _h3_polygon_xy(c)) for c in r10_cells)
+    lat_max = max(max(p[1] for p in _h3_polygon_xy(c)) for c in r10_cells)
+    extent = (lon_min - 0.004, lon_max + 0.004, lat_min - 0.004, lat_max + 0.004)
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    chinese = _needs_cjk(title) or _needs_cjk(caption)
+    apply_paper_style(chinese=chinese)
+
+    fig, axes = plt.subplots(1, 3, figsize=(7.48, 2.74))  # 190 mm double-column width
+    panels = [
+        (list(s10.index), s10.values, f"R10 (n = {len(s10)})"),
+        (list(s9.index), s9.values, f"R9 mean rollup (n = {len(s9)})"),
+        (list(s8.index), s8.values, f"R8 mean rollup (n = {len(s8)})"),
+    ]
+    cmap = "viridis"
+    for ax, (cells, vals, ptitle) in zip(axes, panels):
+        _draw_dem_background(ax, dem_path, extent)
+        _draw_hydro_context(ax, hydro_path)
+        _plot_cell_map(ax, cells, vals, extent, 0.0, 1.0, cmap, None)
+        ax.set_title(ptitle, fontsize=11)
+        ax.set_xlabel("Longitude (\u00b0)", fontsize=10)
+        ax.set_ylabel("Latitude (\u00b0)", fontsize=10)
+    for ax, tag in zip(axes, "abc"):
+        ax.text(
+            0.02,
+            0.97,
+            f"({tag})",
+            transform=ax.transAxes,
+            fontsize=12,
+            fontweight="bold",
+            ha="left",
+            va="top",
+            zorder=10,
+        )
+    for ax in axes[1:]:
+        ax.set_ylabel("")
+
+    # One shared colour bar for all three panels, placed in a fixed axis to
+    # avoid tight_layout / colorbar conflicts.
+    sm = ScalarMappable(norm=Normalize(vmin=0.0, vmax=1.0), cmap=cmap)
+    sm.set_array([])
+    fig.subplots_adjust(left=0.07, right=0.87, bottom=0.16, top=0.90, wspace=0.38)
+    cbar_ax = fig.add_axes([0.885, 0.22, 0.015, 0.56])
+    cb = fig.colorbar(sm, cax=cbar_ax)
+    cb.set_label("Open-label score", fontsize=9)
+    cb.ax.tick_params(labelsize=8)
+
+    if title:
+        fig.suptitle(title, fontsize=12)
+    fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
+    plt.close(fig)
+    return out_path
+
+
 def plot_adaptive_ablation(
     ablation_csv: pd.DataFrame | Path | str,
     out_path: Path | str,
@@ -809,7 +901,7 @@ def plot_adaptive_ablation(
         if pd.notna(v):
             ax.text(i, float(v), f"{int(v):,}", ha="center", va="bottom", fontsize=9)
     ymax = max(v for v in values if pd.notna(v))
-    ax.set_ylim(0, ymax * 1.22)
+    ax.set_ylim(0, ymax * 1.30)
 
     # The fixed-coarse bar is visually tiny on a linear axis; state the two
     # comparisons in a single top-band line so the efficiency message is not lost.
@@ -817,7 +909,7 @@ def plot_adaptive_ablation(
     if pd.notna(fixed) and pd.notna(adaptive) and pd.notna(uniform) and fixed > 0:
         ax.text(
             1.0,
-            ymax * 1.10,
+            ymax * 1.02,
             f"Adaptive = {adaptive / fixed:.1f}\u00d7 fixed R9\n= {adaptive / uniform * 100:.1f}% of uniform R11",
             ha="center",
             va="bottom",

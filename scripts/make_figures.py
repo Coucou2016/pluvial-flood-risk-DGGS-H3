@@ -8,6 +8,7 @@ from pathlib import Path
 from pluvial_flood_risk.figures import (
     plot_adaptive_ablation,
     plot_jaccard_ladder,
+    plot_multi_resolution_spatial,
     plot_resolution_effects,
     plot_spatial_cv_bars,
     plot_spatial_maps,
@@ -44,10 +45,20 @@ def main() -> None:
         FIG_DIR / "spatial_cv_folds.png",
     )
 
-    # Fig 4 — Jaccard/F1 scale-loss ladder (live diagnostic CSV)
+    # Fig 4 — multi-resolution open-label score surface (R10 / R9 mean / R8 mean)
+    plot_multi_resolution_spatial(
+        DATA / "processed" / "nyc_h3_cells_r10_labels.parquet",
+        RAW / "dem.tif",
+        RAW / "hydro_streams.geojson",
+        FIG_DIR / "multi_resolution_spatial.png",
+    )
+
+    # Supplementary Fig S1 — Jaccard/F1 scale-loss ladder (live diagnostic CSV)
+    sup_dir = FIG_DIR / "supplementary"
+    sup_dir.mkdir(parents=True, exist_ok=True)
     plot_jaccard_ladder(
         OUT / "jaccard_by_resolution.csv",
-        FIG_DIR / "jaccard_by_resolution.png",
+        sup_dir / "jaccard_by_resolution.png",
     )
 
     # Fig 5 — resolution effects: score distribution + hotspot-persistence matrix

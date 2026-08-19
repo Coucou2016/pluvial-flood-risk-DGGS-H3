@@ -194,15 +194,15 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
             ),
         ),
         (
-            "docs/paper/figures/jaccard_by_resolution.png",
+            "docs/paper/figures/multi_resolution_spatial.png",
             figure_block(
-                "jaccard",
-                figs["jaccard"],
-                "Jaccard ladder",
-                "<strong>图 4 · Figure 4</strong> — 开放标签热点 Jaccard/F1 随粗分辨率变化（SciencePlots + TNR）。"
-                "<br/><em>如何读：</em>左 Jaccard similarity、右 F1；标记形状/颜色区分 mean/max/p90 上卷（共享图例）。"
-                "<br/><em>意义：</em>量化 MAUP/尺度损失：决策尺度变粗时，热点集合可能面目全非。"
-                "<br/><em>结论：</em>mean@R8 损失最大；不得与 PFIb 文献的 0.14 直接等同。",
+                "multires",
+                figs["multires"],
+                "Multi-resolution spatial maps",
+                "<strong>图 4 · Figure 4</strong> — 多分辨率开放标签分空间并排图：(a) R10（n=991）；(b) R9 mean 上卷（n=160）；(c) R8 mean 上卷（n=31），共享 0–1 viridis 色标（SciencePlots + TNR）。"
+                "<br/><em>如何读：</em>三面板同一地理足迹，从细到粗看局部热点如何在均值上卷后平滑；颜色只表达开放标签分（0–1）。"
+                "<br/><em>意义：</em>补齐参考论文「多分辨率空间图」图型，与图 5（统计视图）构成空间效应 + 统计效应双层证据。"
+                "<br/><em>结论：</em>开放标签分在 R10 呈局部热点，mean 上卷到 R8 后被抹平；数值与图 5 同源。",
             ),
         ),
         (
@@ -214,7 +214,19 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 "<strong>图 5 · Figure 5</strong> — 分辨率效应：(a) 开放标签分在 R10/R9/R8 的分布压缩；(b) Jaccard 热点持久性矩阵（SciencePlots + TNR）。"
                 "<br/><em>如何读：</em>(a) 三条小提琴由宽双峰压缩为窄带；(b) 非对角项远离对角线衰减：J(R10,R9)=0.977、J(R10,R8)=0.167、J(R9,R8)=0.167。"
                 "<br/><em>意义：</em>把尺度损失从阶梯表扩展为「分布压缩 + 集合持久性」两种互补统计视图，对齐参考论文 Fig 5 类型。"
-                "<br/><em>结论：</em>数值与表 3/图 4 完全一致；粗化同时压缩分布并瓦解热点持久性。",
+                "<br/><em>结论：</em>数值与表 3 完全一致；粗化同时压缩分布并瓦解热点持久性。",
+            ),
+        ),
+        (
+            "docs/paper/figures/supplementary/jaccard_by_resolution.png",
+            figure_block(
+                "jaccard_supp",
+                figs["jaccard_supp"],
+                "Jaccard ladder (supplementary)",
+                "<strong>补充图 S1 · Supplementary Figure S1</strong> — 开放标签热点 Jaccard/F1 随粗分辨率变化（SciencePlots + TNR），数值与表 3 同 CSV。"
+                "<br/><em>如何读：</em>左 Jaccard similarity、右 F1；标记形状/颜色区分 mean/max/p90 上卷（共享图例）。"
+                "<br/><em>意义：</em>可视化尺度损失（数值已完整列于表 3）；原为主文图 4，W9 按「多分辨率空间图优先」调整为补充材料。"
+                "<br/><em>结论：</em>mean@R8 损失最大；不得与 PFIb 文献的 0.14 直接等同。",
             ),
         ),
         (
@@ -253,9 +265,10 @@ def main() -> None:
         "workflow": b64_png(FIG / "workflow_schematic.png"),
         "spatial_maps": b64_png(FIG / "spatial_maps.png"),
         "spatial": b64_png(FIG / "spatial_cv_folds.png"),
-        "jaccard": b64_png(FIG / "jaccard_by_resolution.png"),
+        "multires": b64_png(FIG / "multi_resolution_spatial.png"),
         "resolution": b64_png(FIG / "resolution_effects.png"),
         "adaptive": b64_png(FIG / "adaptive_ablation.png"),
+        "jaccard_supp": b64_png(FIG / "supplementary" / "jaccard_by_resolution.png"),
     }
     meta = json.loads((ROOT / "models" / "nyc_smoke" / "run_metadata.json").read_text(encoding="utf-8"))
     md = (PAPER / "report.md").read_text(encoding="utf-8")

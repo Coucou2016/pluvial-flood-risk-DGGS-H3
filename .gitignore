@@ -40,6 +40,9 @@ artifacts/*.zip
 artifacts/cdp_payload.json
 artifacts/chatgpt_paste_payload.*
 artifacts/inject_composer.js
+# Browser-injection scratch + extracted reference-paper figures (copyright/derived)
+.upload_chunks/
+artifacts/reference_paper_figures/
 *.parquet
 outputs/*.parquet
 outputs/*.geojson
