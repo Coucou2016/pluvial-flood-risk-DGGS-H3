@@ -262,3 +262,41 @@ python -m pytest -q
 - `scripts/build_manuscript_html.py` 的 `FIGURES` 锚点已更新为 6 图；`manuscript.html` 中 6 个 `<figure id="fig-N">` 顺序为 1→6，与手稿顺序一致。
 - 结果小节重排：§4.1 空间模式（新）→ §4.2 空间 CV → §4.3 尺度损失 → §4.4 自适应 → §4.5 降雨情景 → §4.6 Sandy → §4.7 扩展试点。
 - 测试门禁：`pytest` 58 passed, 1 skipped；`figures.py` 无 lint 错误。
+
+### 8.5 ChatGPT W6 评审反馈与修复记录（2026-08-19，第 6 轮协作）
+
+**评审方式**：通过 Cursor 内置浏览器向 ChatGPT 注入 5 个附件（manuscript.md、audit.md、figures.py、spatial_maps.png、resolution_effects.png），自动发送 6 个评审问题并抓取回复（存档：`artifacts/chatgpt_reply_W6.md`）。ChatGPT 逐张打开并检查了两张新 PNG；文本文件与 GitHub raw 因会话内不可读，其"逐句 caption / §4.1 精确数值"部分基于 W5 已签核文本与变更摘要判断。
+
+**关键澄清（关于 Fig 2 面板 (a)）**：ChatGPT 提示"面板 (a) 是 flood_class 还是 flood_risk，必须与实际列名二选一"。核查 `data/processed/nyc_h3_cells.parquet` 的 `flood_risk` 列：**连续浮点，双峰构造**（0.0×28、中间连续值×29、1.0×84；min=0、median=1.0、mean=0.605、≥0.8 共 84/141）。因此面板 (a) 的连续 0–1 色标是**正确**的；此前给 ChatGPT 的变更摘要误写为"二元化 0/1"，本轮已在 `report.md` 表述中更正为"双峰构造"。
+
+**MUST-FIX 8 项逐条落实情况**：
+
+| # | ChatGPT MUST-FIX | 落实 |
+|---|------------------|------|
+| 1 | 确认 panel (a) 变量身份；二元数据不能标连续 | `flood_risk` 为连续双峰，标题 `Observed open-label risk` 保留（正确）；报告中"二元化"误述已更正 |
+| 2 | `Deployed PFI_h(c,r)` → `Full-fit / Fitted`，避免 operational-deployment 含义 | `figures.py` panel (c) 标题改为 `Full-fit PFI_h(c, r)`；手稿 §4.1/§4.5 的 Methods 自适应段、Discussion、Fig 2 caption 全部由 deployed→full-fit 统一 |
+| 3 | Fig 2 caption 注明 panel (c) 实际降雨情景 r 且非 OOF 验证 | caption 已注明 "shown at the Ida-like rainfall condition r = 75 mm/h"（已有）+ 新增 "Panel (c) shows the full-fit model output and is not an out-of-fold validation map." |
+| 4 | caption 用 (a)/(b)/(c) 则图内须加面板标签 | `plot_spatial_maps` 三面板与 `plot_resolution_effects` 双面板均加粗体 (a)/(b)/(c) 标签 |
+| 5 | Fig 5(b) 深色单元黑字→白字 | 热力矩阵按值动态着色：v≥0.6 白字、其余黑字（1.000/0.977 现为白字） |
+| 6 | Fig 5 caption 说明 R10/R9/R8 属 label 诊断足迹，非 141 监督表 | caption 新增 "These diagnostics use the R10 label-assembly footprint (991 R10 cells) and its R9 and R8 parents; they are not the 141-cell supervised modelling table used in Sections 4.1 and 4.2." |
+| 7 | Table 3 加 ddof=0 SD footnote | 表下新增 Note："SD denotes the population standard deviation across the five held-out folds (ddof = 0); the fold-mean values in the first four rows are arithmetic means of the per-fold metrics." |
+| 8 | §4.1 报告 full-fit PFI 相关性时加"描述性、非验证"说明 | §4.1 新增 "These correlations are descriptive measures of spatial concordance between the assembled surfaces; predictive performance is evaluated from the out-of-fold metrics reported in Section 4.2." |
+
+**Optional 采纳情况**：
+
+| # | ChatGPT Optional | 落实 |
+|---|------------------|------|
+| 1 | panel (a) 保持 viridis 与 0–1 线性色标 | 保留（未改） |
+| 2 | DEM/水系背景保留 | 保留（未改） |
+| 3 | Fig 5(a) 小提琴叠加原始点（尤其 R8 n=31） | 已加：三组低透明度抖动散点（seed 20260819） |
+| 4 | Fig 5(b) colorbar 加标签 Jaccard similarity | 已加 |
+| 5 | Fig 5 caption 说明 0.167 为实证结果非方法强制 | caption 新增 "The identical 0.167 similarities involving R8 are an empirical result of the realised hotspot sets, not a constraint of the method." |
+| 6 | 不加 R6/R7 | 采纳，未加 |
+| 7 | Fig 5 标题 persistence→cross-resolution similarity | 图内标题与手稿 §4.3/caption 均改为 "Cross-resolution hotspot Jaccard similarity" |
+| 8 | §4.3 用一句区分 Fig 4 与 Fig 5 | 已加 "Fig. 4 therefore examines sensitivity to the aggregation operator, whereas Fig. 5 holds mean aggregation fixed to isolate resolution-dependent changes in score distribution and hotspot membership." |
+
+**新增图是否强化主线（ChatGPT 结论）**：Fig 2 明显强化（把观测→留出→全拟合放在完全相同 H3 support 上，直接可视化 "the grid is the common support"）；Fig 5 有价值但需与 Fig 4 明确分工（本轮已落实分工句）。**两图非单纯增加数量。**
+
+**本轮统计量复核（§4.1）**：n=141；observed min/med/mean/q75/max = 0/1.0/0.6051/1.0/1.0；≥0.8 共 84；OOF mean=0.7983；PFI mean=0.8029；Pearson obs~oof=0.245、obs~pfi=0.468、oof~pfi=0.509——脚本重算全部与正文一致。
+
+**ChatGPT 未能独立复核项（诚实记录）**：§4.1 的精确统计量与 caption 逐句文本，因其会话内未挂载 manuscript.md/数据文件。已在下一轮准备把 `spatial_cv_oof_predictions.csv` 等数据文件一并注入供其复核。

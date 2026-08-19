@@ -564,7 +564,7 @@ def plot_spatial_maps(
     Three-panel H3 hexagon maps for the Lower Manhattan pilot (Figure, results).
 
     Panels show (a) the observed open-label flood-risk score, (b) the pooled
-    out-of-fold gradient-boosting probability, and (c) the deployed
+    out-of-fold gradient-boosting probability, and (c) the full-fit
     rainfall-conditioned index PFI_h(c, r). The DEM relief and NHDPlus
     shoreline context are drawn underneath the hexagons. Only cells for which
     all three quantities exist are drawn, so the three panels share one support.
@@ -616,7 +616,7 @@ def plot_spatial_maps(
     panels = [
         ("observed", "Observed open-label risk", "Observed risk (0\u20131)"),
         ("oof_prob", "Out-of-fold model probability", "Model probability"),
-        ("pfi", "Deployed PFI_h(c, r)", "PFI_h"),
+        ("pfi", "Full-fit PFI_h(c, r)", "PFI_h"),
     ]
     cmap = "viridis"
     for ax, (col, ptitle, clabel) in zip(axes, panels):
@@ -626,6 +626,18 @@ def plot_spatial_maps(
         ax.set_title(ptitle, fontsize=11)
         ax.set_xlabel("Longitude (\u00b0)", fontsize=10)
         ax.set_ylabel("Latitude (\u00b0)", fontsize=10)
+    for ax, tag in zip(axes, "abc"):
+        ax.text(
+            0.02,
+            0.97,
+            f"({tag})",
+            transform=ax.transAxes,
+            fontsize=12,
+            fontweight="bold",
+            ha="left",
+            va="top",
+            zorder=10,
+        )
     for ax in axes[1:]:
         ax.set_ylabel("")
 
@@ -710,14 +722,19 @@ def plot_resolution_effects(
     for i, body in enumerate(vp["bodies"]):
         body.set_facecolor(["#4C72B0", "#55A868", "#DD8452"][i])
         body.set_alpha(0.6)
+    rng = np.random.default_rng(20260819)
+    for i, (vals, color) in enumerate(zip(data, ["#4C72B0", "#55A868", "#DD8452"])):
+        jitter = rng.uniform(-0.22, 0.22, size=len(vals))
+        ax_v.scatter(i + jitter, vals, s=9, color=color, alpha=0.35, linewidths=0, zorder=5)
     ax_v.set_xticks([0, 1, 2])
     ax_v.set_xticklabels([f"R10 (n={len(s10)})", f"R9 (n={len(s9)})", f"R8 (n={len(s8)})"])
     ax_v.set_ylabel("Open-label score")
     ax_v.set_ylim(0.0, 1.05)
     ax_v.grid(True, axis="y", alpha=0.3)
     ax_v.set_title("Score distribution by resolution (mean rollup)")
+    ax_v.text(0.02, 0.97, "(a)", transform=ax_v.transAxes, fontsize=12, fontweight="bold", ha="left", va="top")
 
-    # --- panel (b): Jaccard hotspot-persistence matrix ---
+    # --- panel (b): Jaccard cross-resolution similarity matrix ---
     j10_9 = _pairwise_hotspot_jaccard(s10, s9)
     j10_8 = _pairwise_hotspot_jaccard(s10, s8)
     j9_8 = _pairwise_hotspot_jaccard(s9, s8)
@@ -738,12 +755,15 @@ def plot_resolution_effects(
     ax_h.set_ylabel("Hotspot resolution")
     for i in range(3):
         for j in range(3):
-            ax_h.text(j, i, f"{matrix[i, j]:.3f}", ha="center", va="center", fontsize=9)
+            val = matrix[i, j]
+            color = "white" if val >= 0.6 else "black"
+            ax_h.text(j, i, f"{val:.3f}", ha="center", va="center", fontsize=9, color=color)
     ax_h.grid(which="major", color="white", linewidth=1.2, alpha=0.7)
     ax_h.set_xticks(np.arange(3))
     ax_h.set_yticks(np.arange(3))
-    ax_h.set_title("Jaccard hotspot persistence (q = 0.9)")
-    fig.colorbar(im, ax=ax_h, fraction=0.046, pad=0.04)
+    ax_h.set_title("Cross-resolution hotspot Jaccard similarity (q = 0.9)")
+    ax_h.text(0.02, 0.97, "(b)", transform=ax_h.transAxes, fontsize=12, fontweight="bold", ha="left", va="top")
+    fig.colorbar(im, ax=ax_h, fraction=0.046, pad=0.04, label="Jaccard similarity")
 
     if title:
         fig.suptitle(title, fontsize=12)
