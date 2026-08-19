@@ -477,3 +477,21 @@ PNG+PDF 均已按新尺寸重生成到 `docs/paper/figures/`。图号/正文 fir
 **回归确认**：全部关键数字经 grep 复核原样保留——0.784/0.866/0.683/0.861/0.642/0.525/0.703/0.723/0.808/0.893/0.167/0.977/0.988/1.000、571 of 991、3,933/6,909、56.9%/27.9×、0.030/0.343、80.1%/47.9%、0.14、0.51、0.803、n=141/956、21–49/190–193、Fold4 n=24 等全部未变。表结构、图编号、引用编号未变。`build_manuscript_html.py` 的 Fig.2 锚文本同步更新（因 §4.1 删除了原锚句）。
 
 **诚实边界保留（未被 humanize 掉）**：open labels ≠ verified inundation；PFI_h ≠ feature importance / PFIb；0.167 ≠ reproduction of 0.14；Sandy 不进训练；constant rainfall → flat response；pilots ≠ citywide；no separate calibration；no R11 retraining。这些与本文档 §1–§7 的真实性约束一致。
+
+### 8.12 W12 复核与写作风格 sign-off 记录（2026-08-20）
+
+**W12 目标**：确认 W11 写作 humanize 落地正确、无回归、写作风格可 sign-off。注入 2 文件（`manuscript.md`、`chatgpt_context_W12.md`）至 ChatGPT 复核。
+
+**ChatGPT W12 判定**：**通过，写作风格 humanize 正式 SIGN-OFF**。6 MUST-FIX + 建议 + 可选全部正确落地；无科学语义漂移、数字回归、边界丢失。仅 3 个纯 copy-edit 级微调（MUST-FIX 无）。
+
+**已落实（W12 三个 copy-edit）**：
+
+| 项 | 动作 |
+|----|------|
+| Introduction 研究问题结尾 | `on a smaller and an expanded Manhattan pilot extent` → `on two Manhattan pilot extents, one smaller and one expanded`（消除并列单数名词的短暂误读） |
+| §5.1 术语 | `the smaller table` / `the expanded table` → `the smaller pilot` / `the expanded pilot`（table 系笔误，pilot 才是研究对象） |
+| §5.3 去答辩口吻 | 删除 `deliberately conservative, but one caveat applies:`，直接陈述 R7 block-size 局限 |
+
+**回归确认（ChatGPT 逐项）**：全部科学数值保留（0.784/0.866/0.683/0.861/0.642/0.608/0.525/0.703/0.723/0.808/0.893/0.167/0.977/0.988/1.000、571 of 991、3,933/6,909、56.9%/27.9×、0.030/0.343、80%/80.1%/47.9%、0.14、0.51、0.803、n=141/956、21–49/190–193、Fold4 n=24）。八项科学诚实边界全部保留。引言三段衔接无指代断裂。
+
+**锁稿结论**：写作风格 humanize 完成，稿件进入正常 IJDRR submission-manuscript 范围。科学内容、结果、核心结论、全部数字自 W9 起未变（仅图体系对齐 + 图质量 + 写作/排版体例）。
