@@ -6,6 +6,8 @@
 
 > **版本说明（2026-08-19 W1/W2 写作重写）：** 手稿 `manuscript.md` 在 2026-08-19 进行了**仅写作/逻辑/投稿体例**的重写（编号引用、单主线叙事、创新点重组为 "H3-native 学习-评估架构"），**所有数字、结果与核心结论未做任何改动**。因此本文档 §2 的逐条对账（按数值与产物字段，而非章节号）依然有效；本重写仅使手稿章节号从旧 8 章结构变为新 6 章结构（旧 §6 Results → 新 §4 Results；旧 §7 Discussion → 新 §5 Discussion）。下文引用的产物字段路径均未变。
 
+> **⚠ 版本说明（2026-08-23 审稿意见落实 / 数据语义修订）：** 本轮按一份形式审稿意见对稿件做了**科学有效性修订（不再是纯写作）**，关闭 C1–C6 致命项与 M1–M7 重大项。**数字、标签语义、结论均有实质变化**：DEP 由 "observed" 改为 "model-derived（category 1–2，剔除 category 3 海岸高潮位）"；311 更正为 `arcgis_streetfloodtime`（2010–2014，非 "2010–present"）；尺度损失改为 R10 原生 overlay（非 parent inheritance）；Sandy 负对照改用 composite `flood_class` 分组；ponding 基线修复训练集归一化泄漏；"risk/probability/rainfall-conditioned" 全稿降级为 "susceptibility / model score"。**本文档 §2 的历史对账数字已部分被本版取代**，请以 **§9（2026-08-23 修订对账 + 数据语义核查）为准**；§2 保留为历史记录。
+
 **口径约定（贯穿全文）：**
 
 - **本方法自己算出的数字**：全部来自 `src/pluvial_flood_risk/` 与 `scripts/` 在本机 `data/raw/` 上的运行产物（`outputs/*.json/csv`、`models/*/*.csv/joblib`、`data/processed/*.parquet`）。
@@ -495,3 +497,139 @@ PNG+PDF 均已按新尺寸重生成到 `docs/paper/figures/`。图号/正文 fir
 **回归确认（ChatGPT 逐项）**：全部科学数值保留（0.784/0.866/0.683/0.861/0.642/0.608/0.525/0.703/0.723/0.808/0.893/0.167/0.977/0.988/1.000、571 of 991、3,933/6,909、56.9%/27.9×、0.030/0.343、80%/80.1%/47.9%、0.14、0.51、0.803、n=141/956、21–49/190–193、Fold4 n=24）。八项科学诚实边界全部保留。引言三段衔接无指代断裂。
 
 **锁稿结论**：写作风格 humanize 完成，稿件进入正常 IJDRR submission-manuscript 范围。科学内容、结果、核心结论、全部数字自 W9 起未变（仅图体系对齐 + 图质量 + 写作/排版体例）。
+
+---
+
+## 9. 审稿意见落实 + 数据语义核查（2026-08-23）
+
+本轮收到一份以"标签到底是什么、代码实际算了什么、图到底证明了什么"为焦点的形式审稿意见，给出 C1–C6（致命）与 M1–M7（重大）共 13 项。**本节记录每一项的处置、代码/数据证据，以及修订后的全部对账数字。** 自本节起，稿件定位收敛为 **pluvial-flood susceptibility screening（开放式多源证据筛查）**，不再是 "rainfall-conditioned risk index"。
+
+### 9.1 审稿意见 → 处置对照表
+
+| 项 | 问题（审稿意见原文摘要） | 处置 | 代码/数据证据 |
+|----|------------------------|------|--------------|
+| **C1** | DEP 非观测洪水数据，是水文—水动力模型结果；所下载图层含第 3 类 "Future High Tides 2050" 海岸淹没 | ① `download_nyc.py` 加 `Flooding_Category IN (1,2)` 过滤，剔除第 3 类；② DEP 全稿改称 "model-derived stormwater polygons (categories 1–2)"，不再称 observed | `data/raw/nyc/dep_stormwater_flood.geojson` 与 `nyc_expanded/` 均只含 `Flooding_Category ∈ {1,2}`（各 n=2，见 §9.2）；`download_nyc.py` `_DEP_WHERE` |
+| **C2** | 连续 `flood_risk` 无物理/统计尺度；R² 拟合的是人造 evidence score | 全稿 `flood_risk`→`flood_evidence_score` 语义、R² 改称 "evidence-score R²"，并在 §2/§4.2/§5.4 明确"非物理严重度、非校准概率" | `labels.py`（`risk_column` 默认 `flood_evidence_score`）、`config.py`（`PROVENANCE_OPEN_EVIDENCE`） |
+| **C3** | R10 "fine reference" 用 R9 parent 继承，非独立重算；尺度损失循环 | `assemble.py assemble_label_scale_table` 删除 parent-inherit 路径，改 **R10 原生 polygon/point overlay**；Fig.4/5、Table 4 全部重算 | `assemble.py`（`del parent_label_df`；`native_overlay`）；`outputs/jaccard_by_resolution.csv`（见 §9.4） |
+| **C4** | 311 实际下载源是 `arcgis_streetfloodtime`（最后更新 2015-01-22），非官方 Socrata；正文误写 "2010 to present" | 正文/引用更正为 `arcgis_streetfloodtime`（2010–2014）；记录去重后点数与时间窗 | `DOWNLOAD_MANIFEST.json`（`source=arcgis_streetfloodtime`）；日期范围 2010-01-07 → 2014-12-26（§9.2） |
+| **C5** | Sandy 负对照的 "pluvial" 用 `flood_area_frac>0`，与含点标签的 `flood_risk` 定义不一致；"neither" 行 mean=0.613 异常 | `negative_control.py` 改用 composite `flood_class==1` 分组；Table 6 重算，"neither" 行 mean 归 0 | `negative_control.py`；`outputs/negative_control.json`（见 §9.6） |
+| **C6** | "rainfall-conditioned PFI" 未真正被学习（r 在训练中恒定） | 标题/摘要/正文撤下 rainfall-conditioned 主创新；PFI_h 降级为 "model score"；§4.5 保留平坦结果作为数据设计必然的诚实报告 | `manuscript.md` 标题/Abstract/§3.7/§4.5 |
+| **M1** | H3 support 是矩形 bbox，非 Manhattan land footprint | 未做 land mask（需 borough/land polygon 新数据）；在 §2/§5.4 显式声明 bbox 支撑与岸线/水域影响，作为已知局限 | `manuscript.md` §2、§5.4 |
+| **M2** | R7 block 先验任选，未做相关性尺度检验 | 未做（需 Moran's I / variogram 新分析）；§3.4/§5.4 显式声明 block-size 未调优 | `manuscript.md` §3.4、§5.4 |
+| **M3** | Adaptive 用 full-fit/in-sample 分数选 refinement，仅比较 cell count | 全稿降级为 "representation-size comparison"；§3.6/§4.4/Fig.6 明确"不主张效率/hotspot retention" | `figures.py`（Fig.6 标注 "representation size only"）；`manuscript.md` §3.6/§4.4 |
+| **M4** | 未做 calibration 却写 "probability" | 全稿 "probability"→"model score"；§3.7 明示无校准 | `manuscript.md` §3.7 |
+| **M5** | ponding baseline 有 test-fold normalization 泄漏 | `baselines.py` 加 `_ponding_bounds`，min/max 只从 training fold 计算后应用于 test | `baselines.py`（`_ponding_bounds` + `rule_predict_class(**bounds)`） |
+| **M6** | shoreline distance 被用于 pluvial "hydrologic proximity"；urban flag 是 impervious 确定性复制 | 特征改名 "shoreline/tidal-water distance"；urban flag 保留但 §3.2 明示为确定性复制、无独立信息 | `manuscript.md` §3.2 |
+| **M7** | "risk" 概念偏大 | 全稿 "risk"→"susceptibility / flood-evidence screening"；标题/Abstract 同步 | `manuscript.md` 全文 |
+
+**未完全关闭项（诚实清单，均为"需新数据/新分析"，非"可文本掩盖"）**：M1（land mask）、M2（block-size 敏感性 + 空间自相关检验）、M3（真实 R11 reference + quality–cost Pareto）、C6（真实事件降雨）。这四项已按审稿意见在正文中**显式降级/声明为局限**，而非声称已解决。
+
+### 9.2 数据语义核查（审稿意见要求新增的 data-semantic checks）
+
+| 检查项 | 实际值 | 结论 |
+|--------|--------|------|
+| DEP 类别 | `Flooding_Category ∈ {1,2}`，各 extent n=2 多边形；**category 3 已剔除** | ✓ 无海岸高潮位污染 |
+| 311 来源 | `source=arcgis_streetfloodtime`；日期 2010-01-07 → 2014-12-26；Lower n=488、Expanded n=1134 | ✓ 正文已更正（非 "2010–present"） |
+| 311 字段 | 含 `Created_Da`、`WPCP`、`COMB_OR_SE`、`Outfall`、`Intercepto`（雨水井/合流制上下文），**无** complaint_type/descriptor 字段 | ✓ 该图层即"街道积水"主题层，非宽泛 sewer 查询 |
+| HWM 质量 | `hwm_quality`：Fair 58 / Good 54 / Excellent 32 / Poor 15（共 159）；`height_above_gnd` 0–2.2 ft | ✓ 质量字段已保留；融合仍用 presence-only（§2 已声明为局限） |
+| 每源正类单元（Lower） | DEP polygon `flood_area_frac>0`：54/141；point `flood_point_count>0`：84/141；union 正类 98/141 | ✓ 与 composite `flood_class` 一致 |
+| 每源正类单元（Expanded） | DEP polygon：268/956；point：151/956；union 正类 349/956 | ✓ 一致 |
+| R10 原生 overlay 断言 | `outputs/jaccard_by_resolution.csv`：`n_fine=991`、`n_hotspot_fine=149`（非旧 571）；`assembly_mode=native_overlay` | ✓ 无 parent inheritance |
+| 负对照 pluvial 定义 | `negative_control.json`：n_pluvial=98（=composite flood_class 正类），非旧 flood_area_frac>0 的 71 | ✓ 分组一致 |
+
+### 9.3 修订后主表对账（空间 CV）
+
+**Lower Manhattan（n=141，7 R7 block，正类 69.5%）** — 来源 `models/nyc_smoke/spatial_cv_folds.csv` + `outputs/classification_baselines.json`：
+
+| 手稿数字 | 产物字段 | 原始值 | 对账 |
+|----------|----------|--------|------|
+| accuracy 0.808 ± 0.085 | `spatial_cv_accuracy_mean/std` | 0.808090 / 0.085380 | ✓ |
+| F1 0.864 ± 0.061 | `spatial_cv_f1_mean`（std ddof=0） | 0.863716 / 0.0612 | ✓ |
+| evidence-score R² 0.076 ± 0.329 | `spatial_cv_r2_mean/std` | 0.075526 / 0.329439 | ✓ |
+| MAE 0.329 ± 0.068 | `spatial_cv_mae_mean`（std ddof=0） | 0.329049 / 0.0675 | ✓ |
+| pooled ROC-AUC 0.741 | `spatial_cv_roc_auc_pooled` | 0.740626 | ✓ |
+| pooled AP 0.803 | `spatial_cv_pr_auc_pooled` | 0.802505 | ✓ |
+| always-positive acc 0.687 | `always_positive_mean_acc` | 0.687168 | ✓ |
+| always-positive F1 0.813 | `always_positive_mean_f1` | 0.812907 | ✓ |
+| always-negative acc 0.313 | `always_negative_mean_acc` | 0.312832 | ✓ |
+| 模型超 always-positive | `model_beats_majority_acc/f1` | true / true | ✓（0.808>0.687，0.864>0.813） |
+
+**Expanded（n=956，28 block，正类 36.5%）** — 来源 `models/nyc_expanded/run_metadata.json` + `outputs/classification_baselines_expanded.json`：
+
+| 手稿数字 | 产物字段 | 原始值 | 对账 |
+|----------|----------|--------|------|
+| accuracy 0.722 ± 0.082 | `spatial_cv_accuracy_mean/std` | 0.721690 / 0.082059 | ✓ |
+| F1 0.498 ± 0.230 | `spatial_cv_f1_mean`（std ddof=0） | 0.498032 / 0.2304 | ✓ |
+| evidence-score R² 0.518 ± 0.102 | `spatial_cv_r2_mean/std` | 0.518059 / 0.102343 | ✓ |
+| MAE 0.109 ± 0.059 | `spatial_cv_mae_mean`（std ddof=0） | 0.108939 / 0.0588 | ✓ |
+| pooled ROC-AUC 0.746 | `spatial_cv_roc_auc_pooled` | 0.746010 | ✓ |
+| pooled AP 0.641 | `spatial_cv_pr_auc_pooled` | 0.640952 | ✓ |
+| always-positive acc 0.365 / F1 0.527 | `always_positive_acc/f1_mean` | 0.365021 / 0.527050 | ✓ |
+| 恒定多数类（恒判负）acc 0.635 | `always_negative_acc_mean` = `majority_acc_mean` | 0.634979 | ✓ |
+
+### 9.4 尺度损失阶梯（R10 原生 overlay，修订后）
+
+来源 `outputs/jaccard_by_resolution.csv`（`n_fine=991`、`n_hotspot_fine=149`）：
+
+| 行 | Jaccard | F1 | 对账 |
+|----|---------|----|------|
+| R8 mean | 0.167 | 0.286 | ✓ |
+| R8 max | 1.000 | 1.000 | ✓ |
+| R8 p90 | 0.500 | 0.667 | ✓（旧为 1.000，因去 parent inheritance 后变化） |
+| R9 mean | 0.210 | 0.347 | ✓（旧 0.977，因去 parent inheritance 后变化） |
+| R9 max | 1.000 | 1.000 | ✓ |
+| R9 p90 | 0.543 | 0.704 | ✓（旧 0.977/0.988） |
+
+**关键变化**：旧版 R10 hotspot = 571/991（57.6%，因分数饱和 tied at max），R10→R9 mean Jaccard 0.977 主要来自 parent-inherit 循环。原生 overlay 后 hotspot = **149/991（15.0%）**，R10→R9 mean Jaccard = **0.210**，真实揭示尺度损失。
+
+### 9.5 自适应消融（修订后）
+
+来源 `outputs/adaptive_vs_fixed_ablation.csv`：
+
+| 量 | 旧 | 新 |
+|----|----|----|
+| 被加密 R9 cell | 79/141 | **84/141** |
+| adaptive mixed cells | 3,933 | **4,173** |
+| uniform R11 | 6,909 | 6,909 |
+| 占比 / 倍数 | 56.9% / 27.9× | **60.4% / 29.6×** |
+
+### 9.6 Sandy 负对照（composite flood_class，修订后）
+
+来源 `outputs/negative_control.json`：
+
+| 量 | 值 |
+|----|----|
+| 海岸 31 / 雨洪 98 / 两者 22 | ✓ |
+| coastal-only 9（6.4%） / pluvial-only 76（53.9%） / neither 34（24.1%） | ✓ |
+| mean score：coastal-only 0.000 / pluvial-only 0.888 / both 0.776 / **neither 0.000** | ✓（旧 "neither" 行 0.613 异常已消除） |
+| pluvial − coastal 0.888 | ✓ |
+
+### 9.7 全量测试与复现
+
+- 代码修复后 `pytest`：见 §3.1（测试门禁未退化）。
+- 复现步骤与 §4 相同；新增数据语义核查（§9.2）可由下列命令复核：
+
+```powershell
+# 数据语义核查（DEP 类别 / 311 来源与日期 / HWM 质量 / 每源正类）
+python - <<'PY'
+import json, collections, pandas as pd
+for area in ('nyc','nyc_expanded'):
+    dep = json.load(open(f'data/raw/{area}/dep_stormwater_flood.geojson', encoding='utf-8'))
+    print(area, 'DEP categories', collections.Counter(f['properties']['Flooding_Category'] for f in dep['features']))
+    m311 = json.load(open(f'data/raw/{area}/flooding_311.geojson', encoding='utf-8'))
+    print(area, '311 source', set(f['properties']['source'] for f in m311['features']), 'n', len(m311['features']))
+    df = pd.read_parquet(f'data/processed/nyc_h3_cells{"" if area=="nyc" else "_expanded"}.parquet')
+    print(area, 'pos', int((df.flood_class==1).sum()), 'area>0', int((df.flood_area_frac>0).sum()), 'point>0', int((df.flood_point_count>0).sum()))
+PY
+```
+
+### 9.8 修订后诚实边界（相对旧版新增/强化的限制声明）
+
+1. DEP = model-derived（非 observed）；仅 category 1–2，category 3 已剔除。
+2. 311 = `arcgis_streetfloodtime` 快照（2010–2014），非 "2010–present"。
+3. evidence score = max(area_frac, point_present)，饱和于 1，非严重度/概率。
+4. 尺度损失 = R10 原生 overlay，无 parent inheritance。
+5. Sandy 分组 = composite `flood_class`，neither 行 mean = 0。
+6. adaptive = representation-size 比较（in-sample full-fit 选择），非效率/hotspot 证明。
+7. ponding baseline 训练集归一化，无 test-fold 泄漏。
+8. 矩形 bbox 支撑、R7 先验、无 calibration、r 恒定 → 均已在正文显式声明为局限。

@@ -34,7 +34,7 @@ FIGURES = [
     ("spatial_cv_folds.png", "and is not interpreted in isolation.", 3),
     ("multi_resolution_spatial.png", "does not imply an absence of scale loss.", 4),
     ("resolution_effects.png", "Table 4 lists the full ladder.", 5),
-    ("adaptive_ablation.png", "produces 3,933 mixed cells, compared with 6,909 cells for uniform R11 refinement (Fig. 6).", 6),
+    ("adaptive_ablation.png", "produces 4,173 mixed cells, compared with 6,909 cells for uniform R11 refinement (Fig. 6).", 6),
 ]
 
 
@@ -136,7 +136,7 @@ a { color: var(--accent); }
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<title>Manuscript — Spatially blocked pluvial flood learning on the H3 grid</title>
+<title>Manuscript — Spatially blocked pluvial-flood susceptibility learning on the H3 grid using heterogeneous open public data</title>
 <style>{css}</style>
 </head>
 <body>

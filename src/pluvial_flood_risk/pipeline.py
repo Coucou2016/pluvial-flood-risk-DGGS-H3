@@ -416,8 +416,9 @@ def nyc_smoke_test(
     jaccard_fine = int(diag_cfg.get("fine_res") or max([resolution, *diag_res]))
     jaccard_source = df
     if jaccard_fine > resolution:
-        # Fast fine ladder: point labels @ fine_res + inherit polygon scores from train table.
-        # (Direct DEP polygon overlay at R10 is ~minutes; not suitable for smoke.)
+        # Native fine-resolution label assembly: DEP polygons + points overlain
+        # directly at R10 (no parent inheritance), so the scale-loss ladder is
+        # not circular. Slower than a smoke shortcut but correct for the paper.
         jaccard_source = assemble_label_scale_table(
             bbox, jaccard_fine, sources=sources, parent_label_df=df
         )
@@ -538,7 +539,7 @@ def nyc_smoke_test(
         "jaccard_rows": int(len(jaccard_df)),
         "jaccard_fine_res": int(jaccard_df["fine_res"].iloc[0]) if len(jaccard_df) else None,
         "jaccard_table_mode": (
-            "labels_only_fine"
+            "native_overlay_fine"
             if jaccard_fine > resolution
             else "train_table"
         ),

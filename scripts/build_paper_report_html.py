@@ -163,10 +163,10 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 "workflow",
                 figs["workflow"],
                 "Workflow schematic",
-                "<strong>图 1 · Figure 1</strong> — 开放标签 H3 雨洪学习协议的概念工作流（SciencePlots + Times New Roman）。"
-                "<br/><em>如何读：</em>从左到右四列——(1) 开放多源输入；(2) H3 组装（R9 + provenance 标签）；(3) 学习与分块评价（GBM + H3 块 GroupKFold 空间 CV + 常量类基线恒判正/恒判负）；(4) 诊断与输出（PFI_h(c,r)、Jaccard 阶梯、自适应加密、Sandy 海岸淹没重叠诊断，其中 Sandy 为虚线旁路、绕过学习框、只进入 Sandy 诊断框）。"
+                "<strong>图 1 · Figure 1</strong> — 开放证据 H3 雨洪易损性筛查协议的概念工作流（SciencePlots + Times New Roman）。"
+                "<br/><em>如何读：</em>从左到右四列——(1) 异构开放证据输入（模型导出的 DEP 雨洪多边形 category 1–2、311 街道积水点、USGS Ida HWM 观测 + 静态特征 + 降雨条件 r）；(2) H3 组装（R9 + provenance 标签）；(3) 学习与分块评价（GBM + H3 块 GroupKFold 空间 CV + 常量类基线恒判正/恒判负）；(4) 诊断与输出（model score PFI_h(c,r)、Jaccard 阶梯、自适应加密、Sandy 海岸淹没重叠诊断，其中 Sandy 为虚线旁路、绕过学习框、只进入 Sandy 诊断框）。"
                 "<br/><em>意义：</em>一张图讲清整条协议与「证据—边界」纪律，对应手稿 Methods。"
-                "<br/><em>结论：</em>PFI_h(c,r) 是模型输出，不是特征重要性，也不是 PFIb；当前情景响应平坦；证据仅限 Manhattan 开放数据试点，非全市。",
+                "<br/><em>结论：</em>PFI_h(c,r) 是未校准的 model score，不是特征重要性，也不是 PFIb；当前降雨恒定、情景响应平坦；证据仅限 Manhattan 开放数据试点，非全市。",
             ),
         ),
         (
@@ -176,8 +176,8 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 figs["spatial_maps"],
                 "Spatial results maps",
                 "<strong>图 2 · Figure 2</strong> — 空间结果图：Lower Manhattan 试点（n=141 个 R9 六边形）三面板同支撑（SciencePlots + TNR）。"
-                "<br/><em>如何读：</em>(a) 观测开放标签分（二元化：无证据=0，任一证据=高值）；(b) H3 块空间 CV 留出概率；(c) 部署指数 PFI_h(c,r)（ida_like r=75 mm/h；全情景不变，见 §5.6）。同色标 0–1，灰色底图为 DEM 地形，浅蓝为 NHDPlus 岸线水系。"
-                "<br/><em>意义：</em>对照参考论文「先空间图后统计图」体例；三面板同源同支撑，观测~留出 r=0.245、观测~PFI_h r=0.468、留出~PFI_h r=0.509，与「排序判别中等」叙事一致。"
+                "<br/><em>如何读：</em>(a) 开放证据分 flood_evidence_score（双峰构造：无证据=0，任一证据=高值）；(b) H3 块空间 CV 留出分数；(c) 全拟合 model score PFI_h(c,r)（ida_like r=75 mm/h；全情景不变，见 §5.6）。同色标 0–1，灰色底图为 DEM 地形，浅蓝为 NHDPlus 岸线水系。"
+                "<br/><em>意义：</em>对照参考论文「先空间图后统计图」体例；三面板同源同支撑，观测~留出 r=0.401、观测~PFI_h r=0.703、留出~PFI_h r=0.617，与「排序判别中等」叙事一致。"
                 "<br/><em>结论：</em>仅视觉检视，非独立验证；不得把图面高低当作额外证据。",
             ),
         ),
@@ -190,7 +190,7 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 "<strong>图 3 · Figure 3</strong> — 空间 H3 块 CV 各折 Accuracy 与 F1（SciencePlots + Times New Roman）。"
                 "<br/><em>如何读：</em>横轴为折号 + Mean±SD，纵轴为 0–1 分数；成对标记点表示同一折的 Accuracy/F1，末位为 Mean±SD 误差棒。"
                 "<br/><em>意义：</em>展示评价协议的折间稳定性，而非单一乐观分数。"
-                "<br/><em>结论：</em>多数折 Accuracy≈0.71–0.77，Fold4 更高；与表 1 均值一致。样本仍是 Lower Manhattan smoke。",
+                "<br/><em>结论：</em>多数折 Accuracy≈0.71–0.84，Fold4（n=24）更高；与表 1 均值一致。样本仍是 Lower Manhattan smoke。",
             ),
         ),
         (
@@ -199,10 +199,10 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 "multires",
                 figs["multires"],
                 "Multi-resolution spatial maps",
-                "<strong>图 4 · Figure 4</strong> — 多分辨率开放标签分空间并排图：(a) R10（n=991）；(b) R9 mean 上卷（n=160）；(c) R8 mean 上卷（n=31），共享 0–1 viridis 色标（SciencePlots + TNR）。"
-                "<br/><em>如何读：</em>三面板同一地理足迹，从细到粗看局部热点如何在均值上卷后平滑；颜色只表达开放标签分（0–1）。"
+                "<strong>图 4 · Figure 4</strong> — 多分辨率开放证据分空间并排图：(a) R10（n=991）；(b) R9 mean 上卷（n=160）；(c) R8 mean 上卷（n=31），共享 0–1 viridis 色标（SciencePlots + TNR）。"
+                "<br/><em>如何读：</em>三面板同一地理足迹，从细到粗看局部热点如何在均值上卷后平滑；颜色只表达开放证据分（0–1）。"
                 "<br/><em>意义：</em>补齐参考论文「多分辨率空间图」图型，与图 5（统计视图）构成空间效应 + 统计效应双层证据。"
-                "<br/><em>结论：</em>开放标签分在 R10 呈局部热点，mean 上卷到 R8 后被抹平；数值与图 5 同源。",
+                "<br/><em>结论：</em>开放证据分在 R10 呈局部热点，mean 上卷到 R8 后被抹平；数值与图 5 同源。",
             ),
         ),
         (
@@ -211,8 +211,8 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 "resolution",
                 figs["resolution"],
                 "Resolution effects",
-                "<strong>图 5 · Figure 5</strong> — 分辨率效应：(a) 开放标签分在 R10/R9/R8 的分布压缩；(b) Jaccard 热点持久性矩阵（SciencePlots + TNR）。"
-                "<br/><em>如何读：</em>(a) 三条小提琴由宽双峰压缩为窄带；(b) 非对角项远离对角线衰减：J(R10,R9)=0.977、J(R10,R8)=0.167、J(R9,R8)=0.167。"
+                "<strong>图 5 · Figure 5</strong> — 分辨率效应：(a) 开放证据分在 R10/R9/R8 的分布压缩；(b) Jaccard 热点持久性矩阵（SciencePlots + TNR）。"
+                "<br/><em>如何读：</em>(a) 三条小提琴由宽双峰压缩为窄带；(b) 非对角项远离对角线衰减：J(R10,R9)=0.210、J(R10,R8)=0.167、J(R9,R8)=0.167。"
                 "<br/><em>意义：</em>把尺度损失从阶梯表扩展为「分布压缩 + 集合持久性」两种互补统计视图，对齐参考论文 Fig 5 类型。"
                 "<br/><em>结论：</em>数值与表 3 完全一致；粗化同时压缩分布并瓦解热点持久性。",
             ),
@@ -223,7 +223,7 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 "jaccard_supp",
                 figs["jaccard_supp"],
                 "Jaccard ladder (supplementary)",
-                "<strong>补充图 S1 · Supplementary Figure S1</strong> — 开放标签热点 Jaccard/F1 随粗分辨率变化（SciencePlots + TNR），数值与表 3 同 CSV。"
+                "<strong>补充图 S1 · Supplementary Figure S1</strong> — 开放证据热点 Jaccard/F1 随粗分辨率变化（SciencePlots + TNR），数值与表 3 同 CSV。"
                 "<br/><em>如何读：</em>左 Jaccard similarity、右 F1；标记形状/颜色区分 mean/max/p90 上卷（共享图例）。"
                 "<br/><em>意义：</em>可视化尺度损失（数值已完整列于表 3）；原为主文图 4，W9 按「多分辨率空间图优先」调整为补充材料。"
                 "<br/><em>结论：</em>mean@R8 损失最大；不得与 PFIb 文献的 0.14 直接等同。",
@@ -236,9 +236,9 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 figs["adaptive"],
                 "Adaptive ablation",
                 "<strong>图 6 · Figure 6</strong> — 固定 R9 / 自适应 R9/R11 / 均匀 R11 单元数。"
-                "<br/><em>如何读：</em>三柱分别为 Fixed R9、Adaptive R9/R11、Uniform R11；顶部标注「27.9× fixed R9 = 56.9% of uniform R11」。"
-                "<br/><em>意义：</em>展示自适应在计算预算与局部细化之间的折中。"
-                "<br/><em>结论：</em>自适应 = 27.9× 固定 R9 = 56.9% 均匀 R11；非全市成本声明。",
+                "<br/><em>如何读：</em>三柱分别为 Fixed R9、Adaptive R9/R11、Uniform R11；顶部标注「29.6× fixed R9 = 60.4% of uniform R11（representation size only）」。"
+                "<br/><em>意义：</em>展示自适应在计算预算与局部细化之间的表征规模折中（仅单元数，非 runtime/memory/hotspot）。"
+                "<br/><em>结论：</em>自适应 = 29.6× 固定 R9 = 60.4% 均匀 R11；非全市成本声明，非效率/技能证明。",
             ),
         ),
     ]

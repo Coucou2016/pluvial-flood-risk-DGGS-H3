@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 from shapely.geometry import Point
 
-from pluvial_flood_risk.config import PROVENANCE_OBSERVED, TARGET_CLASS_COLUMN, TARGET_COLUMN
+from pluvial_flood_risk.config import PROVENANCE_OPEN_EVIDENCE, TARGET_CLASS_COLUMN, TARGET_COLUMN
 from pluvial_flood_risk.h3_grid import bbox_to_cells, cell_boundary_polygon, cell_center
 from pluvial_flood_risk.labels import attach_observed_labels
 from pluvial_flood_risk.vector_io import write_geojson_features
@@ -23,7 +23,7 @@ def test_polygon_area_fraction_on_matching_cell(tmp_path: Path):
     hit = out.loc[out["h3_index"] == cells[0]].iloc[0]
     assert hit["flood_area_frac"] > 0.9
     assert hit[TARGET_CLASS_COLUMN] == 1
-    assert hit["label_source"] == PROVENANCE_OBSERVED
+    assert hit["label_source"] == PROVENANCE_OPEN_EVIDENCE
     assert (out[TARGET_CLASS_COLUMN] == 0).any()
 
 

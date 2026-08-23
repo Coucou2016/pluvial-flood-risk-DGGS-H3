@@ -46,18 +46,24 @@ def negative_control_metrics(
     A pluvial model should score **pluvial-only** cells higher than **coastal-only**
     cells. High ``coastal_only_among_high_score`` is a leakage warning (learning
     surge / low elevation near the water rather than rainfall ponding).
+
+    The pluvial mask follows the composite target ontology: ``flood_class == 1``
+    means any positive flood evidence (polygon overlap OR point presence), which is
+    the same definition used for the supervised target. ``flood_area_frac > 0`` is
+    polygon-only and would misclassify point-only cells as "neither".
     """
     if coastal_frac_col not in df.columns:
         raise KeyError(f"Missing {coastal_frac_col}; call attach_coastal_overlay first.")
 
     n = int(len(df))
     coastal = df[coastal_frac_col].to_numpy(dtype=np.float64) > 0
-    if pluvial_frac_col in df.columns:
-        pluvial = df[pluvial_frac_col].to_numpy(dtype=np.float64) > 0
-    elif pluvial_class_col in df.columns:
+    if pluvial_class_col in df.columns:
+        # Composite target: any polygon overlap OR point presence.
         pluvial = df[pluvial_class_col].to_numpy() == 1
+    elif pluvial_frac_col in df.columns:
+        pluvial = df[pluvial_frac_col].to_numpy(dtype=np.float64) > 0
     else:
-        raise KeyError("Need flood_area_frac or flood_class for the pluvial mask.")
+        raise KeyError("Need flood_class or flood_area_frac for the pluvial mask.")
 
     coastal_only = coastal & ~pluvial
     pluvial_only = pluvial & ~coastal

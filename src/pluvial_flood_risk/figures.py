@@ -177,7 +177,14 @@ def plot_spatial_cv_bars(
     out_path: Path | str,
     title: str | None = None,
 ) -> Path:
-    """Per-fold spatial CV accuracy and F1 as paired markers + mean±SD error bars."""
+    """Per-fold spatial CV accuracy/F1 with constant-class baseline reference lines.
+
+    The model's per-fold accuracy and F1 are shown as paired markers, with
+    mean±SD at a final x-position. Constant-class baselines (always-positive and
+    always-negative) are drawn as horizontal dashed lines computed fold-wise, so
+    the figure shows whether the model exceeds the trivial prevalence baselines
+    rather than implying high skill from a 0.8–0.9 axis range alone.
+    """
     require_matplotlib()
     import matplotlib.pyplot as plt
     import numpy as np
@@ -194,7 +201,7 @@ def plot_spatial_cv_bars(
     colors = {"accuracy": "#4C72B0", "f1": "#C44E52"}
     markers = {"accuracy": "o", "f1": "s"}
     offsets = {"accuracy": -0.08, "f1": 0.08}
-    fig, ax = plt.subplots(figsize=(5.51, 2.93))  # 140 mm 1.5-column width
+    fig, ax = plt.subplots(figsize=(5.51, 3.24))  # 140 mm 1.5-column width
 
     for metric in ("accuracy", "f1"):
         ax.plot(
@@ -203,14 +210,43 @@ def plot_spatial_cv_bars(
             marker=markers[metric],
             linestyle="",
             color=colors[metric],
-            label=metric.capitalize(),
+            label=f"{metric.capitalize()} (model)",
             markersize=5,
         )
 
+    # Constant-class baseline reference lines (fold-wise means).
+    n_test = df["n_test"].to_numpy(dtype=float)
+    pos = df["n_positive_test"].to_numpy(dtype=float)
+    neg = df["n_negative_test"].to_numpy(dtype=float)
+    ap_acc = float(np.mean(pos / n_test))
+    ap_f1 = float(np.mean(2 * pos / (n_test + pos)))
+    an_acc = float(np.mean(neg / n_test))
+    ax.axhline(ap_acc, color=colors["accuracy"], linestyle="--", linewidth=1.0, alpha=0.7)
+    ax.axhline(ap_f1, color=colors["f1"], linestyle="--", linewidth=1.0, alpha=0.7)
+    ax.axhline(an_acc, color="#888888", linestyle=":", linewidth=1.0, alpha=0.8)
+    ax.text(
+        x[-1] + 0.15, ap_acc + 0.02, f"always-positive acc {ap_acc:.3f}",
+        fontsize=8, color=colors["accuracy"], ha="right", va="bottom",
+    )
+    ax.text(
+        x[-1] + 0.15, ap_f1 - 0.02, f"always-positive F1 {ap_f1:.3f}",
+        fontsize=8, color=colors["f1"], ha="right", va="top",
+    )
+    ax.text(
+        x[-1] + 0.15, an_acc - 0.02, f"always-negative acc {an_acc:.3f}",
+        fontsize=8, color="#888888", ha="right", va="top",
+    )
+
+    # Per-fold test size and positive prevalence under each fold marker.
+    for i in range(len(df)):
+        n_i = int(n_test[i])
+        p_i = pos[i] / n_i
+        ax.text(i, -0.16, f"n={n_i}\n{p_i*100:.0f}% +",
+                ha="center", va="top", fontsize=6.5, color="#555555")
+
     # Mean ± SD at a final x-position (extra half-step gap so it does not read
-    # as a sixth fold), with error bars (no overlapping shaded bands).
-    # ddof=0 matches the population-SD convention used in the manuscript table
-    # (accuracy 0.784 ± 0.069), so the figure and table are numerically identical.
+    # as a sixth fold), with error bars. ddof=0 matches the population-SD
+    # convention used in the manuscript table.
     mx = float(len(df)) + 0.5
     for metric in ("accuracy", "f1"):
         mean = float(df[metric].mean())
@@ -227,10 +263,10 @@ def plot_spatial_cv_bars(
 
     ax.set_xticks(list(range(len(df))) + [mx])
     ax.set_xticklabels([f"Fold {i}" for i in df["fold_id"].astype(int)] + ["Mean ± SD"])
-    ax.set_ylim(0.0, 1.05)
+    ax.set_ylim(-0.24, 1.05)
     ax.set_ylabel("Score")
     ax.set_xlabel("H3-block spatial CV")
-    ax.legend()
+    ax.legend(loc="lower left", fontsize=8)
     ax.grid(True, axis="y", alpha=0.3)
     if title:
         fig.suptitle(title, fontsize=11)
@@ -266,7 +302,7 @@ def plot_workflow_schematic(
             "title": "Multi-source inputs",
             "color": "#4C72B0",
             "items": [
-                "Flood labels\n(DEP stormwater, 311,\nUSGS Ida HWM)",
+                "Flood evidence\n(model-derived DEP\nstormwater; 311 reports;\nUSGS Ida HWM)",
                 "Static predictors\n(terrain, flow-acc.\nproxy, land cover,\nhydro. distance)",
                 "Rainfall condition r\n(constant synthetic;\nnot radar)",
             ],
@@ -283,7 +319,7 @@ def plot_workflow_schematic(
             "title": "Learning &\nvalidation",
             "color": "#C44E52",
             "items": [
-                "Gradient-boosting\nclassifier + continuous-\nrisk regressor",
+                "Gradient-boosting\nclassifier + evidence-\nscore regressor",
                 "H3-block GroupKFold\nspatial CV\n(R7 parent blocks)",
                 "Logistic, ponding &\nconstant-class\nbaselines",
             ],
@@ -292,9 +328,9 @@ def plot_workflow_schematic(
             "title": "Diagnostics &\noutputs",
             "color": "#8172B2",
             "items": [
-                "$\\mathrm{PFI}_h$(c,r)",
+                "Positive-class model score\n(not calibrated; not PFIb)",
                 "Scale-loss Jaccard\nladder (R10 → R9 / R8)",
-                "Adaptive refinement\n($\\mathrm{PFI}_h$-guided → R11)",
+                "Adaptive refinement\n(score-guided → R11)",
                 "Sandy coastal-overlap\ndiagnostic",
             ],
         },
@@ -614,9 +650,9 @@ def plot_spatial_maps(
 
     fig, axes = plt.subplots(1, 3, figsize=(7.48, 2.74))  # 190 mm double-column width
     panels = [
-        ("observed", "Observed open-label risk", "Open-label risk (0\u20131)"),
-        ("oof_prob", "Out-of-fold model probability", "Model probability"),
-        ("pfi", r"Full-fit $\mathrm{PFI}_h(c,r)$", r"$\mathrm{PFI}_h$"),
+        ("observed", "Open-label flood-evidence score", "Flood-evidence score (0\u20131)"),
+        ("oof_prob", "Out-of-fold model score", "Model score"),
+        ("pfi", r"Full-fit model score (in-sample)", r"Model score"),
     ]
     cmap = "viridis"
     for ax, (col, ptitle, clabel) in zip(axes, panels):
@@ -872,7 +908,12 @@ def plot_adaptive_ablation(
     out_path: Path | str,
     title: str | None = None,
 ) -> Path:
-    """Bar chart of fixed / adaptive / uniform fine cell counts from ablation CSV."""
+    """Bar chart of representation cell counts (fixed / adaptive / uniform fine).
+
+    This is a representation-size comparison only: it reports the number of cells
+    produced by each representation, not a claim that adaptive refinement is
+    computationally more efficient or that it preserves hotspot information.
+    """
     require_matplotlib()
     import matplotlib.pyplot as plt
 
@@ -904,14 +945,14 @@ def plot_adaptive_ablation(
     ymax = max(v for v in values if pd.notna(v))
     ax.set_ylim(0, ymax * 1.30)
 
-    # The fixed-coarse bar is visually tiny on a linear axis; state the two
-    # comparisons in a single top-band line so the efficiency message is not lost.
+    # State the representation-size comparison; this is not a runtime/memory
+    # efficiency claim (those were not measured).
     fixed, adaptive, uniform = values[0], values[1], values[2]
     if pd.notna(fixed) and pd.notna(adaptive) and pd.notna(uniform) and fixed > 0:
         ax.text(
             1.0,
             ymax * 1.02,
-            f"Adaptive = {adaptive / fixed:.1f}\u00d7 fixed R9\n= {adaptive / uniform * 100:.1f}% of uniform R11",
+            f"Adaptive representation = {adaptive / fixed:.1f}\u00d7 fixed R9\n= {adaptive / uniform * 100:.1f}% of uniform R11 cells\n(representation size only)",
             ha="center",
             va="bottom",
             fontsize=8.5,

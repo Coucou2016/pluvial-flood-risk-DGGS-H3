@@ -340,17 +340,17 @@ def assemble_label_scale_table(
     synthetic_label_threshold: float = 0.55,
 ) -> pd.DataFrame:
     """
-    Lightweight fine H3 + labels for Jaccard / scale-loss ladders.
+    Native fine-resolution label assembly for Jaccard / scale-loss ladders.
 
-    Avoids slow DEP polygon area-fraction overlays at fine resolutions (R10+).
-    Instead:
-    - joins **point** open labels (311 / Ida HWM) at the fine resolution;
-    - optionally inherits polygon/label scores from a coarser ``parent_label_df``
-      via H3 parent mapping (``label_scale_mode=points_plus_parent_inherit``).
-
-    Hotspots are open-label diagnostics — not ML scores / PFIb.
+    Overlays the raw polygon (DEP model-derived, categories 1–2) and point
+    (311 / Ida HWM) geometries **directly onto the fine H3 cells**, producing the
+    same flood-evidence score used at the training resolution. ``parent_label_df``
+    is accepted for call-site compatibility but is deliberately **not** used: the
+    fine reference is computed from source geometry only, so the R10→R9/R8 ladder
+    is not circular.
     """
-    import h3
+    del parent_label_df  # native overlay supersedes parent inheritance
+    import h3  # noqa: F401  (resolution guard kept for clarity)
 
     min_lon, min_lat, max_lon, max_lat = bbox
     cells = bbox_to_cells(min_lon, min_lat, max_lon, max_lat, resolution)
@@ -383,60 +383,27 @@ def assemble_label_scale_table(
         }
     )
 
-    point_paths = [Path(p) for p in sources.flood_points_paths if Path(p).exists()]
-    if point_paths:
-        df = attach_observed_labels(df, point_paths)
-        point_risk = df["flood_risk"].to_numpy(dtype=np.float64)
+    label_paths: list[Path] = []
+    if sources.flood_polygons_path:
+        pps = (
+            sources.flood_polygons_path
+            if isinstance(sources.flood_polygons_path, list)
+            else [sources.flood_polygons_path]
+        )
+        label_paths.extend(Path(p) for p in pps if Path(p).exists())
+    label_paths.extend(Path(p) for p in sources.flood_points_paths if Path(p).exists())
+
+    if label_paths:
+        df = attach_observed_labels(df, label_paths)
+        df["label_scale_mode"] = "native_overlay"
     else:
-        point_risk = np.zeros(len(df), dtype=np.float64)
-        df["flood_risk"] = point_risk
+        df["flood_risk"] = 0.0
         df["flood_class"] = 0
         df["label_source"] = "none"
-
-    inherited = np.zeros(len(df), dtype=np.float64)
-    mode = "points_only"
-    if parent_label_df is not None and len(parent_label_df) and "h3_index" in parent_label_df.columns:
-        value_col = (
-            "flood_risk"
-            if "flood_risk" in parent_label_df.columns
-            else ("flood_area_frac" if "flood_area_frac" in parent_label_df.columns else None)
-        )
-        if value_col is not None:
-            parent_res = int(parent_label_df["h3_resolution"].iloc[0]) if "h3_resolution" in parent_label_df.columns else None
-            if parent_res is None:
-                parent_res = cell_resolution(str(parent_label_df["h3_index"].iloc[0]))
-            if parent_res < resolution:
-                pmap = {
-                    str(r.h3_index): float(getattr(r, value_col))
-                    for r in parent_label_df[["h3_index", value_col]].itertuples(index=False)
-                    if np.isfinite(getattr(r, value_col))
-                }
-                inherited = np.array(
-                    [pmap.get(h3.cell_to_parent(str(c), parent_res), 0.0) for c in df["h3_index"]],
-                    dtype=np.float64,
-                )
-                mode = "points_plus_parent_inherit"
-
-    combined = np.maximum(point_risk, inherited)
-    df["flood_risk"] = combined
-    df["flood_class"] = (combined > 0).astype(int)
-    if mode == "points_plus_parent_inherit":
-        df["label_source"] = "observed_points_plus_parent"
-    df["label_scale_mode"] = mode
+        df["label_scale_mode"] = "no_labels"
     df["assembly_mode"] = sources.assembly_mode
     df["feature_source"] = "labels_only_diagnostics"
-
-    if point_paths or mode == "points_plus_parent_inherit":
-        return df
-
-    # No points and no parent inherit → full assemble fallback (fixtures / demo).
-    return assemble_h3_table(
-        bbox,
-        resolution,
-        sources=sources,
-        fallback_synthetic=True,
-        synthetic_label_threshold=synthetic_label_threshold,
-    )
+    return df
 
 
 def _first_existing(*candidates: Path) -> Path | None:

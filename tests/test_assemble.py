@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from pluvial_flood_risk.assemble import FeatureSources, assemble_h3_table
-from pluvial_flood_risk.config import PROVENANCE_OBSERVED
+from pluvial_flood_risk.config import PROVENANCE_OPEN_EVIDENCE
 from pluvial_flood_risk.features import count_points_to_h3
 from pluvial_flood_risk.schema_fixtures import write_public_schema_fixtures
 
@@ -37,7 +37,7 @@ def test_assemble_fixture_uses_observed_join(tmp_path: Path):
     )
     df = assemble_h3_table(TINY, resolution=10, rainfall_mm_h=40.0, sources=sources)
     assert len(df) > 5
-    assert (df["label_source"] == PROVENANCE_OBSERVED).all()
+    assert (df["label_source"] == PROVENANCE_OPEN_EVIDENCE).all()
     assert (df["assembly_mode"] == "fixture").all()
     assert df["flood_class"].nunique() >= 1
     assert "elevation_m" in df.columns

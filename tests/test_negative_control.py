@@ -26,7 +26,7 @@ def test_negative_control_separates_coastal_and_pluvial(tmp_path: Path):
     )
     df = assemble_h3_table(TINY, resolution=10, rainfall_mm_h=40.0, sources=sources)
     assert "sandy_area_frac" in df.columns
-    assert (df["label_source"] == "observed").all()
+    assert (df["label_source"] == "open_public_evidence").all()
     # Overlay must not overwrite pluvial labels with Sandy
     assert df["flood_class"].nunique() >= 1
     metrics = negative_control_metrics(df, score_col="flood_risk")
@@ -68,7 +68,7 @@ def test_assemble_label_scale_table_fast(tmp_path: Path):
     assert "flood_risk" in df.columns
     assert (df["h3_resolution"] == 10).all()
     assert df["feature_source"].iloc[0] == "labels_only_diagnostics"
-    assert df["label_scale_mode"].iloc[0] == "points_plus_parent_inherit"
+    assert df["label_scale_mode"].iloc[0] == "native_overlay"
 
 
 def test_attach_coastal_overlay_does_not_change_labels(tmp_path: Path):

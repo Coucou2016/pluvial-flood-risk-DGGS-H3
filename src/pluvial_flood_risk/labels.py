@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from pluvial_flood_risk.config import (
-    PROVENANCE_OBSERVED,
+    PROVENANCE_OPEN_EVIDENCE,
     PROVENANCE_SYNTHETIC,
     TARGET_CLASS_COLUMN,
     TARGET_COLUMN,
@@ -64,18 +64,21 @@ def attach_observed_labels(
     class_threshold: float = 1e-9,
 ) -> pd.DataFrame:
     """
-    Join historical pluvial flood polygons/points to H3 cells.
+    Join heterogeneous open flood-evidence polygons/points to H3 cells.
 
-    Polygons contribute intersection *area fraction* (0–1). Points contribute
-    per-cell counts via H3 indexing. ``flood_risk`` is the area fraction, or 1
-    when only points are present and count > 0. Sets ``label_source=observed``.
+    Polygon sources (DEP stormwater, model-derived) contribute an intersection
+    *area fraction* (0–1). Point sources (311 crowd reports, USGS Ida HWM)
+    contribute per-cell counts via H3 indexing. ``flood_risk`` (the flood-evidence
+    score) is the area fraction, or 1 when only points are present and count > 0.
+    Sets ``label_source=open_public_evidence`` — heterogeneous public evidence,
+    not a single "observed" ground-truth label.
 
     Parameters
     ----------
     flood_polygons_path
         GeoJSON or GPKG path, or a list of paths (multi-source open labels).
     risk_column
-        Copy of the continuous observed score (defaults to ``observed_risk``).
+        Copy of the continuous evidence score (defaults to ``observed_risk``).
     class_threshold
         Minimum score for ``flood_class=1`` (any intersection by default).
     """
@@ -124,7 +127,7 @@ def attach_observed_labels(
         out[risk_column] = frac
         out[TARGET_COLUMN] = frac
         out[TARGET_CLASS_COLUMN] = np.zeros(n, dtype=int)
-        out["label_source"] = PROVENANCE_OBSERVED
+        out["label_source"] = PROVENANCE_OPEN_EVIDENCE
         return out
 
     res = cell_resolution(cells[0])
@@ -163,7 +166,7 @@ def attach_observed_labels(
     out[risk_column] = risk
     out[TARGET_COLUMN] = risk
     out[TARGET_CLASS_COLUMN] = (risk >= class_threshold).astype(int)
-    out["label_source"] = PROVENANCE_OBSERVED
+    out["label_source"] = PROVENANCE_OPEN_EVIDENCE
     return out
 
 

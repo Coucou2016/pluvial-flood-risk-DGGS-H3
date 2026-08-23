@@ -12,22 +12,57 @@ from pluvial_flood_risk.metrics import evaluate_predictions
 from pluvial_flood_risk.spatial_cv import block_ids_for_cells, spatial_block_cv_metrics
 
 
-def rule_ponding_score(df: pd.DataFrame) -> np.ndarray:
+def _ponding_bounds(df: pd.DataFrame) -> dict[str, float]:
+    """Normalisation bounds computed on a *training* subset only.
+
+    The ponding rule uses min–max normalisation of elevation and a TWI-like
+    term. To be a deployable held-out baseline these bounds must come from the
+    training fold, never from the held-out fold being scored.
+    """
+    elev = df["elevation_m"].to_numpy(dtype=np.float64)
+    elev = elev[np.isfinite(elev)]
+    bounds = {
+        "elev_min": float(np.nanmin(elev)) if elev.size else 0.0,
+        "elev_max": float(np.nanmax(elev)) if elev.size else 1.0,
+    }
+    if "flow_accum_proxy" in df.columns:
+        slope = df["slope_deg"].to_numpy(dtype=np.float64)
+        flow = df["flow_accum_proxy"].to_numpy(dtype=np.float64)
+        tan_s = np.tan(np.radians(np.clip(slope, 0.05, 89.0)))
+        twi = np.log1p(np.clip(flow, 0, None) / (tan_s + 1e-6))
+        twi = twi[np.isfinite(twi)]
+        bounds["twi_min"] = float(np.nanmin(twi)) if twi.size else 0.0
+        bounds["twi_max"] = float(np.nanmax(twi)) if twi.size else 1.0
+    return bounds
+
+
+def rule_ponding_score(
+    df: pd.DataFrame,
+    *,
+    elev_min: float | None = None,
+    elev_max: float | None = None,
+    twi_min: float | None = None,
+    twi_max: float | None = None,
+) -> np.ndarray:
     """
     HAND / TWI-like ponding proxy: low elevation, low slope, high impervious.
 
     Not a hydrodynamic model — a transparent baseline for evaluate tables.
+    When ``elev_min/max`` and ``twi_min/max`` are omitted they fall back to the
+    in-sample min/max of ``df`` (acceptable only for in-sample diagnostics).
     """
     elev = df["elevation_m"].to_numpy(dtype=np.float64)
     slope = df["slope_deg"].to_numpy(dtype=np.float64)
     imperv = df["impervious_frac"].to_numpy(dtype=np.float64)
-    elev_span = np.nanmax(elev) - np.nanmin(elev)
-    elev_norm = (elev - np.nanmin(elev)) / (elev_span + 1e-9)
+    elev_lo = elev_min if elev_min is not None else np.nanmin(elev)
+    elev_hi = elev_max if elev_max is not None else np.nanmax(elev)
+    elev_norm = (elev - elev_lo) / (elev_hi - elev_lo + 1e-9)
     flow = df["flow_accum_proxy"].to_numpy(dtype=np.float64) if "flow_accum_proxy" in df.columns else 1.0
     tan_s = np.tan(np.radians(np.clip(slope, 0.05, 89.0)))
     twi = np.log1p(np.clip(flow, 0, None) / (tan_s + 1e-6))
-    twi_span = np.nanmax(twi) - np.nanmin(twi)
-    twi_n = (twi - np.nanmin(twi)) / (twi_span + 1e-9)
+    twi_lo = twi_min if twi_min is not None else np.nanmin(twi)
+    twi_hi = twi_max if twi_max is not None else np.nanmax(twi)
+    twi_n = (twi - twi_lo) / (twi_hi - twi_lo + 1e-9)
     score = (
         0.40 * (1.0 - np.clip(elev_norm, 0, 1))
         + 0.35 * np.clip(imperv, 0, 1)
@@ -37,8 +72,21 @@ def rule_ponding_score(df: pd.DataFrame) -> np.ndarray:
     return np.clip(score, 0.0, 1.0)
 
 
-def rule_predict_class(df: pd.DataFrame, threshold: float = 0.5) -> np.ndarray:
-    return (rule_ponding_score(df) >= threshold).astype(int)
+def rule_predict_class(
+    df: pd.DataFrame,
+    threshold: float = 0.5,
+    *,
+    elev_min: float | None = None,
+    elev_max: float | None = None,
+    twi_min: float | None = None,
+    twi_max: float | None = None,
+) -> np.ndarray:
+    return (
+        rule_ponding_score(
+            df, elev_min=elev_min, elev_max=elev_max, twi_min=twi_min, twi_max=twi_max
+        )
+        >= threshold
+    ).astype(int)
 
 
 def _safe_metrics(y_risk, pred_risk, y_class, pred_class, proba=None) -> dict[str, float]:
@@ -117,15 +165,19 @@ def compare_baselines(
             gkf = GroupKFold(n_splits=n_splits)
             accs: list[float] = []
             f1s: list[float] = []
-            for _, test_idx in gkf.split(X, y_class, groups):
-                fold_df = df.iloc[test_idx]
-                pred = rule_predict_class(fold_df)
+            for train_idx, test_idx in gkf.split(X, y_class, groups):
+                train_df = df.iloc[train_idx]
+                test_df = df.iloc[test_idx]
+                # Normalisation bounds come from the training fold only, so the
+                # held-out fold is never used to derive its own min/max.
+                bounds = _ponding_bounds(train_df)
+                pred = rule_predict_class(test_df, **bounds)
                 fold_m = _safe_metrics(
                     y_risk[test_idx],
-                    rule_ponding_score(fold_df),
+                    rule_ponding_score(test_df, **bounds),
                     y_class[test_idx],
                     pred,
-                    rule_ponding_score(fold_df),
+                    rule_ponding_score(test_df, **bounds),
                 )
                 accs.append(fold_m["accuracy"])
                 f1s.append(fold_m["f1"])

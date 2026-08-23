@@ -36,11 +36,20 @@ _3DEP_EXPORT = (
     "3DEPElevation/ImageServer/exportImage"
 )
 
-# NYC DEP stormwater (moderate + 2050 SLR) via public ArcGIS Hub mirror
+# NYC DEP stormwater via public ArcGIS Hub mirror.
+# Layer "New_York_City_Map_WFL1/FeatureServer/2" holds three Flooding_Category
+# classes: 1 = moderate rainfall flooding, 2 = extreme rainfall flooding, and
+# 3 = "Future High Tides 2050" (coastal tidal inundation under sea-level rise).
+# Categories 1–2 are hydrologic/hydraulic MODEL OUTPUTS (not observations);
+# category 3 is coastal, not pluvial. For the pluvial susceptibility target we
+# therefore (a) exclude category 3, and (b) treat categories 1–2 as a
+# model-derived pseudo-label, never as "observed" flooding.
 _DEP_STORMWATER = (
     "https://services.arcgis.com/g8EzU2gNHvGpFUGY/ArcGIS/rest/services/"
     "New_York_City_Map_WFL1/FeatureServer/2/query"
 )
+# Only pluvial model classes; category 3 (Future High Tides 2050) is dropped.
+_DEP_WHERE = "Flooding_Category IN (1,2)"
 
 # Official NYC MapHub building footprints view
 _BUILDINGS = (
@@ -197,17 +206,19 @@ def download_nyc_layers(
         report.layers.append(_failed_or_kept("dem", dem_path, "USGS 3DEP", exc, min_bytes=1000))
         log(f"DEM failed: {exc}")
 
-    # --- DEP stormwater ---
+    # --- DEP stormwater (model-derived pluvial classes 1–2; category 3 excluded) ---
     dep_path = out_dir / "dep_stormwater_flood.geojson"
     try:
-        log("Downloading DEP stormwater flood polygons…")
-        n = _download_arcgis_geojson(_DEP_STORMWATER, bbox, dep_path, page_size=2000)
+        log("Downloading DEP stormwater flood polygons (categories 1–2)…")
+        n = _download_arcgis_geojson(
+            _DEP_STORMWATER, bbox, dep_path, page_size=2000, where=_DEP_WHERE
+        )
         report.layers.append(
             LayerResult(
                 "dep_stormwater_flood",
                 str(dep_path),
                 "downloaded",
-                "ArcGIS Hub DEP moderate+2050 SLR",
+                "ArcGIS Hub DEP moderate/extreme rainfall (model-derived; category 3 high-tides excluded)",
                 n_features=n,
             )
         )

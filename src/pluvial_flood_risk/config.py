@@ -36,6 +36,12 @@ PROVENANCE_SYNTHETIC = "synthetic"
 PROVENANCE_OBSERVED = "observed"
 PROVENANCE_MIXED = "mixed"
 PROVENANCE_FIXTURE = "fixture"
+# Composite flood-evidence label assembled from heterogeneous open public
+# sources (DEP model-derived stormwater polygons + 311 crowd-reported points +
+# USGS Ida high-water marks). These are NOT a single "observed" ground truth:
+# DEP is hydrologic/hydraulic model output, 311 is reported (not verified)
+# inundation, and only the HWM points are direct observations.
+PROVENANCE_OPEN_EVIDENCE = "open_public_evidence"
 
 ASSEMBLY_HASH = "hash_demo"
 ASSEMBLY_FIXTURE = "fixture"

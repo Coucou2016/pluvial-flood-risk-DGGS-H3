@@ -54,7 +54,7 @@ spatial_cv:
 diagnostics:
   # Ladder uses fine_res for hotspot definition; train table may stay at `resolution`.
   # fine_res>=10 enables paper-style R10→R9/R8 pairs (open labels — not Svellingen PFIb 0.14).
-  # Smoke: points @ R10 + parent-inherited polygon scores (DEP direct overlay at R10 is too slow).
+  # Labels are overlain natively at fine_res (DEP polygons + points); no parent inheritance.
   resolutions: [8, 9, 10]
   fine_res: 10
   hotspot_quantile: 0.9
