@@ -139,7 +139,18 @@ def main() -> None:
 
     raw_dir = Path(args.raw_dir)
     cfg["paths"] = dict(cfg.get("paths") or {})
-    cfg["paths"]["raw_dir"] = raw_dir  # absolute; discover_sources() picks up conventional names
+    cfg["paths"]["raw_dir"] = raw_dir
+    # Drop the Lower-Manhattan hardcoded paths so discover_sources() resolves the
+    # expanded raw_dir's own conventional filenames (dem/impervious/buildings/hydro/
+    # DEP polygon/311/HWM/Sandy/event rainfall). Keeping them would silently reuse
+    # the n=141 smoke rasters/vectors over the expanded bbox and mark synthetic
+    # hash fills as "observed" (see docs/paper/audit.md §9.1).
+    for _key in (
+        "dem", "slope", "impervious", "buildings", "hydro",
+        "flood_polygons", "flood_points", "coastal", "sandy",
+        "event_rainfall", "floodnet",
+    ):
+        cfg["paths"].pop(_key, None)
     cfg["assembly_mode"] = "opendata"
 
     live = (raw_dir / "dem.tif").exists() and (raw_dir / "dep_stormwater_flood.geojson").exists()

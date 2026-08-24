@@ -182,15 +182,27 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
             ),
         ),
         (
+            "docs/paper/figures/source_evidence_maps.png",
+            figure_block(
+                "source_evidence",
+                figs["source_evidence"],
+                "Source-specific open-evidence maps",
+                "<strong>图 3 · Figure 3</strong> — 源证据分解图：Lower Manhattan（n=141 R9）四面板同支撑（SciencePlots + Times New Roman）。"
+                "<br/><em>如何读：</em>(a) DEP 雨水洪泛多边形面积分数（category 1–2，连续 0–1）；(b) 311 众包报告计数；(c) USGS Ida 高水位点计数；(d) composite flood_evidence_score。图 2(a) 的 composite 表面在此被拆成「哪个源驱动了每个高证据单元」。"
+                "<br/><em>意义：</em>把 C3「三源保留为独立列、再合成 composite」这件事从代码列存在变成可视可读；Ida HWM 在 Lower Manhattan 范围内为空（数据可得性），故 (c) 面板显式标注为空。"
+                "<br/><em>结论：</em>composite 由 DEP 与 311 主导；HWM 仅贡献扩展试点（14 点/6 cell）。",
+            ),
+        ),
+        (
             "docs/paper/figures/spatial_cv_folds.png",
             figure_block(
                 "spatial",
                 figs["spatial"],
                 "Spatial CV fold markers",
-                "<strong>图 3 · Figure 3</strong> — 空间 H3 块 CV 各折 Accuracy 与 F1（SciencePlots + Times New Roman）。"
-                "<br/><em>如何读：</em>横轴为折号 + Mean±SD，纵轴为 0–1 分数；成对标记点表示同一折的 Accuracy/F1，末位为 Mean±SD 误差棒。"
+                "<strong>图 4 · Figure 4</strong> — 空间 H3 块 CV 各折 Accuracy 与 F1（SciencePlots + Times New Roman）。"
+                "<br/><em>如何读：</em>横轴为折号 + Mean±SD，纵轴为 0–1 分数；成对标记点表示同一折的 Accuracy/F1，末位为 Mean±SD 误差棒；虚线/点线标记恒判正/恒判负常量类基线。"
                 "<br/><em>意义：</em>展示评价协议的折间稳定性，而非单一乐观分数。"
-                "<br/><em>结论：</em>多数折 Accuracy≈0.71–0.84，Fold4（n=24）更高；与表 1 均值一致。样本仍是 Lower Manhattan smoke。",
+                "<br/><em>结论：</em>多数折 Accuracy≈0.71–0.84，Fold4（n=24）更高；与表 3 均值一致。样本仍是 Lower Manhattan smoke。",
             ),
         ),
         (
@@ -199,10 +211,10 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 "multires",
                 figs["multires"],
                 "Multi-resolution spatial maps",
-                "<strong>图 4 · Figure 4</strong> — 多分辨率开放证据分空间并排图：(a) R10（n=991）；(b) R9 mean 上卷（n=160）；(c) R8 mean 上卷（n=31），共享 0–1 viridis 色标（SciencePlots + TNR）。"
+                "<strong>图 5 · Figure 5</strong> — 多分辨率开放证据分空间并排图：(a) R10（n=991）；(b) R9 mean 上卷（n=160）；(c) R8 mean 上卷（n=31），共享 0–1 viridis 色标（SciencePlots + TNR）。"
                 "<br/><em>如何读：</em>三面板同一地理足迹，从细到粗看局部热点如何在均值上卷后平滑；颜色只表达开放证据分（0–1）。"
-                "<br/><em>意义：</em>补齐参考论文「多分辨率空间图」图型，与图 5（统计视图）构成空间效应 + 统计效应双层证据。"
-                "<br/><em>结论：</em>开放证据分在 R10 呈局部热点，mean 上卷到 R8 后被抹平；数值与图 5 同源。",
+                "<br/><em>意义：</em>补齐参考论文「多分辨率空间图」图型，与图 6（统计视图）构成空间效应 + 统计效应双层证据。"
+                "<br/><em>结论：</em>开放证据分在 R10 呈局部热点，mean 上卷到 R8 后被抹平；数值与图 6 同源。",
             ),
         ),
         (
@@ -211,10 +223,10 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 "resolution",
                 figs["resolution"],
                 "Resolution effects",
-                "<strong>图 5 · Figure 5</strong> — 分辨率效应：(a) 开放证据分在 R10/R9/R8 的分布压缩；(b) Jaccard 热点持久性矩阵（SciencePlots + TNR）。"
-                "<br/><em>如何读：</em>(a) 三条小提琴由宽双峰压缩为窄带；(b) 非对角项远离对角线衰减：J(R10,R9)=0.210、J(R10,R8)=0.167、J(R9,R8)=0.167。"
-                "<br/><em>意义：</em>把尺度损失从阶梯表扩展为「分布压缩 + 集合持久性」两种互补统计视图，对齐参考论文 Fig 5 类型。"
-                "<br/><em>结论：</em>数值与表 3 完全一致；粗化同时压缩分布并瓦解热点持久性。",
+                "<strong>图 6 · Figure 6</strong> — 分辨率效应：(a) 开放证据分在 R10/R9/R8 的分布压缩；(b) Jaccard 热点持久性矩阵（SciencePlots + TNR）。"
+                "<br/><em>如何读：</em>(a) 三条分布由宽双峰压缩为窄带；(b) 非对角项远离对角线衰减：J(R10,R9)=0.210、J(R10,R8)=0.167、J(R9,R8)=0.167。"
+                "<br/><em>意义：</em>把尺度损失从阶梯表扩展为「分布压缩 + 集合持久性」两种互补统计视图。"
+                "<br/><em>结论：</em>数值与表 4 完全一致；粗化同时压缩分布并瓦解热点持久性。",
             ),
         ),
         (
@@ -223,21 +235,21 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 "jaccard_supp",
                 figs["jaccard_supp"],
                 "Jaccard ladder (supplementary)",
-                "<strong>补充图 S1 · Supplementary Figure S1</strong> — 开放证据热点 Jaccard/F1 随粗分辨率变化（SciencePlots + TNR），数值与表 3 同 CSV。"
+                "<strong>补充图 S1 · Supplementary Figure S1</strong> — 开放证据热点 Jaccard/F1 随粗分辨率变化（SciencePlots + TNR），数值与表 4 同 CSV。"
                 "<br/><em>如何读：</em>左 Jaccard similarity、右 F1；标记形状/颜色区分 mean/max/p90 上卷（共享图例）。"
-                "<br/><em>意义：</em>可视化尺度损失（数值已完整列于表 3）；原为主文图 4，W9 按「多分辨率空间图优先」调整为补充材料。"
+                "<br/><em>意义：</em>可视化尺度损失（数值已完整列于表 4）；原为主文图，W9 按「多分辨率空间图优先」调整为补充材料。"
                 "<br/><em>结论：</em>mean@R8 损失最大；不得与 PFIb 文献的 0.14 直接等同。",
             ),
         ),
         (
-            "docs/paper/figures/adaptive_ablation.png",
+            "docs/paper/figures/supplementary/adaptive_ablation.png",
             figure_block(
                 "adaptive",
                 figs["adaptive"],
                 "Adaptive ablation",
-                "<strong>图 6 · Figure 6</strong> — 固定 R9 / 自适应 R9/R11 / 均匀 R11 单元数。"
+                "<strong>补充图 S2 · Supplementary Figure S2</strong> — 固定 R9 / 自适应 R9/R11 / 均匀 R11 单元数（representation-size comparison）。"
                 "<br/><em>如何读：</em>三柱分别为 Fixed R9、Adaptive R9/R11、Uniform R11；顶部标注「29.6× fixed R9 = 60.4% of uniform R11（representation size only）」。"
-                "<br/><em>意义：</em>展示自适应在计算预算与局部细化之间的表征规模折中（仅单元数，非 runtime/memory/hotspot）。"
+                "<br/><em>意义：</em>展示自适应在计算预算与局部细化之间的表征规模折中（仅单元数，非 runtime/memory/hotspot）。数值已列于正文 Table 5，此图仅作补充。"
                 "<br/><em>结论：</em>自适应 = 29.6× 固定 R9 = 60.4% 均匀 R11；非全市成本声明，非效率/技能证明。",
             ),
         ),
@@ -264,10 +276,11 @@ def main() -> None:
     figs = {
         "workflow": b64_png(FIG / "workflow_schematic.png"),
         "spatial_maps": b64_png(FIG / "spatial_maps.png"),
+        "source_evidence": b64_png(FIG / "source_evidence_maps.png"),
         "spatial": b64_png(FIG / "spatial_cv_folds.png"),
         "multires": b64_png(FIG / "multi_resolution_spatial.png"),
         "resolution": b64_png(FIG / "resolution_effects.png"),
-        "adaptive": b64_png(FIG / "adaptive_ablation.png"),
+        "adaptive": b64_png(FIG / "supplementary" / "adaptive_ablation.png"),
         "jaccard_supp": b64_png(FIG / "supplementary" / "jaccard_by_resolution.png"),
     }
     meta = json.loads((ROOT / "models" / "nyc_smoke" / "run_metadata.json").read_text(encoding="utf-8"))
@@ -325,26 +338,6 @@ n_cells={meta.get('n_cells')} · 数值仅来自 outputs/ 与 models/nyc_smoke/ 
     (ROOT / "report.html").write_text(html, encoding="utf-8")
     print(f"wrote {out_html} ({out_html.stat().st_size} bytes)")
     print(f"wrote {ROOT / 'report.html'} ({(ROOT / 'report.html').stat().st_size} bytes)")
-
-    # Also refresh manuscript.html from manuscript.md
-    ms = (PAPER / "manuscript.md").read_text(encoding="utf-8")
-    ms_html = f"""<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"/>
-<title>Manuscript — Adaptive H3 open-label pluvial learning</title>
-<style>
-body{{font-family:"Times New Roman",Times,serif;max-width:900px;margin:24px auto;padding:0 16px;line-height:1.5}}
-table{{border-collapse:collapse;width:100%;font-size:0.92rem}}
-th,td{{border:1px solid #ccc;padding:4px 6px;vertical-align:top}}th{{background:#eef3f7}}
-code{{font-family:Consolas,monospace;font-size:0.9em}}
-h1,h2,h3{{color:#0b3d5c}}
-blockquote{{border-left:4px solid #0b3d5c;padding:6px 12px;background:#f3f7fb}}
-</style></head><body>
-{md_to_simple_html(ms)}
-</body></html>
-"""
-    ms_path = PAPER / "manuscript.html"
-    ms_path.write_text(ms_html, encoding="utf-8")
-    print(f"wrote {ms_path} ({ms_path.stat().st_size} bytes)")
 
 
 if __name__ == "__main__":

@@ -27,14 +27,15 @@ FIG = PAPER / "figures"
 
 # (png file, first-reference anchor text that appears verbatim in the markdown,
 #  fig number). The figure block is inserted right after the paragraph whose
-#  text ends with the anchor.
+#  text ends with the anchor. Entries sharing one paragraph must be listed in
+#  reverse anchor order so the earlier-anchored figure ends up rendered first.
 FIGURES = [
     ("workflow_schematic.png", "summarised in Fig. 1.", 1),
+    ("source_evidence_maps.png", "the composite score is the maximum over the source-specific layers.", 3),
     ("spatial_maps.png", "predictive performance is assessed separately from the out-of-fold metrics reported in Section 4.2.", 2),
-    ("spatial_cv_folds.png", "and is not interpreted in isolation.", 3),
-    ("multi_resolution_spatial.png", "does not imply an absence of scale loss.", 4),
-    ("resolution_effects.png", "Table 4 lists the full ladder.", 5),
-    ("adaptive_ablation.png", "produces 4,173 mixed cells, compared with 6,909 cells for uniform R11 refinement (Fig. 6).", 6),
+    ("spatial_cv_folds.png", "and is not interpreted in isolation.", 4),
+    ("multi_resolution_spatial.png", "does not imply an absence of scale loss.", 5),
+    ("resolution_effects.png", "Table 4 lists the full ladder.", 6),
 ]
 
 

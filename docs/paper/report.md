@@ -128,7 +128,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 1. 下载/校验 `data/raw/nyc/`，写入 `DOWNLOAD_MANIFEST.json` / `DATA_SOURCES.md`。  
 2. `build_nyc_h3.py --no-fixtures` → `data/processed/nyc_h3_cells.parquet`（opendata）。  
 3. `pluvial-nyc-smoke` → `models/nyc_smoke/*`、`outputs/*`（空间 CV、Jaccard、自适应、情景、负对照）。  
-4. SciencePlots + TNR 重绘六图到 `docs/paper/figures/`（工作流、空间结果图、空间 CV、多分辨率空间图、分辨率效应、自适应消融；脚本 `scripts/make_figures.py`；另输出补充图 `supplementary/jaccard_by_resolution.png`）。  
+4. SciencePlots + TNR 重绘六图到 `docs/paper/figures/`（工作流、空间结果图、源证据分解图、空间 CV、多分辨率空间图、分辨率效应；脚本 `scripts/make_figures.py`；另输出补充图 `supplementary/jaccard_by_resolution.png` 与 `supplementary/adaptive_ablation.png`）。  
 5. `scripts/build_paper_report_html.py` → 自包含 `report.html`（Base64 图、内联 CSS）。  
 6. Chrome headless `--print-to-pdf` → `report.pdf`（若失败，以 HTML 为准并记入 acceptance）。
 
@@ -148,8 +148,8 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 | spatial_cv_n_folds / n_blocks | 5 / 7 |
 | accuracy mean ± std | 0.808090 ± 0.085380 |
 | F1 mean ± std | 0.863716 ± 0.0612 |
-| R² mean ± std | 0.075526 ± 0.329439 |
-| MAE mean | 0.329049 |
+| R² mean ± std | 0.078968 ± 0.338043 |
+| MAE mean | 0.326358 |
 | random_split_val_accuracy（诊断） | 0.620690 |
 | 留出正类占比（prevalence） | 0.6950 |
 | 多数类（恒判正）基线 accuracy | **0.687** |
@@ -159,7 +159,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 | 留出 AP（pooled） | **0.803**（随机基线 = 正类占比 0.695） |
 
 **来龙去脉：** smoke 跑完后，训练脚本把 GroupKFold 各折平均写入 metadata；随后 `scripts/compute_classification_baselines.py` 读取 `spatial_cv_folds.csv`，对每折计算“全部判正”“全部判负”两种平凡基线并写入 `outputs/`。这是论文/报告里**唯一优先引用的评价汇总**，且**必须**连同类别占比与多数类基线一起引用。**注意：2026-08-23 审稿修订（C1：剔除 DEP category 3 海岸高潮位、C5：负对照分组修复、M5：ponding 基线去泄漏）后，正类占比从 80.1% 降至 69.5%，模型 accuracy/F1 从“低于多数类基线”变为“超过多数类基线”。**  
-**如何读：** 先看正类占比（0.695，即 69.5% 留出单元为正），再看多数类基线（恒判正 acc 0.687 / F1 0.813），最后才看模型分数（0.808 / 0.864）。模型分数**超过**多数类基线（0.808 > 0.687；0.864 > 0.813），说明在空间块留出下模型具备超过“闭眼判洪”的判别力；留出 ROC-AUC 0.741、AP 0.803 高于 0.695 随机基线，进一步支持**中等排序判别力**。但 R² 仍接近 0（0.076），说明证据分回归对“人造 evidence score”的解释力有限。随机划分准确率（0.621）低于空间 CV，仅提示“换协议分数会变”，不能当主结果。  
+**如何读：** 先看正类占比（0.695，即 69.5% 留出单元为正），再看多数类基线（恒判正 acc 0.687 / F1 0.813），最后才看模型分数（0.808 / 0.864）。模型分数**超过**多数类基线（0.808 > 0.687；0.864 > 0.813），说明在空间块留出下模型具备超过“闭眼判洪”的判别力；留出 ROC-AUC 0.741、AP 0.803 高于 0.695 随机基线，进一步支持**中等排序判别力**。但 R² 仍接近 0（0.079），说明证据分回归对“人造 evidence score”的解释力有限。随机划分准确率（0.621）低于空间 CV，仅提示“换协议分数会变”，不能当主结果。  
 **意义：** 空间块留出让评价设计更诚实；在类别失衡时，accuracy/F1 必须与平凡基线对照。修订后的模型在小窗口已能超过多数类基线，但这是**单一小试点**的结果，不得外推到全市。  
 **结论（允许）：** LM smoke 上协议可跑通（能训练、能分块评价、能出表），模型在小窗口超过多数类平凡基线。  
 **结论（禁止）：** 全市技能；“强分类判别力”（阈值化 accuracy/F1 虽超过多数类基线，但 ROC-AUC/AP 仅为中等，且 n=141 小样本）；用随机划分替换空间 CV；“已解决事件响应预报”。
@@ -170,11 +170,11 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 
 | fold | n_train | n_test | accuracy | f1 | r2 | mae |
 |------|---------|--------|----------|-----|-----|-----|
-| 0 | 92 | 49 | 0.755 | 0.842 | −0.368 | 0.402 |
-| 1 | 116 | 25 | 0.840 | 0.882 | −0.027 | 0.365 |
-| 2 | 119 | 22 | 0.773 | 0.839 | −0.047 | 0.367 |
-| 3 | 120 | 21 | 0.714 | 0.786 | 0.190 | 0.300 |
-| 4 | 117 | 24 | 0.958 | 0.970 | 0.630 | 0.211 |
+| 0 | 92 | 49 | 0.755 | 0.842 | −0.362 | 0.402 |
+| 1 | 116 | 25 | 0.840 | 0.882 | −0.037 | 0.370 |
+| 2 | 119 | 22 | 0.773 | 0.839 | −0.048 | 0.365 |
+| 3 | 120 | 21 | 0.714 | 0.786 | 0.183 | 0.301 |
+| 4 | 117 | 24 | 0.958 | 0.970 | 0.659 | 0.194 |
 
 **来龙去脉：** 每个 fold 留出 1–2 个粗 H3 父块；测试块 ID 列在 CSV 的 `test_block_ids`。  
 **如何读：** Fold4 准确率 0.917 明显高于其他折——这正是必须同时报告 **std** 的原因：块大小与正负类比例不均时，单折会跳动。  
@@ -194,9 +194,22 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 **结论（允许）：** 图面仅作视觉检视；三面板同源同支撑，数字与 §5.1/§5.6 完全一致。  
 **结论（禁止）：** 把图面高低当作独立验证；从 r=0.401 读出"模型失效"或"模型完美"（label 双峰构造是 r 偏低的主因之一）；把全拟合 panel (c) 当作第三种验证结果。
 
-#### 图 3 · `docs/paper/figures/spatial_cv_folds.png`
+#### 图 3 · `docs/paper/figures/source_evidence_maps.png`
 
-**来龙去脉：** 由 `spatial_cv_folds.csv` 经 `src/pluvial_flood_risk/figures.py`（SciencePlots + TNR）绘制 Accuracy/F1 成对标记点，末位为 Mean±SD 误差棒。  
+**来源：** `data/processed/nyc_h3_cells.parquet` 的源区分列（`dep_area_frac` / `complaint_count` / `ida_hwm_count` / `flood_risk`）＋ `data/raw/nyc/dem.tif`（地形底图）＋ `data/raw/nyc/hydro_streams.geojson`（岸线水系）。
+
+**来龙去脉：** 这是 2026-08-23 审稿修订（C3：源区分 provenance）新增的**直观源证据分解图**，把「三源被保留为独立列、再合成 composite」这件事从代码列存在变成可视可读。四面板同 R9 支撑：**(a)** DEP 雨水洪泛多边形面积分数（category 1–2，连续 0–1 viridis）；**(b)** 311 众包报告计数（magma 计数色标）；**(c)** USGS Ida 高水位点计数（plasma 计数色标）；**(d)** composite `flood_risk` 证据分（viridis 0–1）。图 2(a) 的 composite 表面在此被拆成「哪个源驱动了每个高证据单元」。
+
+**如何读：** (a)(d) 共享 0–1 连续色标；(b)(c) 用计数色标。看三源的单元集**重叠但不完全相同**，而 (d) 是三者取 max 的结果——这正是 Highlights 声称「three sources are kept distinct」的可视化证据。
+
+**意义：** 直接回应审稿人对「source kept distinct 只是文档措辞、训练表未保留源列」的质疑；同时满足「增加直观空间图、减少单调统计图」的要求。
+
+**结论（允许）：** DEP/311/HWM 三源在 H3 支撑上空间部分重叠但不重合；composite = 三者 max，非无差别合并。  
+**结论（禁止）：** 把 DEP 面板当作独立「观测洪水」；把计数色标（b/c）与 0–1 连续色标（a/d）混读。
+
+#### 图 4 · `docs/paper/figures/spatial_cv_folds.png`
+
+**来龙去脉：** 由 `spatial_cv_folds.csv` 经 `src/pluvial_flood_risk/figures.py`（SciencePlots + TNR）绘制 Accuracy/F1 成对标记点，末位为 Mean±SD 误差棒；三条水平参考线分别标注恒判正 accuracy、恒判正 F1、恒判负 accuracy。  
 **如何读：** 横轴 fold_id + Mean±SD；纵轴 0–1；每折两个偏移标记点（圆=Accuracy、方=F1）。  
 **意义：** 把表 2 变成可一眼比较的稳定性图。  
 **结论：** 多数折 Accuracy≈0.71–0.84，Fold4（n=24）抬高均值至 0.958；与表 1 一致。仍是 LM smoke。
@@ -224,15 +237,15 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 **结论（允许）：** 开放证据下，mean 上卷到 R9/R8 会严重改变热点集合（Jaccard 0.21/0.17）。  
 **结论（禁止）：** “我们得到了与 Svellingen 相同的 Jaccard 0.14”；把 max/p90=1 写成模型完美。
 
-#### 图 4 · `docs/paper/figures/multi_resolution_spatial.png`
+#### 图 5 · `docs/paper/figures/multi_resolution_spatial.png`
 
-**来源：** `data/processed/nyc_h3_cells_r10_labels.parquet`（991 个 R10 单元）经 `h3.cell_to_parent` mean 上卷至 R9（160）/ R8（31），与图 5 完全同源。
+**来源：** `data/processed/nyc_h3_cells_r10_labels.parquet`（991 个 R10 单元）经 `h3.cell_to_parent` mean 上卷至 R9（160）/ R8（31），与图 6 完全同源。
 
 **来龙去脉：** 对照参考论文 Fig 4 体例新增的"多分辨率空间并排图"。(a) R10 开放标签分（n=991）；(b) R9 mean 上卷（n=160）；(c) R8 mean 上卷（n=31）。三面板同一地理足迹、共享 0–1 viridis 色标，把"粗化伴随的平滑"直接变成可视的空间压缩，不新增任何统计量。
 
-**如何读：** 三面板从细到粗，看细粒度热点在 R9/R8 均值上卷后如何被抹平；颜色只表达开放标签分（0–1），与图 5 的分布压缩互补。
+**如何读：** 三面板从细到粗，看细粒度热点在 R9/R8 均值上卷后如何被抹平；颜色只表达开放标签分（0–1），与图 6 的分布压缩互补。
 
-**意义：** 补齐参考论文最重要的"多分辨率空间图"图型，与图 5（统计视图）构成"空间效应 + 统计效应"双层证据。
+**意义：** 补齐参考论文最重要的"多分辨率空间图"图型，与图 6（统计视图）构成"空间效应 + 统计效应"双层证据。
 
 **结论（允许）：** 开放标签分在 R10 呈现局部热点，mean 上卷到 R8 后热点被平滑。  
 **结论（禁止）：** 把面板颜色深浅当作独立验证；声称该图证明"模型准确"。
@@ -244,7 +257,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 **意义：** 可视化尺度损失（数值已完整列于表 3）。  
 **结论：** mean 在 R8 损失最大；禁止与 PFIb 的 0.14 数值等同。
 
-#### 图 5 · `docs/paper/figures/resolution_effects.png`
+#### 图 6 · `docs/paper/figures/resolution_effects.png`
 
 **来源：** `data/processed/nyc_h3_cells_r10_labels.parquet`（991 个 R10 单元）经 `h3.cell_to_parent` mean 上卷至 R9（160）/ R8（31）。
 
@@ -280,11 +293,11 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 **结论（允许）：** 本 smoke 设定下自适应把均匀细网格单元数降到约六成（**仅单元数**）。  
 **结论（禁止）：** 全市算力节省；自适应已提高泛化技能（本表是**单元数**消融，不是技能提升表，也不是 runtime/memory/hotspot 证据）。
 
-#### 图 6 · `docs/paper/figures/adaptive_ablation.png`
+#### 补充图 S2 · `docs/paper/figures/supplementary/adaptive_ablation.png`
 
-**来龙去脉：** 三柱条形图对应表 4 三个单元数，顶部标注「Adaptive = 29.6× fixed R9 = 60.4% of uniform R11（representation size only）」。  
+**来龙去脉：** 三柱条形图对应表 4 三个单元数，顶部标注「Adaptive = 29.6× fixed R9 = 60.4% of uniform R11（representation size only）」。2026-08-23 审稿修订（M5）将其**从主图降级为补充图**：这是单元数（representation-size）比较，数值已列于正文 Table 5，单调粗三柱图没有必要占据主文图位。  
 **如何读：** 中间柱应介于左右之间；顶部标注直接给出两个比率。  
-**意义：** 一眼看到成本折中。  
+**意义：** 仅作表 4/Table 5 的可视化补充。  
 **结论：** 与表 4 一致；非全市声明。
 
 ---
@@ -300,15 +313,24 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 | n_coastal_only / n_pluvial_only | 9 / 76 |
 | n_neither | 34 |
 | frac_coastal_only | 0.0638 |
-| pluvial_minus_coastal_mean_score | 0.8879 |
-| score_col | flood_risk（= flood_evidence_score） |
+| score_col | **oof_model_score**（留出模型分，非 target） |
+| mean_score_coastal_only | 0.644 |
+| mean_score_pluvial_only | 0.840 |
+| mean_score_both | 0.771 |
+| mean_score_neither | 0.323 |
+| pluvial_minus_coastal_mean_score | **0.195** |
+| coastal_only_among_high_score | 0.034 |
+| pluvial_among_high_score | 0.759 |
 | assembly_mode | opendata |
 
-**来龙去脉：** 把 FEMA Sandy 沿海淹没与开放 pluvial 证据叠在同一批 H3 单元上，检查空间是否完全重合。**注意：2026-08-23 审稿修订（C5）后，pluvial 分组改用 composite `flood_class==1`（与证据分一致，含点标签），修复了旧版 `flood_area_frac>0` 导致的 "neither" 行 mean=0.613 异常——现 "neither" 行 mean=0.000。**  
-**如何读：** `n_both=22` 说明有重叠；`n_coastal_only=9`（6.4%）说明存在“只沿海、不落进 pluvial 证据”的单元，且其 mean 证据分 = 0.000；pluvial-only 均值 0.888，分差 0.888。  
-**意义：** 负对照提醒模型不要把 coastal 过程误当成 pluvial 训练信号；coastal-only 均值为 0 表明证据未集中于纯海岸单元。  
-**结论（允许）：** 证据空间不完全重合；coastal-only 均值 0 提示海岸混杂在标签层面已被缓解。  
-**结论（禁止）：** 不得声称“已验证因果分离”（负对照仅是诊断、非因果证明）；不得将 Sandy 用作训练标签。
+**来龙去脉：** 把 FEMA Sandy 沿海淹没与开放 pluvial 证据叠在同一批 H3 单元上，检查空间是否完全重合。**注意：2026-08-23 审稿修订（C4）后，负对照的 score 比较从 target `flood_risk` 改为留出（OOF）模型分 `oof_model_score`**——因为 coastal-only 单元 `flood_class=0` 是定义，其 target `flood_risk=0` 是恒等式，用 target 比较是循环论证；只有 OOF 模型分才能检验「模型是否把证据集中到纯海岸单元」。同时 pluvial 分组沿用 composite `flood_class==1`（含点标签），修复旧版 `flood_area_frac>0` 的 "neither" 行异常。
+
+**如何读：** `n_coastal_only=9`（6.4%）的**留出模型分均值为 0.644**，并非 0——说明模型确实**部分学习了低海拔/近岸信号**；`n_pluvial_only=76` 的留出分为 0.840，分差 0.195。因此模型并非「完全不把证据集中在海岸单元」，但 pluvial-only 仍最高、top-20% 分数单元中 coastal-only 仅占 3.4%，说明模型没有被海岸位置单独驱动。这是比旧版（coastal-only target=0.000、分差 0.888）**更诚实**的结论。
+
+**意义：** 负对照真正回答了「模型是否偷学海岸位置」：答案是「部分（coastal-only OOF=0.644 vs neither=0.323），但不主导（pluvial-only=0.840 更高，top 分数单元 75.9% 为 pluvial）」。
+
+**结论（允许）：** 证据空间不完全重合；留出模型分在 coastal-only 单元非零，提示海岸混杂在特征层面部分存在；但 pluvial 信号仍占主导。  
+**结论（禁止）：** 不得声称「已用 target 证明海岸混杂被消除」（那会是循环论证）；不得将 Sandy 用作训练标签。
 
 ---
 
@@ -340,42 +362,42 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 | n_cells | **956** | 141 |
 | spatial_cv_n_blocks | **28** | 7 |
 | spatial_cv_n_folds | 5 | 5 |
-| 正类占比（held-out） | **0.365** | 0.695 |
-| spatial_cv_accuracy_mean ± std | **0.722 ± 0.082** | 0.808 ± 0.085 |
-| spatial_cv_f1_mean | **0.498** | 0.864 |
-| spatial_cv_r2_mean ± std | **0.518 ± 0.102** | 0.076 ± 0.329 |
-| spatial_cv_mae_mean | **0.109** | 0.329 |
-| random_split_val_accuracy（仅诊断） | 0.771 | 0.621 |
-| always-positive accuracy | **0.365** | 0.687 |
-| always-positive F1（折内均值） | **0.527** | 0.813 |
-| always-negative accuracy | **0.635** | 0.313 |
+| 正类占比（held-out） | **0.497** | 0.695 |
+| spatial_cv_accuracy_mean ± std | **0.824 ± 0.013** | 0.808 ± 0.085 |
+| spatial_cv_f1_mean | **0.832** | 0.864 |
+| spatial_cv_r2_mean ± std | **0.346 ± 0.138** | 0.079 ± 0.338 |
+| spatial_cv_mae_mean | **0.284** | 0.326 |
+| random_split_val_accuracy（仅诊断） | 0.844 | 0.621 |
+| always-positive accuracy | **0.497** | 0.687 |
+| always-positive F1（折内均值） | **0.663** | 0.813 |
+| always-negative accuracy | **0.503** | 0.313 |
 | always-negative F1（正类） | 0.000 | 0.000 |
-| 恒定多数类（真多数类） | 恒判负，acc 0.635 | 恒判正，acc 0.687 |
-| 模型是否超过恒定多数类 accuracy | **是（0.722 > 0.635）** | 是（0.808 > 0.687） |
-| 模型是否超过 always-positive F1 | 否（0.498 < 0.527） | 是（0.864 > 0.813） |
-| ROC-AUC（pooled，留出） | **0.746** | 0.741 |
-| AP / average precision（pooled，留出） | **0.641** | 0.803 |
-| 随机 AP 基线（=正类占比） | 0.365 | 0.695 |
+| 恒定多数类（真多数类） | 恒判负，acc 0.503 | 恒判正，acc 0.687 |
+| 模型是否超过恒定多数类 accuracy | **是（0.824 > 0.503）** | 是（0.808 > 0.687） |
+| 模型是否超过 always-positive F1 | **是（0.832 > 0.663）** | 是（0.864 > 0.813） |
+| ROC-AUC（pooled，留出） | **0.875** | 0.741 |
+| AP / average precision（pooled，留出） | **0.822** | 0.803 |
+| 随机 AP 基线（=正类占比） | 0.497 | 0.695 |
 
 **逐折明细（`models/nyc_expanded/spatial_cv_folds.csv`）：**
 
 | fold | n_test | 正/负 | accuracy | f1 | r2 |
 |------|--------|-------|----------|----|----|
-| 0 | 191 | 102 / 89 | 0.806 | 0.802 | 0.503 |
-| 1 | 191 | 51 / 140 | 0.565 | 0.303 | 0.696 |
-| 2 | 191 | 80 / 111 | 0.738 | 0.615 | 0.517 |
-| 3 | 190 | 51 / 139 | 0.737 | 0.167 | 0.498 |
-| 4 | 193 | 65 / 128 | 0.762 | 0.603 | 0.376 |
+| 0 | 191 | 108 / 83 | 0.827 | 0.845 | 0.445 |
+| 1 | 191 | 97 / 94 | 0.848 | 0.857 | 0.385 |
+| 2 | 191 | 98 / 93 | 0.817 | 0.837 | 0.273 |
+| 3 | 190 | 82 / 108 | 0.821 | 0.805 | 0.508 |
+| 4 | 193 | 90 / 103 | 0.808 | 0.816 | 0.118 |
 
 **意义（为什么这个表重要）：**
 
-1. **类别失衡随空间范围变化。** 扩展窗口正类占比 36.5%（多数类为负），小窗口 69.5%（多数类为正）。这提示两个范围的正类覆盖差异较大（范围敏感），但本报告**尚未量化**两个范围下各标签分量（DEP/311/Ida）的覆盖差异，因此不宣称“已证明”范围敏感的具体成因。
-2. **两个窗口 accuracy 都超过各自恒定多数类基线。** 小窗口 0.808 > 0.687（恒判正）、扩展窗口 0.722 > 0.635（恒判负）。这是阈值化 accuracy 层面的证据，但**不等同于**阈值无关的判别力证明。
-3. **证据分 R² 随范围变化。** 小窗口 R²≈0.076，扩展窗口 R²≈0.518，说明在更大样本上证据分回归出现正信号。但单个扩展试点**不能**归因于“样本规模不足是小窗口 R² 近零的原因”——该差异只表明范围敏感，未识别其具体成因。
-4. **扩展窗口 F1 仍低于 always-positive 比较器（0.498 < 0.527，折内均值）。** F1 是对正类的调和平均；模型为了提升精度牺牲了部分 recall，导致 F1 略低于该比较器。因此单看扩展窗口 F1，**不能主张“分类技能”**；小窗口则 F1 已超过 always-positive（0.864 > 0.813）。
-5. **阈值无关判别指标为中等。** 留出 pooled ROC-AUC：小窗口 0.741、扩展窗口 0.746；AP：小窗口 0.803（基线 0.695）、扩展窗口 0.641（基线 0.365），均高于各自随机基线。这提示存在**中等程度**的留出排序判别力。但 ROC-AUC/AP 只回答“排序是否优于随机”，不回答“正类 F1 是否优于 always-positive”，故总体结论仍为**判别力中等、而非强**。
+1. **类别失衡随空间范围变化。** 扩展窗口正类占比 49.7%（正 475 / 负 481，近均衡），小窗口 69.5%（多数类为正）。这提示两个范围的正类覆盖差异较大（范围敏感），但本报告**尚未量化**两个范围下各标签分量（DEP/311/Ida）的覆盖差异，因此不宣称“已证明”范围敏感的具体成因。**注意：2026-08-23 修复扩展窗口数据路径 bug（此前误用 `data/raw/nyc/` 下的小窗口栅格/311 快照覆盖在扩展 bbox 上）后，扩展窗口正类占比由 36.5% 升至 49.7%（311 证据单元由 145→367），各项指标相应更新。**
+2. **两个窗口 accuracy 都超过各自恒定多数类基线。** 小窗口 0.808 > 0.687（恒判正）、扩展窗口 0.824 > 0.503（恒判负）。这是阈值化 accuracy 层面的证据，但**不等同于**阈值无关的判别力证明。
+3. **证据分 R² 随范围变化。** 小窗口 R²≈0.079，扩展窗口 R²≈0.346，说明在更大样本上证据分回归出现正信号。但单个扩展试点**不能**归因于“样本规模不足是小窗口 R² 近零的原因”——该差异只表明范围敏感，未识别其具体成因。
+4. **扩展窗口 F1 已超过 always-positive 比较器（0.832 > 0.663，折内均值），且逐折 F1 稳定（0.805–0.857）。** 修复数据路径 bug 后，扩展窗口的逐折类别构成近均衡（正类测试数 82–108），F1 不再出现旧版 Fold3=0.167 的极端波动。小窗口 F1 亦超过 always-positive（0.864 > 0.813）。
+5. **阈值无关判别指标为中等偏强。** 留出 pooled ROC-AUC：小窗口 0.741、扩展窗口 0.875；AP：小窗口 0.803（基线 0.695）、扩展窗口 0.822（基线 0.497），均明显高于各自随机基线。但 ROC-AUC/AP 只回答“排序是否优于随机”，不回答“正类 F1 是否优于 always-positive”；结合第 4 点，两个窗口的 F1 均已超过各自平凡比较器，故总体结论上调为**判别力中等偏强（仍非“强分类技能”，且非全市）**。
 
-**结论（honest）：** 扩展窗口主表**不是全市结果**（仍是曼哈顿试点），但两个窗口在空间块留出下都建立了**超过各自多数类基线的阈值化 accuracy**，且留出 ROC-AUC≈0.74/AP 均高于随机基线，给出**中等**阈值无关排序判别力。扩展窗口正类 F1 仍低于 always-positive 比较器（0.498 < 0.527），故**分类证据混合、判别力中等而非强、仍不主张全市“分类技能”**。下一步仍缺：真正的 citywide 范围、观测事件降雨（当前合成常数导致 `PFI_h` 情景平坦）、FloodNet 留出验证。
+**结论（honest）：** 扩展窗口主表**不是全市结果**（仍是曼哈顿试点），但两个窗口在空间块留出下都建立了**超过各自多数类基线的阈值化 accuracy 与超过 always-positive 比较器的 F1**，且留出 ROC-AUC（0.741 / 0.875）与 AP（0.803 / 0.822）均高于各自随机基线，给出**中等偏强**的阈值无关排序判别力。旧版“扩展窗口 F1 低于 always-positive（0.498 < 0.527）”的判断已随数据路径 bug 修复而**不再成立**。下一步仍缺：真正的 citywide 范围、观测事件降雨（当前合成常数导致 `PFI_h` 情景平坦）、FloodNet 留出验证。
 
 ---
 
@@ -389,7 +411,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 4. **自适应**由 trained `PFI_h` 驱动；  
 5. **语义澄清**：`PFI_h(c,r)` ≠ importance ≠ PFIb。
 
-证据强度仅支撑“协议可跑通 + 尺度损失可见 + 单元数可降”，**不支撑**“全市可部署事件响应系统”。分类方面（2026-08-23 修订后）：小窗口（69.5% 正类，7 块）模型在 accuracy/F1 上**均超过**恒判正基线（0.808 > 0.687、0.864 > 0.813）；扩展窗口（`manhattan_expanded`，36.5% 正类，28 块）模型在 accuracy 上**超过**恒定多数类（恒判负）基线（0.722 > 0.635），但正类 F1 仍低于 always-positive 比较器（0.498 < 0.527，折内均值）。留出阈值无关指标为**中等**：小窗口 pooled ROC-AUC 0.741 / AP 0.803（随机基线 0.695），扩展窗口 pooled ROC-AUC 0.746 / AP 0.641（随机基线 0.365）。故**分类证据混合、判别力中等而非强、仍不主张全市“分类技能”**。311 报告偏差（arcgis_streetfloodtime 2010–2014 快照）、DEP 为模型导出（非观测）、潮汐岸线水文代理、合成降雨、平坦情景 PFI、小样本块不均（小窗口仅 7 块分 5 折），是主要科学风险。
+证据强度仅支撑“协议可跑通 + 尺度损失可见 + 单元数可降”，**不支撑**“全市可部署事件响应系统”。分类方面（2026-08-23 修订后）：小窗口（69.5% 正类，7 块）模型在 accuracy/F1 上**均超过**恒判正基线（0.808 > 0.687、0.864 > 0.813）；扩展窗口（`manhattan_expanded`，49.7% 正类，28 块）模型在 accuracy/F1 上**均超过**各自恒定多数类/always-positive 基线（0.824 > 0.503、0.832 > 0.663，折内均值）。留出阈值无关指标：小窗口 pooled ROC-AUC 0.741 / AP 0.803（随机基线 0.695），扩展窗口 pooled ROC-AUC 0.875 / AP 0.822（随机基线 0.497）——为**中等偏强**排序判别力，仍不升格为“强分类技能”，也不主张全市。311 报告偏差（arcgis_streetfloodtime 2010–2014 快照）、DEP 为模型导出（非观测）、潮汐岸线水文代理、合成降雨、平坦情景 PFI、小样本块不均（小窗口仅 7 块分 5 折），是主要科学风险。
 
 独立 WebSearch（本轮）再次确认：Svellingen DOI 与 Jaccard≈0.14 / ~98% 效率叙述；spatial CV / GroupKFold 是 GeoAI 诚实评价的标准关切。ChatGPT 顾问若稍后回复，只合并**不冲突**建议；冲突时以 locked science 为准。
 
@@ -397,10 +419,10 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 
 ## 7. 结论 Conclusions
 
-1. 开放标签 H3+ML + 空间块 CV 已产生两个试点（LM smoke `n=141`、扩展窗口 `n=956`）的可引用元数据，以及六张 SciencePlots 主图（工作流 F1、空间结果图 F2、空间 CV F3、Jaccard F4、分辨率效应 F5、自适应 F6）。  
+1. 开放标签 H3+ML + 空间块 CV 已产生两个试点（LM smoke `n=141`、扩展窗口 `n=956`）的可引用元数据，以及六张 SciencePlots 主图（工作流 F1、空间结果图 F2、源证据分解 F3、空间 CV F4、多分辨率空间 F5、分辨率效应 F6）。  
 2. Jaccard 与自适应消融提供了与 PFIb 文献可**概念对话**、但不可**数值等同**的证据。  
 3. `PFI_h(c,r)` 定义已绑定；情景响应与 I2 观测降雨为下一步（待补充）。  
-4. **分类证据混合、判别力中等而非强、仍不主张“分类技能”**：小窗口 accuracy/F1（0.808/0.864）**超过**多数类（恒判正）平凡基线（0.687/0.813）；扩展窗口 accuracy 超过恒定多数类（恒判负）基线（0.722 > 0.635）且证据分 R²=0.518，但正类 F1（0.498）仍低于 always-positive 比较器（0.527，折内均值）。留出阈值无关指标（pooled）：小窗口 ROC-AUC 0.741 / AP 0.803（随机基线 0.695），扩展窗口 ROC-AUC 0.746 / AP 0.641（随机基线 0.365）——均为**中等**排序判别力，不升格为“强分类技能”。  
+4. **分类证据为“中等偏强判别力、仍不主张强分类技能/全市”**：小窗口 accuracy/F1（0.808/0.864）**超过**多数类（恒判正）平凡基线（0.687/0.813）；扩展窗口 accuracy/F1（0.824/0.832）**超过**恒定多数类（恒判负，0.503）与 always-positive F1（0.663），证据分 R²=0.346。留出阈值无关指标（pooled）：小窗口 ROC-AUC 0.741 / AP 0.803（随机基线 0.695），扩展窗口 ROC-AUC 0.875 / AP 0.822（随机基线 0.497）——均为**中等偏强**排序判别力，不升格为“强分类技能”，且非全市。旧版“扩展窗口 F1 低于 always-positive”的判断已随 2026-08-23 数据路径 bug 修复而废止。  
 5. 可主张创新点见 `docs/paper/innovation_and_framework.md` 的 I1–I5；拒绝 PFIb 复现、Jaccard 0.14 等同、LM→citywide、雷达降雨、平坦情景判别、以及“分类有技能”的表述。
 
 ---
@@ -411,7 +433,7 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 |------|------|
 | LM smoke n=141 ≠ citywide | 锁定 |
 | 扩展窗口 `manhattan_expanded` n=956 ≠ citywide | 锁定（`outputs/expanded_primary_table.json`） |
-| 类别失衡（修订后：小窗口 69.5% 正类 → 模型 accuracy/F1 均超恒判正基线；扩展窗口 36.5% → accuracy 超基线、F1 未超） | **锁定**（`outputs/classification_baselines.json` / `classification_baselines_expanded.json`，2026-08-23 修订） |
+| 类别失衡（修订后：小窗口 69.5% 正类 → 模型 accuracy/F1 均超恒判正基线；扩展窗口 49.7% 正类 → accuracy/F1 均超基线） | **锁定**（`outputs/classification_baselines.json` / `classification_baselines_expanded.json`，2026-08-23 修订 + 数据路径 bug 修复） |
 | 合成 `event_raster`；I2 阻塞 | 锁定 |
 | 情景 PFI_h 单元内极差=0 | 锁定（待补充修复） |
 | FloodNet 默认关闭 | 锁定 |
@@ -419,8 +441,11 @@ Provenance：`assembly_mode=opendata`；降雨侧仍可能报告 `rainfall_sourc
 | ROC-AUC / AP 留出判别指标 | **完成**（`models/*/spatial_cv_oof_predictions.csv`；小窗口 `outputs/smoke_discrimination.json`；扩展窗口 `outputs/expanded_primary_table.json`） |
 | 工作流图 F1 schematic | **完成**（`docs/paper/figures/workflow_schematic.png`，SciencePlots + TNR） |
 | 空间结果图 F2（观测/留出/PFI_h 三面板） | **完成**（`docs/paper/figures/spatial_maps.png`；仅视觉检视，非独立验证） |
-| 多分辨率空间图 F4（R10/R9/R8 开放标签分三面板） | **完成**（`docs/paper/figures/multi_resolution_spatial.png`；数据与 F5 同源，`nyc_h3_cells_r10_labels.parquet`） |
-| 分辨率效应图 F5（分布小提琴 + Jaccard 矩阵） | **完成**（`docs/paper/figures/resolution_effects.png`；数值与 Jaccard 阶梯表一致） |
+| 源证据分解图 F3（DEP/311/HWM/composite 四面板） | **完成**（`docs/paper/figures/source_evidence_maps.png`；C3 源区分 provenance 的可视化证据，2026-08-23 新增） |
+| 空间 CV 图 F4（Accuracy/F1 成对标记 + 三基线） | **完成**（`docs/paper/figures/spatial_cv_folds.png`；数据来自 `models/nyc_smoke/spatial_cv_folds.csv`） |
+| 多分辨率空间图 F5（R10/R9/R8 开放标签分三面板） | **完成**（`docs/paper/figures/multi_resolution_spatial.png`；数据与 F6 同源，`nyc_h3_cells_r10_labels.parquet`） |
+| 分辨率效应图 F6（分布小提琴 + Jaccard 矩阵） | **完成**（`docs/paper/figures/resolution_effects.png`；数值与 Jaccard 阶梯表一致） |
+| 自适应消融补充图 S2（三柱单元数） | **完成**（`docs/paper/figures/supplementary/adaptive_ablation.png`；主文已表格化，图降级为补充） |
 | ChatGPT web-search 顾问回复 | 已收到 R6–R10 活体评审（2026-08-17 人工粘贴），正在合并 |
 | GitHub 远程仓库 | **已公开** https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3（勿重复 `gh repo create`；勿 force-push） |
 

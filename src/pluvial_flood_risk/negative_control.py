@@ -41,11 +41,17 @@ def negative_control_metrics(
     score_quantile: float = 0.8,
 ) -> dict[str, float | str]:
     """
-    Quantify whether high scores concentrate in coastal-only cells.
+    Quantify whether high *model* scores concentrate in coastal-only cells.
 
     A pluvial model should score **pluvial-only** cells higher than **coastal-only**
     cells. High ``coastal_only_among_high_score`` is a leakage warning (learning
     surge / low elevation near the water rather than rainfall ponding).
+
+    ``score_col`` **must be an out-of-fold (OOF) model score** (e.g.
+    ``oof_model_score``), never the target ``flood_risk``. Coastal-only cells have
+    ``flood_class == 0`` by construction, so their target ``flood_risk`` is 0 by
+    definition — comparing target scores would be circular. Only an OOF score can
+    test whether the model itself concentrates evidence on coastal-only cells.
 
     The pluvial mask follows the composite target ontology: ``flood_class == 1``
     means any positive flood evidence (polygon overlap OR point presence), which is
@@ -105,7 +111,7 @@ def negative_control_metrics(
     }
 
     if score_col is None:
-        for cand in ("predicted_risk", "PFI_h", "flood_risk"):
+        for cand in ("oof_model_score", "predicted_risk", "PFI_h", "flood_risk"):
             if cand in df.columns:
                 score_col = cand
                 break

@@ -532,8 +532,8 @@ PNG+PDF 均已按新尺寸重生成到 `docs/paper/figures/`。图号/正文 fir
 | 311 来源 | `source=arcgis_streetfloodtime`；日期 2010-01-07 → 2014-12-26；Lower n=488、Expanded n=1134 | ✓ 正文已更正（非 "2010–present"） |
 | 311 字段 | 含 `Created_Da`、`WPCP`、`COMB_OR_SE`、`Outfall`、`Intercepto`（雨水井/合流制上下文），**无** complaint_type/descriptor 字段 | ✓ 该图层即"街道积水"主题层，非宽泛 sewer 查询 |
 | HWM 质量 | `hwm_quality`：Fair 58 / Good 54 / Excellent 32 / Poor 15（共 159）；`height_above_gnd` 0–2.2 ft | ✓ 质量字段已保留；融合仍用 presence-only（§2 已声明为局限） |
-| 每源正类单元（Lower） | DEP polygon `flood_area_frac>0`：54/141；point `flood_point_count>0`：84/141；union 正类 98/141 | ✓ 与 composite `flood_class` 一致 |
-| 每源正类单元（Expanded） | DEP polygon：268/956；point：151/956；union 正类 349/956 | ✓ 一致 |
+| 每源正类单元（Lower） | DEP `dep_area_frac>0`：54/141；311 `complaint_count>0`：84/141；Ida HWM `ida_hwm_count>0`：**0/141**；union 正类 98/141 | ✓ 与 composite `flood_class` 一致；**HWM 在该 bbox 内无点（数据现实，非处理 bug）** |
+| 每源正类单元（Expanded） | DEP polygon：268/956；311 point：367/956（raw 1134 点）；Ida HWM：14 点（6 cell）/956；union 正类 475/956 | ✓ 一致（2026-08-23 修复扩展窗口数据路径 bug 后更新） |
 | R10 原生 overlay 断言 | `outputs/jaccard_by_resolution.csv`：`n_fine=991`、`n_hotspot_fine=149`（非旧 571）；`assembly_mode=native_overlay` | ✓ 无 parent inheritance |
 | 负对照 pluvial 定义 | `negative_control.json`：n_pluvial=98（=composite flood_class 正类），非旧 flood_area_frac>0 的 71 | ✓ 分组一致 |
 
@@ -545,8 +545,8 @@ PNG+PDF 均已按新尺寸重生成到 `docs/paper/figures/`。图号/正文 fir
 |----------|----------|--------|------|
 | accuracy 0.808 ± 0.085 | `spatial_cv_accuracy_mean/std` | 0.808090 / 0.085380 | ✓ |
 | F1 0.864 ± 0.061 | `spatial_cv_f1_mean`（std ddof=0） | 0.863716 / 0.0612 | ✓ |
-| evidence-score R² 0.076 ± 0.329 | `spatial_cv_r2_mean/std` | 0.075526 / 0.329439 | ✓ |
-| MAE 0.329 ± 0.068 | `spatial_cv_mae_mean`（std ddof=0） | 0.329049 / 0.0675 | ✓ |
+| evidence-score R² 0.079 ± 0.338 | `spatial_cv_r2_mean/std` | 0.078968 / 0.338043 | ✓ |
+| MAE 0.326 ± 0.074 | `spatial_cv_mae_mean`（std ddof=0） | 0.326358 / 0.073607 | ✓ |
 | pooled ROC-AUC 0.741 | `spatial_cv_roc_auc_pooled` | 0.740626 | ✓ |
 | pooled AP 0.803 | `spatial_cv_pr_auc_pooled` | 0.802505 | ✓ |
 | always-positive acc 0.687 | `always_positive_mean_acc` | 0.687168 | ✓ |
@@ -554,18 +554,20 @@ PNG+PDF 均已按新尺寸重生成到 `docs/paper/figures/`。图号/正文 fir
 | always-negative acc 0.313 | `always_negative_mean_acc` | 0.312832 | ✓ |
 | 模型超 always-positive | `model_beats_majority_acc/f1` | true / true | ✓（0.808>0.687，0.864>0.813） |
 
-**Expanded（n=956，28 block，正类 36.5%）** — 来源 `models/nyc_expanded/run_metadata.json` + `outputs/classification_baselines_expanded.json`：
+**Expanded（n=956，28 block，正类 49.7%）** — 来源 `models/nyc_expanded/run_metadata.json` + `outputs/classification_baselines_expanded.json`：
 
 | 手稿数字 | 产物字段 | 原始值 | 对账 |
 |----------|----------|--------|------|
-| accuracy 0.722 ± 0.082 | `spatial_cv_accuracy_mean/std` | 0.721690 / 0.082059 | ✓ |
-| F1 0.498 ± 0.230 | `spatial_cv_f1_mean`（std ddof=0） | 0.498032 / 0.2304 | ✓ |
-| evidence-score R² 0.518 ± 0.102 | `spatial_cv_r2_mean/std` | 0.518059 / 0.102343 | ✓ |
-| MAE 0.109 ± 0.059 | `spatial_cv_mae_mean`（std ddof=0） | 0.108939 / 0.0588 | ✓ |
-| pooled ROC-AUC 0.746 | `spatial_cv_roc_auc_pooled` | 0.746010 | ✓ |
-| pooled AP 0.641 | `spatial_cv_pr_auc_pooled` | 0.640952 | ✓ |
-| always-positive acc 0.365 / F1 0.527 | `always_positive_acc/f1_mean` | 0.365021 / 0.527050 | ✓ |
-| 恒定多数类（恒判负）acc 0.635 | `always_negative_acc_mean` = `majority_acc_mean` | 0.634979 | ✓ |
+| accuracy 0.824 ± 0.013 | `spatial_cv_accuracy_mean/std` | 0.824269 / 0.013032 | ✓ |
+| F1 0.832 ± 0.019 | `spatial_cv_f1_mean`（std ddof=0） | 0.832008 / 0.019181 | ✓ |
+| evidence-score R² 0.346 ± 0.138 | `spatial_cv_r2_mean/std` | 0.345874 / 0.138463 | ✓ |
+| MAE 0.284 ± 0.033 | `spatial_cv_mae_mean`（std ddof=0） | 0.283719 / 0.032830 | ✓ |
+| pooled ROC-AUC 0.875 | `spatial_cv_roc_auc_pooled` | 0.875 | ✓ |
+| pooled AP 0.822 | `spatial_cv_pr_auc_pooled` | 0.822 | ✓ |
+| always-positive acc 0.497 / F1 0.663 | `always_positive_acc/f1_mean` | 0.497 / 0.663 | ✓ |
+| 恒定多数类（恒判负）acc 0.503 | `always_negative_acc_mean` = `majority_acc_mean` | 0.503 | ✓ |
+
+> **重要（2026-08-23 数据路径 bug 修复）：** 上一版扩展窗口主表误用了 `configs/nyc.yaml` 中硬编码的 `data/raw/nyc/` 小窗口栅格/矢量（DEM、不透水、建筑、水系、311 点）覆盖在 `manhattan_expanded` bbox 上，导致扩展窗口大量单元的特征被合成哈希填充却标记为 "observed"，且 311 证据单元仅 145（应为 367）。修复 `scripts/run_expanded_study.py`（清除硬编码路径、改由 `discover_sources(raw_dir=nyc_expanded)` 解析）后重跑，扩展窗口正类占比由 36.5%→49.7%，上述全部指标相应更新。该 bug 仅影响扩展窗口，不影响 Lower Manhattan（`n=141`）小窗口——小窗口 `raw_dir=data/raw/nyc` 与其 bbox 天然一致。
 
 ### 9.4 尺度损失阶梯（R10 原生 overlay，修订后）
 
@@ -593,16 +595,19 @@ PNG+PDF 均已按新尺寸重生成到 `docs/paper/figures/`。图号/正文 fir
 | uniform R11 | 6,909 | 6,909 |
 | 占比 / 倍数 | 56.9% / 27.9× | **60.4% / 29.6×** |
 
-### 9.6 Sandy 负对照（composite flood_class，修订后）
+### 9.6 Sandy 负对照（composite flood_class + OOF 模型分，修订后）
 
-来源 `outputs/negative_control.json`：
+来源 `outputs/negative_control.json`（`score_col = oof_model_score`）：
 
 | 量 | 值 |
 |----|----|
 | 海岸 31 / 雨洪 98 / 两者 22 | ✓ |
 | coastal-only 9（6.4%） / pluvial-only 76（53.9%） / neither 34（24.1%） | ✓ |
-| mean score：coastal-only 0.000 / pluvial-only 0.888 / both 0.776 / **neither 0.000** | ✓（旧 "neither" 行 0.613 异常已消除） |
-| pluvial − coastal 0.888 | ✓ |
+| OOF 分：coastal-only 0.644 / pluvial-only 0.840 / both 0.771 / neither 0.323 | ✓（旧 target 口径 0.000/0.888/0.776/0.000 已废弃） |
+| pluvial − coastal OOF 分差 0.195 | ✓（旧 0.888 为循环论证，见 §10.2） |
+| top-20% 分数单元中 coastal-only 3.4% / pluvial 75.9% | ✓ |
+
+**结论修正**：旧版用 target `flood_risk` 比较，得到 coastal-only=0.000 是「定义恒等式」而非模型结论。改用留出（OOF）模型分后，coastal-only 单元 OOF 均值 **0.644**（非 0），说明模型**部分**学习了低海拔/近岸信号；但 pluvial-only 仍最高（0.840）、top 分数单元 75.9% 为 pluvial，故模型未被海岸位置单独驱动。
 
 ### 9.7 全量测试与复现
 
@@ -633,3 +638,65 @@ PY
 6. adaptive = representation-size 比较（in-sample full-fit 选择），非效率/hotspot 证明。
 7. ponding baseline 训练集归一化，无 test-fold 泄漏。
 8. 矩形 bbox 支撑、R7 先验、无 calibration、r 恒定 → 均已在正文显式声明为局限。
+
+---
+
+## 10. 代码—论文一致性闭环（2026-08-23 第二轮：C3 源区分 + C4 OOF 负对照）
+
+上一轮（§9）已关闭 C1/C2/C5/C6 四项"代码与论文不一致"的致命项，但形式审稿人指出仍有两处**代码实现尚未真正兑现论文措辞**：
+
+- **C3（源区分 provenance）**：手稿 Highlights/Abstract/§2 写 "three sources are kept distinct / retained separately in the provenance tags"，但 `labels.py` 的 `attach_observed_labels` 此前把所有 polygon/point 一次性合并，仅设 `label_source = "open_public_evidence"`，**并未产出任何 source-specific 列**。措辞 ≠ 实现。
+- **C4（Sandy 负对照循环）**：§9 已修好 grouping（composite `flood_class`），但 `negative_control_metrics` 传入的 `score_col` 仍是 target `flood_risk`。coastal-only cell 因 `flood_class=0` 而 `flood_risk=0` 是**定义恒等式**，故 Table 6 的 "0.000 vs 0.888" 不能证明"模型未学习海岸效应"——它根本没在测模型。
+
+本轮**先改代码、后改文字**，把这两项真正兑现。
+
+### 10.1 C3 处置：source-specific provenance 列
+
+`src/pluvial_flood_risk/labels.py` 的 `attach_observed_labels` 重写为**按文件名分类源 → 分源计算 → 合成 composite**：
+
+| 新列 | 含义 | 数据依据 |
+|------|------|----------|
+| `dep_area_frac` | DEP polygon 交叠面积分数（全类别） | `dep_stormwater_flood.geojson` |
+| `dep_nuisance_frac` | category 1（nuisance）面积分数 | `Flooding_Category == 1` |
+| `dep_deep_frac` | category 2（deep）面积分数 | `Flooding_Category == 2` |
+| `complaint_count` / `complaint_presence` | 311 点计数 / 0-1 存在 | `flooding_311.geojson` |
+| `ida_hwm_count` / `ida_hwm_presence` / `ida_hwm_quality` | Ida HWM 点计数 / 存在 / 质量字符串 | `usgs_ida_hwm.geojson` |
+| `evidence_sources` | 每 cell 命中的源字符串（`dep+complaint+hwm` / `none` 等） | 上述合成 |
+| `flood_risk`（composite） | `max(dep_area_frac, complaint_presence, ida_hwm_presence)` | 与旧语义一致 |
+
+`flood_area_frac` / `flood_point_count` 保留为聚合列（向后兼容 + 海岸 overlay 复用）。源身份由**约定文件名**识别（`dep_stormwater_flood`、`flooding_311`、`usgs_ida_hwm`、`fema_sandy`）；未识别文件回退为 `generic`，仍按几何类型贡献 composite。
+
+**语义不变性证据**：composite `flood_risk` = `max(area_frac, point_present)` 的构造与旧版语义一致，因此 binary classification（n_positive、prevalence、accuracy/F1、ROC-AUC/AP）、Jaccard ladder、adaptive 计数**均 bit 级不变**（accuracy 0.808089 前后一致）。回归指标（R²/MAE）有 ~0.003–0.004 的极小漂移（R² 0.075526→0.078968、MAE 0.329049→0.326358），系 C3 重写中 continuous-score 装配的浮点顺序差异所致，不改变"R²≈0.08 近零"的结论；§9.3 已按新值对账。只有负对照的 score 口径改变（见 §10.2）。
+
+**测试**：`tests/test_labels_observed.py`（5 项）全部通过；新增对 `dep_area_frac`/`complaint_count`/`ida_hwm_count`/`evidence_sources` 列的隐性验证由装配表列存在性保证。
+
+### 10.2 C4 处置：负对照改用 OOF 模型分数
+
+`src/pluvial_flood_risk/pipeline.py` 的 `nyc_smoke_test` 把 Sandy 负对照**移到训练之后**，并：
+
+1. 读取 `models/nyc_smoke/spatial_cv_oof_predictions.csv`，把每 cell 的 `y_proba` 左连接回装配表为 `oof_model_score`；
+2. 以 `score_col="oof_model_score"` 调用 `negative_control_metrics`；
+3. 若 OOF 不存在（<2 blocks 的 smoke）则填入 `NaN` 并显式标记，**不再静默回退到 target**。
+
+`negative_control.py` 的 docstring 与默认 `score_col` 解析顺序同步更新（优先 `oof_model_score`），明确 "score_col must be an out-of-fold model score, never the target"。
+
+**循环消除证据**：coastal-only cell 的 `flood_class=0`（定义），其 target `flood_risk=0` 是恒等式；OOF 分数是模型在**未见过该 block**时的预测，才是"模型是否把证据集中到 coastal-only"的有效检验。
+
+### 10.3 新增图：源区分证据图（Fig. 4）
+
+为把 C3 从"代码列存在"变成"可视化可读"，`figures.py` 新增 `plot_source_evidence_maps`，在**同一 H3 支撑**上并排 (a) DEP 面积分数、(b) 311 计数、(c) Ida HWM 计数、(d) composite 分数。`make_figures.py` 相应调整：新增源证据图（正文 Fig. 3），原 Fig. 3/4/5 顺延为 Fig. 4/5/6，原 Fig. 6（3 柱自适应消融）降级为 Supplementary Fig. S2（审稿人明确"这种粗 3 柱图太难看，用表格表示即可"；其数值已列于正文 Table 5）。
+
+### 10.4 扩展窗口数据路径 bug（C6 类问题，本轮新发现并修复）
+
+对账过程中发现一处**此前所有轮次都未暴露的致命问题**，直接导致扩展窗口主表（`manhattan_expanded`，n=956）此前所有数字失效：
+
+| 项 | 说明 |
+|----|------|
+| 现象 | 扩展窗口 parquet 中 `complaint_count>0` 仅 145 单元，而用 `data/raw/nyc_expanded/flooding_311.geojson`（1134 点）直接映射到扩展 bbox 的 956 个 R9 cell 应得 **367 单元**；且 `feature_source="observed"` 覆盖全部 956 单元，但扩展窗口大量单元落在小窗口 DEM 覆盖范围之外 |
+| 根因 | `configs/nyc.yaml` 的 `paths.*` 硬编码 `data/raw/nyc/`（小窗口）路径；`run_expanded_study.py` 仅覆盖 `paths.raw_dir = data/raw/nyc_expanded`，但 `sources_from_config` 优先用显式 `paths.dem/flood_points/...`（小窗口），**只有这些键为空才回退 `discover_sources(raw_dir)`**。结果：DEM/不透水/建筑/水系/311 全部误用小窗口文件覆盖在扩展 bbox 上，越界单元被合成哈希填充却仍标 "observed"，311 证据单元由 367 缩水到 145 |
+| 修复 | `scripts/run_expanded_study.py` 清除 `paths` 中的显式键（`dem/slope/impervious/buildings/hydro/flood_polygons/flood_points/coastal/sandy/event_rainfall/floodnet`），使 `discover_sources(raw_dir=nyc_expanded)` 正确解析扩展窗口自身文件 |
+| 影响 | 仅扩展窗口；Lower Manhattan（n=141）小窗口 `raw_dir=data/raw/nyc` 与其 bbox 天然一致，不受影响 |
+| 复验 | 修复后重跑：311 单元 145→367、正类占比 36.5%→49.7%、accuracy 0.722→0.824、F1 0.498→0.832、pooled ROC-AUC 0.746→0.875（见 §9.3） |
+| 防回归 | 用临时诊断脚本复现了 `_count_points` 与 parquet 的对账差异（311 文件直接映射=367 单元 vs 修复前 parquet=145 单元）；修复后对账一致。后续应在 `run_expanded_study.py` 增加断言：`assembly_mode=opendata` 且 `feature_source=observed` 时，扩展窗口 `complaint_count>0` 单元数应等于 311 文件直接映射数 |
+
+**教训**：`manuscript/report/audit` 的措辞必须先于"可复现 claim"通过**代码对账**验证，尤其当多个 `raw_dir`（`nyc` vs `nyc_expanded`）并存时，配置优先级会导致静默的数据替换。这正是形式审稿人 C6"GitHub 多版本产物混用"背后更隐蔽的成因之一。

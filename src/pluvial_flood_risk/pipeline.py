@@ -457,22 +457,41 @@ def nyc_smoke_test(
     except Exception:
         jaccard_figure = None
 
+    model_dir = MODELS_DIR / "nyc_smoke"
+    train_metrics = run_training(table_path, model_dir=model_dir)
+    eval_metrics = run_evaluation(table_path, model_dir=model_dir)
+
+    # Negative control on the *out-of-fold model score*, not the target. The
+    # coastal-only cells have flood_class == 0 by construction, so their target
+    # flood_risk is 0 by definition; only an OOF model score can test whether the
+    # model itself concentrates evidence on coastal-only cells.
     nc_metrics = {}
     nc_path = outputs / "negative_control.json"
     if "sandy_area_frac" in df.columns:
         from pluvial_flood_risk.negative_control import negative_control_metrics
 
-        nc_metrics = negative_control_metrics(df, score_col=value_col)
+        oof_csv = model_dir / "spatial_cv_oof_predictions.csv"
+        if oof_csv.exists():
+            oof = pd.read_csv(oof_csv)
+            oof = oof[["h3_index", "y_proba"]].rename(
+                columns={"y_proba": "oof_model_score"}
+            )
+            df_nc = df.merge(oof, on="h3_index", how="left")
+            df_nc["oof_model_score"] = df_nc["oof_model_score"].astype("float64")
+        else:
+            # No OOF available (e.g. smoke with <2 blocks): fall back with an
+            # explicit marker so the circular target interpretation is never
+            # silently reused.
+            df_nc = df.copy()
+            df_nc["oof_model_score"] = np.nan
+
+        nc_metrics = negative_control_metrics(df_nc, score_col="oof_model_score")
         cleaned = {
             k: (None if isinstance(v, float) and not math.isfinite(v) else v)
             for k, v in nc_metrics.items()
         }
         nc_path.write_text(json.dumps(cleaned, indent=2, default=str), encoding="utf-8")
         nc_metrics = cleaned
-
-    model_dir = MODELS_DIR / "nyc_smoke"
-    train_metrics = run_training(table_path, model_dir=model_dir)
-    eval_metrics = run_evaluation(table_path, model_dir=model_dir)
     scenarios = rainfall_scenarios_from_config(cfg)
     scen_df = run_inference_scenarios(
         bbox,

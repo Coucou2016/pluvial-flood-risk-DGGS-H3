@@ -10,6 +10,7 @@ from pluvial_flood_risk.figures import (
     plot_jaccard_ladder,
     plot_multi_resolution_spatial,
     plot_resolution_effects,
+    plot_source_evidence_maps,
     plot_spatial_cv_bars,
     plot_spatial_maps,
     plot_workflow_schematic,
@@ -45,7 +46,15 @@ def main() -> None:
         FIG_DIR / "spatial_cv_folds.png",
     )
 
-    # Fig 4 — multi-resolution open-label score surface (R10 / R9 mean / R8 mean)
+    # Fig 4 — source-specific open-evidence maps (DEP / 311 / HWM / composite)
+    plot_source_evidence_maps(
+        DATA / "processed" / "nyc_h3_cells.parquet",
+        RAW / "dem.tif",
+        RAW / "hydro_streams.geojson",
+        FIG_DIR / "source_evidence_maps.png",
+    )
+
+    # Fig 5 — multi-resolution open-label score surface (R10 / R9 mean / R8 mean)
     plot_multi_resolution_spatial(
         DATA / "processed" / "nyc_h3_cells_r10_labels.parquet",
         RAW / "dem.tif",
@@ -61,16 +70,18 @@ def main() -> None:
         sup_dir / "jaccard_by_resolution.png",
     )
 
-    # Fig 5 — resolution effects: score distribution + hotspot-persistence matrix
+    # Fig 6 — resolution effects: score distribution + hotspot-persistence matrix
     plot_resolution_effects(
         DATA / "processed" / "nyc_h3_cells_r10_labels.parquet",
         FIG_DIR / "resolution_effects.png",
     )
 
-    # Fig 6 — adaptive vs fixed/uniform cell counts (live ablation CSV)
+    # Supplementary Fig S2 — adaptive vs fixed/uniform cell counts (live ablation CSV).
+    # Demoted from a main figure: this is a representation-size count, reported as a
+    # table in the manuscript, so only a compact supplementary figure is rendered.
     plot_adaptive_ablation(
         OUT / "adaptive_vs_fixed_ablation.csv",
-        FIG_DIR / "adaptive_ablation.png",
+        sup_dir / "adaptive_ablation.png",
     )
 
     print("Wrote figures to", FIG_DIR)

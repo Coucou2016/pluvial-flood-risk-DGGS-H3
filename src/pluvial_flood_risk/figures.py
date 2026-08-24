@@ -903,6 +903,102 @@ def plot_multi_resolution_spatial(
     return out_path
 
 
+def plot_source_evidence_maps(
+    table_path: pd.DataFrame | Path | str,
+    dem_path: Path | str,
+    hydro_path: Path | str,
+    out_path: Path | str,
+    title: str | None = None,
+    caption: str | None = None,
+) -> Path:
+    """Figure — source-specific open-evidence maps (DEP / 311 / Ida HWM / composite).
+
+    Four panels on one H3 footprint, showing that the three heterogeneous sources
+    are retained as distinct columns (``dep_area_frac``, ``complaint_count``,
+    ``ida_hwm_count``) before being collapsed into the composite flood-evidence
+    score (``flood_risk``). This is the visual counterpart of the source-specific
+    provenance columns produced by ``attach_observed_labels``: it makes visible
+    *which* source drives each high-evidence cell rather than presenting a single
+    merged "observed" surface.
+    """
+    require_matplotlib()
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from matplotlib.cm import ScalarMappable
+    from matplotlib.colors import Normalize
+
+    if isinstance(table_path, pd.DataFrame):
+        df = table_path.copy()
+    else:
+        df = pd.read_parquet(table_path)
+    if df.empty:
+        raise ValueError("Source-evidence table is empty.")
+
+    need = ["h3_index", "dep_area_frac", "complaint_count", "ida_hwm_count", "flood_risk"]
+    missing = [c for c in need if c not in df.columns]
+    if missing:
+        raise KeyError(f"Missing source-specific columns {missing}; re-run assemble after C3 fix.")
+
+    df = df.dropna(subset=["dep_area_frac", "complaint_count", "ida_hwm_count", "flood_risk"])
+    df = df.sort_values("h3_index")
+    cells = df["h3_index"].tolist()
+    lon_min = min(min(p[0] for p in _h3_polygon_xy(c)) for c in cells)
+    lon_max = max(max(p[0] for p in _h3_polygon_xy(c)) for c in cells)
+    lat_min = min(min(p[1] for p in _h3_polygon_xy(c)) for c in cells)
+    lat_max = max(max(p[1] for p in _h3_polygon_xy(c)) for c in cells)
+    extent = (lon_min - 0.004, lon_max + 0.004, lat_min - 0.004, lat_max + 0.004)
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    chinese = _needs_cjk(title) or _needs_cjk(caption)
+    apply_paper_style(chinese=chinese)
+
+    fig, axes = plt.subplots(2, 2, figsize=(7.48, 5.6))  # 190 mm double-column width
+    # Continuous 0-1 panels (DEP area fraction, composite) share viridis; point
+    # counts are shown as discrete counts on a separate sequential map.
+    panels = [
+        (df["dep_area_frac"], "DEP stormwater (categories 1\u20132)", "DEP area fraction", "viridis", 0.0, 1.0),
+        (df["complaint_count"], "311 crowd reports", "Report count", "magma", 0.0, None),
+        (df["ida_hwm_count"], "USGS Ida high-water marks", "HWM count", "plasma", 0.0, None),
+        (df["flood_risk"], "Composite flood-evidence score", "Evidence score", "viridis", 0.0, 1.0),
+    ]
+    for ax, (vals, ptitle, clabel, cmap, vmin, vmax) in zip(axes.ravel(), panels):
+        _draw_dem_background(ax, dem_path, extent)
+        _draw_hydro_context(ax, hydro_path)
+        v = np.asarray(vals, dtype=float)
+        if vmax is None:
+            vmax = float(v.max()) if len(v) else 1.0
+        empty = bool((v <= 0).all())
+        if empty:
+            # Degenerate colorbar if vmin==vmax; use a unit range and annotate.
+            vmax = 1.0
+        _plot_cell_map(ax, cells, vals, extent, vmin, vmax, cmap, clabel)
+        if empty:
+            ax.text(
+                0.5, 0.5, "no source data within extent",
+                transform=ax.transAxes, fontsize=9, ha="center", va="center",
+                color="#333", bbox=dict(facecolor="white", edgecolor="none", alpha=0.8, pad=3),
+                zorder=11,
+            )
+        ax.set_title(ptitle, fontsize=10)
+        ax.set_xlabel("Longitude (\u00b0)", fontsize=9)
+        ax.set_ylabel("Latitude (\u00b0)", fontsize=9)
+    for ax, tag in zip(axes.ravel(), "abcd"):
+        ax.text(
+            0.02, 0.97, f"({tag})", transform=ax.transAxes,
+            fontsize=12, fontweight="bold", ha="left", va="top", zorder=10,
+            bbox=dict(facecolor="white", edgecolor="none", alpha=0.75, pad=1.5),
+        )
+
+    if title:
+        fig.suptitle(title, fontsize=12)
+    fig.tight_layout(h_pad=1.4, w_pad=1.4)
+    fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
+    plt.close(fig)
+    return out_path
+
+
 def plot_adaptive_ablation(
     ablation_csv: pd.DataFrame | Path | str,
     out_path: Path | str,
