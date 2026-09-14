@@ -16,10 +16,11 @@ from pluvial_flood_risk.config import RANDOM_SEED
 def build_run_metadata(
     data_provenance: str,
     extra: dict[str, Any] | None = None,
+    random_seed: int | None = None,
 ) -> dict[str, Any]:
     meta: dict[str, Any] = {
         "created_utc": datetime.now(timezone.utc).isoformat(),
-        "random_seed": RANDOM_SEED,
+        "random_seed": int(RANDOM_SEED if random_seed is None else random_seed),
         "data_provenance": data_provenance,
         "h3_version": h3.__version__,
         "sklearn_version": sklearn.__version__,

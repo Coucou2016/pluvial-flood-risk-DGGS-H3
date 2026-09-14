@@ -24,14 +24,28 @@ from pluvial_flood_risk.h3_grid import bbox_to_cells, cell_centers, cell_resolut
 from pluvial_flood_risk.io_export import to_geojson, to_parquet
 from pluvial_flood_risk.metadata import build_run_metadata, write_run_metadata
 from pluvial_flood_risk.metrics import evaluate_predictions
-from pluvial_flood_risk.model import load_models, predict, save_models, train_models
+from pluvial_flood_risk.model import (
+    ROLE_DEPLOYMENT,
+    fit_deployment_models,
+    load_models,
+    predict,
+    save_deployment_artifacts,
+    save_evaluation_artifacts,
+    training_h3_sha256,
+    train_models,
+)
 from pluvial_flood_risk.spatial_cv import block_ids_for_cells, spatial_block_cv_metrics
 from pluvial_flood_risk.validation import emit_validation_warnings, validate_training_table
 
 
-def load_training_table(path: Path | None = None) -> pd.DataFrame:
+def load_training_table(path: Path | None = None, *, allow_synthetic: bool = False) -> pd.DataFrame:
     path = path or (PROCESSED_DIR / "demo_h3_cells.parquet")
     if not path.exists():
+        if not allow_synthetic:
+            raise FileNotFoundError(
+                f"Training table not found: {path}. "
+                "Assemble observed data first, or pass allow_synthetic=True for demo."
+            )
         from pluvial_flood_risk.synthetic import write_demo_data
 
         write_demo_data()
@@ -58,8 +72,16 @@ def run_training(
     model_dir: Path | None = None,
     spatial_cv_k: int = DEFAULT_SPATIAL_CV_K,
     spatial_cv_folds: int = DEFAULT_SPATIAL_CV_FOLDS,
+    random_seed: int | None = None,
+    allow_synthetic: bool = False,
+    refuse_synthetic: bool = False,
 ) -> dict:
-    df = load_training_table(data_path)
+    from pluvial_flood_risk.config import RANDOM_SEED
+
+    seed = int(RANDOM_SEED if random_seed is None else random_seed)
+    df = load_training_table(data_path, allow_synthetic=allow_synthetic)
+    if refuse_synthetic or not allow_synthetic:
+        _assert_production_table(df)
     issues = validate_training_table(df)
     emit_validation_warnings(issues)
 
@@ -75,6 +97,7 @@ def run_training(
         cells=cells,
         spatial_cv_k=spatial_cv_k,
         spatial_cv_folds=spatial_cv_folds,
+        random_seed=seed,
     )
     model_dir = model_dir or MODELS_DIR
     metrics = dict(result.metrics)
@@ -84,46 +107,93 @@ def run_training(
 
         # Demo/default models/ → outputs/spatial_cv_folds.csv
         # Named model dirs (e.g. nyc_smoke) → models/<name>/ + outputs/spatial_cv_folds_<name>.csv
+        eval_dir = model_dir / "evaluation"
+        eval_dir.mkdir(parents=True, exist_ok=True)
         if model_dir == MODELS_DIR:
             out_fold = OUTPUTS_DIR / "spatial_cv_folds.csv"
         else:
             out_fold = model_dir / "spatial_cv_folds.csv"
             write_spatial_cv_fold_table(fold_rows, OUTPUTS_DIR / f"spatial_cv_folds_{model_dir.name}.csv")
         write_spatial_cv_fold_table(fold_rows, out_fold)
+        write_spatial_cv_fold_table(fold_rows, eval_dir / "spatial_cv_folds.csv")
         metrics["spatial_cv_fold_csv"] = str(out_fold)
 
     oof_rows = metrics.pop("spatial_cv_oof_table", None)
     if oof_rows:
         from pluvial_flood_risk.spatial_cv import write_spatial_cv_oof_table
 
+        eval_dir = model_dir / "evaluation"
+        eval_dir.mkdir(parents=True, exist_ok=True)
         if model_dir == MODELS_DIR:
             out_oof = OUTPUTS_DIR / "spatial_cv_oof_predictions.csv"
         else:
             out_oof = model_dir / "spatial_cv_oof_predictions.csv"
         write_spatial_cv_oof_table(oof_rows, out_oof)
+        write_spatial_cv_oof_table(oof_rows, eval_dir / "spatial_cv_oof_predictions.csv")
         metrics["spatial_cv_oof_csv"] = str(out_oof)
 
     result.metrics = metrics
-    save_models(result, model_dir)
+    save_evaluation_artifacts(result, model_dir)
+
+    # After evaluation, fit separate deployment models on ALL cells.
+    deployment = fit_deployment_models(X, y_class, y_risk, cells, random_seed=seed)
+    save_deployment_artifacts(deployment, model_dir)
 
     meta = build_run_metadata(
         data_provenance=_data_provenance(df),
+        random_seed=seed,
         extra={
             "n_cells": int(len(df)),
             "metrics": metrics,
             "spatial_cv_k": spatial_cv_k,
             "spatial_cv_folds": spatial_cv_folds,
+            "random_seed": seed,
+            "evaluation": {
+                "role": result.role,
+                "fit_rows": result.fit_rows,
+            },
+            "deployment": {
+                "role": deployment.role,
+                "fit_rows": deployment.fit_rows,
+                "training_h3_sha256": deployment.training_h3_sha256,
+            },
         },
     )
     write_run_metadata(model_dir / "run_metadata.json", meta)
+    write_run_metadata(model_dir / "run_manifest.json", meta)
     return metrics
+
+
+def _assert_production_table(df: pd.DataFrame) -> None:
+    """Refuse synthetic / fixture tables on the paper production path."""
+    if "synthetic_value_count" in df.columns:
+        synth = int(df["synthetic_value_count"].iloc[0])
+        if synth > 0:
+            raise RuntimeError(
+                f"Production pipeline refused table with synthetic_value_count={synth}."
+            )
+    if "data_mode" in df.columns:
+        modes = {str(m) for m in df["data_mode"].dropna().unique()}
+        if modes & {"synthetic", "mixed_synthetic"}:
+            raise RuntimeError(
+                f"Production pipeline refused data_mode={sorted(modes)}."
+            )
+    if "feature_source" in df.columns:
+        sources = {str(s) for s in df["feature_source"].dropna().unique()}
+        if sources == {PROVENANCE_SYNTHETIC} or PROVENANCE_SYNTHETIC in sources and len(sources) == 1:
+            raise RuntimeError("Production pipeline refused fully synthetic feature_source.")
+    if "assembly_mode" in df.columns:
+        modes = {str(m) for m in df["assembly_mode"].dropna().unique()}
+        if "fixture" in modes and "opendata" not in modes:
+            # Fixture is allowed only for explicit QA; paper path uses opendata.
+            pass
 
 
 def _features_for_inference(
     cells: list[str],
     rainfall_mm_h: float,
     sources=None,
-    fallback_synthetic: bool = True,
+    fallback_synthetic: bool = False,
 ) -> pd.DataFrame:
     if sources is not None:
         from pluvial_flood_risk.assemble import assemble_feature_table
@@ -133,6 +203,10 @@ def _features_for_inference(
             rainfall_mm_h=rainfall_mm_h,
             sources=sources,
             fallback_synthetic=fallback_synthetic,
+        )
+    if not fallback_synthetic:
+        raise RuntimeError(
+            "Inference without sources requires fallback_synthetic=True (demo only)."
         )
     df = engineer_features_for_cells(cells, rainfall_mm_h=rainfall_mm_h)
     if cells:
@@ -151,10 +225,16 @@ def run_inference(
     rainfall_mm_h: float = 25.0,
     output_dir: Path | None = None,
     sources=None,
-    fallback_synthetic: bool = True,
+    fallback_synthetic: bool = False,
+    use_deployment: bool = True,
 ) -> pd.DataFrame:
     model_dir = model_dir or MODELS_DIR
-    clf, reg, feature_cols = load_models(model_dir)
+    role = ROLE_DEPLOYMENT if use_deployment else None
+    try:
+        clf, reg, feature_cols = load_models(model_dir, expected_role=role)
+    except FileNotFoundError:
+        # Backward compatible fallback for older model dirs without deployment/
+        clf, reg, feature_cols = load_models(model_dir)
 
     min_lon, min_lat, max_lon, max_lat = bbox
     cells = bbox_to_cells(min_lon, min_lat, max_lon, max_lat, resolution)
@@ -186,16 +266,22 @@ def run_inference_scenarios(
     model_dir: Path | None = None,
     output_dir: Path | None = None,
     sources=None,
-    fallback_synthetic: bool = True,
+    fallback_synthetic: bool = False,
+    use_deployment: bool = True,
 ) -> pd.DataFrame:
     """
     Event-conditioned PFI_h(c, r): static features once, rainfall r varies.
 
     Writes ``pfi_h_scenarios.parquet`` and ``.csv`` under ``output_dir``.
+    Maps always use the deployment_full model when available.
     """
     model_dir = model_dir or MODELS_DIR
     output_dir = output_dir or OUTPUTS_DIR
-    clf, reg, feature_cols = load_models(model_dir)
+    role = ROLE_DEPLOYMENT if use_deployment else None
+    try:
+        clf, reg, feature_cols = load_models(model_dir, expected_role=role)
+    except FileNotFoundError:
+        clf, reg, feature_cols = load_models(model_dir)
 
     min_lon, min_lat, max_lon, max_lat = bbox
     cells = bbox_to_cells(min_lon, min_lat, max_lon, max_lat, resolution)
@@ -234,10 +320,16 @@ def run_evaluation(
     model_dir: Path | None = None,
     spatial_cv_k: int = DEFAULT_SPATIAL_CV_K,
     spatial_cv_folds: int = DEFAULT_SPATIAL_CV_FOLDS,
+    allow_synthetic: bool = False,
 ) -> dict:
-    df = load_training_table(data_path)
+    df = load_training_table(data_path, allow_synthetic=allow_synthetic)
     model_dir = model_dir or MODELS_DIR
-    clf, reg, feature_cols = load_models(model_dir)
+    # Evaluation metrics on held-out OOF are preferred; in-sample full-table
+    # scores use the deployment model only as a descriptive check.
+    try:
+        clf, reg, feature_cols = load_models(model_dir, expected_role=ROLE_DEPLOYMENT)
+    except FileNotFoundError:
+        clf, reg, feature_cols = load_models(model_dir)
     X = df[feature_cols].to_numpy(dtype=float)
     risk, proba, pred_class = predict(clf, reg, X)
 
@@ -308,12 +400,14 @@ def smoke_test() -> dict:
     from pluvial_flood_risk.synthetic import write_demo_data
 
     path = write_demo_data()
-    metrics_train = run_training(path)
-    metrics_eval = run_evaluation(path)
+    metrics_train = run_training(path, allow_synthetic=True)
+    metrics_eval = run_evaluation(path, allow_synthetic=True)
     pred_df = run_inference(
         bbox=(10.70, 59.90, 10.85, 59.98),
         resolution=9,
         rainfall_mm_h=35.0,
+        fallback_synthetic=True,
+        use_deployment=True,
     )
     return {
         "n_cells_trained": int(pd.read_parquet(path).shape[0]),
@@ -343,15 +437,22 @@ def nyc_smoke_test(
     )
     from pluvial_flood_risk.config_loader import load_study_config, rainfall_scenarios_from_config, resolve_bbox
     from pluvial_flood_risk.floodnet import floodnet_join_status
-    from pluvial_flood_risk.rollups import write_jaccard_diagnostics
+    from pluvial_flood_risk.rollups import HARD_TIE_BOOTSTRAP_PAPER, resolution_ladder_topk_diagnostics
     from pluvial_flood_risk.schema_fixtures import FIXTURE_MARKER, write_public_schema_fixtures
 
     config_path = config_path or (PROJECT_ROOT / "configs" / "nyc.yaml")
     cfg = load_study_config(config_path)
-    bbox_profile = str(cfg.get("default_smoke_profile") or "smoke")
+    # Option B (Major Revision): paper Lower Manhattan bbox (~262 R9 cells).
+    # Prefer default_build_profile (lower_manhattan) over the legacy smoke extent.
+    bbox_profile = str(
+        cfg.get("default_build_profile")
+        or cfg.get("default_smoke_profile")
+        or "lower_manhattan"
+    )
     bbox = resolve_bbox(cfg, bbox_profile)
     resolution = int(cfg.get("resolution", 9))
     rainfall = float(cfg.get("rainfall_mm_h", 30.0))
+    seed = int(cfg.get("random_seed", 42))
     raw_dir = Path(cfg.get("paths", {}).get("raw_dir") or (PROJECT_ROOT / "data" / "raw" / "nyc"))
 
     live_dem = raw_dir / "dem.tif"
@@ -402,7 +503,15 @@ def nyc_smoke_test(
         include=include_floodnet,
     )
 
-    df = assemble_h3_table(bbox, resolution, rainfall_mm_h=rainfall, sources=sources)
+    df = assemble_h3_table(
+        bbox,
+        resolution,
+        rainfall_mm_h=rainfall,
+        sources=sources,
+        fallback_synthetic=used_fixtures,
+    )
+    if not used_fixtures:
+        _assert_production_table(df)
     processed = PROCESSED_DIR
     processed.mkdir(parents=True, exist_ok=True)
     table_path = processed / "nyc_h3_cells.parquet"
@@ -428,13 +537,18 @@ def nyc_smoke_test(
     outputs = OUTPUTS_DIR
     outputs.mkdir(parents=True, exist_ok=True)
     jaccard_path = outputs / "jaccard_by_resolution.csv"
-    jaccard_df = write_jaccard_diagnostics(
+    # Strict area-budget ladder (fractional ties). Jaccard is never recomputed
+    # in figures.py; Table 4 / Fig. 6 / Fig. S1 all read this CSV.
+    jaccard_df = resolution_ladder_topk_diagnostics(
         jaccard_source,
-        jaccard_path,
         value_col=value_col if value_col in jaccard_source.columns else "flood_risk",
         resolutions=diag_res_use,
-        hotspot_quantile=float(diag_cfg.get("hotspot_quantile", 0.9)),
+        hotspot_budget=float(diag_cfg.get("hotspot_budget", 0.10)),
+        n_hard_boot=HARD_TIE_BOOTSTRAP_PAPER,
+        random_seed=seed,
     )
+    jaccard_path.parent.mkdir(parents=True, exist_ok=True)
+    jaccard_df.to_csv(jaccard_path, index=False)
     jaccard_png = outputs / "jaccard_by_resolution.png"
     jaccard_figure = None
     try:
@@ -444,8 +558,9 @@ def nyc_smoke_test(
             jaccard_df,
             jaccard_png,
             caption=(
-                "Open-label / live-layer scale-loss diagnostic — not a reproduction of "
-                "Svellingen et al. Jaccard 0.14 (R13 vs R10, proprietary PFIb)."
+                "Open-label / live-layer area-budget scale-loss diagnostic (10% area) — "
+                "not a reproduction of Svellingen et al. Jaccard 0.14 (R13 vs R10, "
+                "proprietary PFIb)."
                 if not used_fixtures
                 else (
                     "Fixture/synthetic QA figure — not a reproduction of Svellingen et al. "
@@ -458,8 +573,18 @@ def nyc_smoke_test(
         jaccard_figure = None
 
     model_dir = MODELS_DIR / "nyc_smoke"
-    train_metrics = run_training(table_path, model_dir=model_dir)
-    eval_metrics = run_evaluation(table_path, model_dir=model_dir)
+    train_metrics = run_training(
+        table_path,
+        model_dir=model_dir,
+        random_seed=seed,
+        allow_synthetic=used_fixtures,
+        refuse_synthetic=not used_fixtures,
+    )
+    eval_metrics = run_evaluation(
+        table_path,
+        model_dir=model_dir,
+        allow_synthetic=used_fixtures,
+    )
 
     # Negative control on the *out-of-fold model score*, not the target. The
     # coastal-only cells have flood_class == 0 by construction, so their target
@@ -500,6 +625,8 @@ def nyc_smoke_test(
         model_dir=model_dir,
         output_dir=outputs,
         sources=sources,
+        fallback_synthetic=used_fixtures,
+        use_deployment=True,
     )
 
     # Adaptive screen after training: use ML PFI_h / flood_probability (not pre-train synthetic scores).
@@ -516,6 +643,7 @@ def nyc_smoke_test(
         output_dir=outputs / "adaptive_screen",
         sources=sources,
         fallback_synthetic=used_fixtures,
+        use_deployment=True,
     )
     mixed_cells, adaptive_metrics = run_adaptive_refinement(
         coarse_pred,

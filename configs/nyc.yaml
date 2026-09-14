@@ -16,18 +16,18 @@ data_provenance: opendata_or_fixture
 # assembly_mode in YAML is a default; build_nyc_h3.py overwrites to opendata|fixture from disk.
 assembly_mode: opendata
 
-# Extents (EPSG:4326). Default smoke uses `smoke` profile (fast). Paper tables
-# use `lower_manhattan`. `manhattan_expanded` needs a separate download (--bbox-profile);
-# do not use it for pluvial-nyc-smoke.
+# Extents (EPSG:4326). Major Revision Option B: paper pilot uses `lower_manhattan`
+# (~262 R9 cells). Legacy `smoke` (~141 R9) retained for fast QA only.
+# `manhattan_expanded` needs a separate download (--bbox-profile).
 bbox_profiles:
-  smoke: [-74.02, 40.70, -73.98, 40.74]
-  lower_manhattan: [-74.02, 40.70, -73.97, 40.76]
+  smoke: [-74.02, 40.70, -73.98, 40.74]  # legacy fast QA (~141 R9); not paper claim
+  lower_manhattan: [-74.02, 40.70, -73.97, 40.76]  # paper pilot (~262 R9)
   # Midtown-south / Financial-District-northward expansion (optional; larger DEM fetch)
   manhattan_expanded: [-74.03, 40.68, -73.94, 40.80]
 bbox: [-74.02, 40.70, -73.97, 40.76]
 smoke_bbox: [-74.02, 40.70, -73.98, 40.74]
 default_build_profile: lower_manhattan
-default_smoke_profile: smoke
+default_smoke_profile: lower_manhattan
 resolution: 9
 random_seed: 42
 

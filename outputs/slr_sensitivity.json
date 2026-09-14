@@ -1,0 +1,71 @@
+{
+  "note": "Sea-level sensitivity (M4): the composite target is re-assembled with the DEP 'Moderate Flood with 2050 Sea Level Rise' layer (Layer 2, same Flooding_Category 1-2 filtering) and compared against the current-sea-level primary (Layer 1) under the same spatial H3-block CV (k=2 parent blocks, 5 folds, GBM). Both DEP variants are H&H model outputs.",
+  "spatial_cv_k": 2,
+  "spatial_cv_folds": 5,
+  "pilots": {
+    "lower_manhattan": [
+      {
+        "n_cells": 262,
+        "n_positive": 167,
+        "prevalence": 0.6374045801526718,
+        "dep_area_frac_sum": 2.9913945362582677,
+        "n_dep_cells": 74,
+        "roc_auc_pooled": 0.8479672234478411,
+        "roc_auc_mean": 0.8205489325647799,
+        "pr_auc_pooled": 0.8545950410046028,
+        "accuracy_mean": 0.8202154301488374,
+        "f1_mean": 0.8575558607370872,
+        "r2_mean": 0.19100916038984755,
+        "note": "",
+        "dep_variant": "current_sea_level"
+      },
+      {
+        "n_cells": 262,
+        "n_positive": 177,
+        "prevalence": 0.6755725190839694,
+        "dep_area_frac_sum": 4.367909821559699,
+        "n_dep_cells": 98,
+        "roc_auc_pooled": 0.8363243602525756,
+        "roc_auc_mean": 0.837357048525007,
+        "pr_auc_pooled": 0.8590256205452478,
+        "accuracy_mean": 0.8696377244656933,
+        "f1_mean": 0.9057747236825765,
+        "r2_mean": 0.21201949981108886,
+        "note": "",
+        "dep_variant": "2050_slr"
+      }
+    ],
+    "manhattan_expanded": [
+      {
+        "n_cells": 956,
+        "n_positive": 458,
+        "prevalence": 0.4790794979079498,
+        "dep_area_frac_sum": 9.675254661167566,
+        "n_dep_cells": 231,
+        "roc_auc_pooled": 0.8821267603163748,
+        "roc_auc_mean": 0.8814112745250906,
+        "pr_auc_pooled": 0.8227259317526048,
+        "accuracy_mean": 0.8233542690788225,
+        "f1_mean": 0.8257028376391744,
+        "r2_mean": 0.3481267811423597,
+        "note": "",
+        "dep_variant": "current_sea_level"
+      },
+      {
+        "n_cells": 956,
+        "n_positive": 478,
+        "prevalence": 0.5,
+        "dep_area_frac_sum": 12.121434465651408,
+        "n_dep_cells": 268,
+        "roc_auc_pooled": 0.8718247229565309,
+        "roc_auc_mean": 0.872968841773805,
+        "pr_auc_pooled": 0.8187739829939578,
+        "accuracy_mean": 0.8211890684854447,
+        "f1_mean": 0.8311983046542843,
+        "r2_mean": 0.34469354893453963,
+        "note": "",
+        "dep_variant": "2050_slr"
+      }
+    ]
+  }
+}

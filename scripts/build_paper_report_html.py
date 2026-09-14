@@ -11,6 +11,8 @@ import csv
 import html as htmllib
 import json
 import re
+import shutil
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -55,6 +57,7 @@ def md_to_simple_html(md: str) -> str:
     def close_table() -> None:
         nonlocal in_table
         if in_table:
+            out.append("</tbody>")
             out.append("</table>")
             in_table = False
 
@@ -101,10 +104,10 @@ def md_to_simple_html(md: str) -> str:
             if not in_table:
                 out.append("<table>")
                 in_table = True
-                tag = "th"
-            else:
-                tag = "td"
-            row = "".join(f"<{tag}>{inline_fmt(c)}</{tag}>" for c in cells)
+                row = "".join(f"<th>{inline_fmt(c)}</th>" for c in cells)
+                out.append(f"<thead><tr>{row}</tr></thead><tbody>")
+                continue
+            row = "".join(f"<td>{inline_fmt(c)}</td>" for c in cells)
             out.append(f"<tr>{row}</tr>")
             continue
         if in_table:
@@ -177,7 +180,7 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 "Spatial results maps",
                 "<strong>图 2 · Figure 2</strong> — 空间结果图：Lower Manhattan 试点（n=141 个 R9 六边形）三面板同支撑（SciencePlots + TNR）。"
                 "<br/><em>如何读：</em>(a) 开放证据分 flood_evidence_score（双峰构造：无证据=0，任一证据=高值）；(b) H3 块空间 CV 留出分数；(c) 全拟合 model score PFI_h(c,r)（ida_like r=75 mm/h；全情景不变，见 §5.6）。同色标 0–1，灰色底图为 DEM 地形，浅蓝为 NHDPlus 岸线水系。"
-                "<br/><em>意义：</em>对照参考论文「先空间图后统计图」体例；三面板同源同支撑，观测~留出 r=0.401、观测~PFI_h r=0.703、留出~PFI_h r=0.617，与「排序判别中等」叙事一致。"
+                "<br/><em>意义：</em>对照参考论文「先空间图后统计图」体例；三面板同源同支撑，观测~留出 r=0.467、观测~PFI_h r=0.765、留出~PFI_h r=0.634，与「排序判别中等」叙事一致。"
                 "<br/><em>结论：</em>仅视觉检视，非独立验证；不得把图面高低当作额外证据。",
             ),
         ),
@@ -202,7 +205,7 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 "<strong>图 4 · Figure 4</strong> — 空间 H3 块 CV 各折 Accuracy 与 F1（SciencePlots + Times New Roman）。"
                 "<br/><em>如何读：</em>横轴为折号 + Mean±SD，纵轴为 0–1 分数；成对标记点表示同一折的 Accuracy/F1，末位为 Mean±SD 误差棒；虚线/点线标记恒判正/恒判负常量类基线。"
                 "<br/><em>意义：</em>展示评价协议的折间稳定性，而非单一乐观分数。"
-                "<br/><em>结论：</em>多数折 Accuracy≈0.71–0.84，Fold4（n=24）更高；与表 3 均值一致。样本仍是 Lower Manhattan smoke。",
+                "<br/><em>结论：</em>多数折 Accuracy≈0.64–0.82，Fold4（n=24）更高；与表 3 均值一致。样本仍是 Lower Manhattan smoke。",
             ),
         ),
         (
@@ -224,7 +227,7 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 figs["resolution"],
                 "Resolution effects",
                 "<strong>图 6 · Figure 6</strong> — 分辨率效应：(a) 开放证据分在 R10/R9/R8 的分布压缩；(b) Jaccard 热点持久性矩阵（SciencePlots + TNR）。"
-                "<br/><em>如何读：</em>(a) 三条分布由宽双峰压缩为窄带；(b) 非对角项远离对角线衰减：J(R10,R9)=0.210、J(R10,R8)=0.167、J(R9,R8)=0.167。"
+                "<br/><em>如何读：</em>(a) 三条分布由宽双峰压缩为窄带；(b) 非对角项远离对角线衰减：J(R10,R9)=0.180、J(R10,R8)=0.111、J(R9,R8)=0.200。"
                 "<br/><em>意义：</em>把尺度损失从阶梯表扩展为「分布压缩 + 集合持久性」两种互补统计视图。"
                 "<br/><em>结论：</em>数值与表 4 完全一致；粗化同时压缩分布并瓦解热点持久性。",
             ),
@@ -248,9 +251,9 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 figs["adaptive"],
                 "Adaptive ablation",
                 "<strong>补充图 S2 · Supplementary Figure S2</strong> — 固定 R9 / 自适应 R9/R11 / 均匀 R11 单元数（representation-size comparison）。"
-                "<br/><em>如何读：</em>三柱分别为 Fixed R9、Adaptive R9/R11、Uniform R11；顶部标注「29.6× fixed R9 = 60.4% of uniform R11（representation size only）」。"
+                "<br/><em>如何读：</em>三柱分别为 Fixed R9、Adaptive R9/R11、Uniform R11；顶部标注「34.4× fixed R9 = 70.1% of uniform R11（representation size only）」。"
                 "<br/><em>意义：</em>展示自适应在计算预算与局部细化之间的表征规模折中（仅单元数，非 runtime/memory/hotspot）。数值已列于正文 Table 5，此图仅作补充。"
-                "<br/><em>结论：</em>自适应 = 29.6× 固定 R9 = 60.4% 均匀 R11；非全市成本声明，非效率/技能证明。",
+                "<br/><em>结论：</em>自适应 = 34.4× 固定 R9 = 70.1% 均匀 R11；非全市成本声明，非效率/技能证明。",
             ),
         ),
     ]
@@ -300,9 +303,12 @@ h2 { color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom:
 h3 { margin-top: 1.4rem; }
 h4 { margin-top: 1.1rem; color: #333; }
 table { border-collapse: collapse; width: 100%; margin: 12px 0 8px; font-size: 0.92rem; }
+thead { display: table-header-group; }
+tr, figure { page-break-inside: avoid; }
 th, td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
 th { background: #eef3f7; }
 figure { margin: 18px 0 28px; }
+figure img { max-width: 100%; width: 100%; height: auto; }
 figcaption { font-size: 0.92rem; color: #222; margin-top: 8px; line-height: 1.45; }
 code { font-family: Consolas, "Courier New", monospace; font-size: 0.88em; }
 blockquote { border-left: 4px solid var(--accent); margin: 12px 0; padding: 6px 14px; background: #f3f7fb; }
@@ -318,7 +324,7 @@ a { color: var(--accent); }
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Research Report — Open-label H3 Pluvial Flood Learning (Lower Manhattan Smoke)</title>
+<title>Research Report — Open-label H3 Pluvial Flood Learning (Option B, n=262)</title>
 <style>{css}</style>
 </head>
 <body>
@@ -335,9 +341,42 @@ n_cells={meta.get('n_cells')} · 数值仅来自 outputs/ 与 models/nyc_smoke/ 
 
     out_html = PAPER / "report.html"
     out_html.write_text(html, encoding="utf-8")
-    (ROOT / "report.html").write_text(html, encoding="utf-8")
     print(f"wrote {out_html} ({out_html.stat().st_size} bytes)")
-    print(f"wrote {ROOT / 'report.html'} ({(ROOT / 'report.html').stat().st_size} bytes)")
+    try:
+        (ROOT / "report.html").write_text(html, encoding="utf-8")
+        print(f"wrote {ROOT / 'report.html'} ({(ROOT / 'report.html').stat().st_size} bytes)")
+    except OSError as exc:
+        print(f"skip root report.html mirror ({exc})")
+
+    chrome = None
+    for p in (
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        rf"{Path.home()}\AppData\Local\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+    ):
+        if Path(p).exists():
+            chrome = p
+            break
+    chrome = chrome or shutil.which("chrome") or shutil.which("google-chrome") or shutil.which("msedge")
+    if not chrome:
+        print("Chrome/Edge not found; skipping report PDF.")
+        return
+    out_pdf = PAPER / "report.pdf"
+    url = out_html.resolve().as_uri()
+    cmd = [
+        chrome,
+        "--headless=new",
+        "--disable-gpu",
+        "--no-pdf-header-footer",
+        "--print-to-pdf=" + str(out_pdf),
+        url,
+    ]
+    r = subprocess.run(cmd, capture_output=True, timeout=180)
+    if r.returncode == 0 and out_pdf.exists():
+        print(f"wrote {out_pdf} ({out_pdf.stat().st_size} bytes)")
+    else:
+        print(f"Chrome print failed (rc={r.returncode}); HTML is authoritative.")
 
 
 if __name__ == "__main__":

@@ -80,17 +80,35 @@ def _area_frac_for_polygons(
     polygons: list,
 ) -> np.ndarray:
     """Intersection area fraction per cell for a union of polygons."""
-    from pluvial_flood_risk.h3_grid import geometry_to_candidate_cells
+    from shapely.geometry import box
+
+    from pluvial_flood_risk.crs_warp import project_geometry_for_area
+    from pluvial_flood_risk.h3_grid import cell_centers, geometry_to_candidate_cells
 
     frac = np.zeros(len(cells), dtype=np.float64)
-    if not polygons:
+    if not polygons or not cells:
         return frac
     flood_union = _union_polygons(polygons)
+    # Clip to a padded bbox of the study cells before projecting — DEP mirrors
+    # are citywide MultiPolygons; projecting the full city is prohibitively slow.
+    lons, lats = cell_centers(cells)
+    pad = 0.02
+    clip = box(float(lons.min()) - pad, float(lats.min()) - pad, float(lons.max()) + pad, float(lats.max()) + pad)
+    try:
+        flood_union = flood_union.intersection(clip)
+    except Exception:
+        try:
+            flood_union = flood_union.buffer(0).intersection(clip)
+        except Exception:
+            pass
+    if flood_union is None or flood_union.is_empty:
+        return frac
+    flood_proj = project_geometry_for_area(flood_union)
     for cell in geometry_to_candidate_cells(flood_union, res, k_buffer=1):
         idx = cell_to_idx.get(cell)
         if idx is None:
             continue
-        frac[idx] = _cell_intersection_fraction(cell, flood_union)
+        frac[idx] = _cell_intersection_fraction(cell, flood_proj, flood_already_projected=True)
     return frac
 
 
@@ -364,18 +382,28 @@ def _union_polygons(polygons: list):
     return flood_union
 
 
-def _cell_intersection_fraction(cell: str, flood_geom) -> float:
+def _cell_intersection_fraction(
+    cell: str,
+    flood_geom,
+    *,
+    flood_already_projected: bool = False,
+) -> float:
+    from pluvial_flood_risk.crs_warp import project_geometry_for_area
     from pluvial_flood_risk.h3_grid import cell_boundary_polygon
 
     cell_poly = cell_boundary_polygon(cell)
-    cell_area = cell_poly.area
-    if cell_area <= 0 or flood_geom is None or flood_geom.is_empty:
+    # Project cell (and flood if needed) to EPSG:2263 so area ratios use
+    # projected units, not geographic degrees.
+    cell_proj = project_geometry_for_area(cell_poly)
+    flood_proj = flood_geom if flood_already_projected else project_geometry_for_area(flood_geom)
+    cell_area = cell_proj.area
+    if cell_area <= 0 or flood_proj is None or flood_proj.is_empty:
         return 0.0
     try:
-        inter = cell_poly.intersection(flood_geom)
+        inter = cell_proj.intersection(flood_proj)
     except Exception:
         try:
-            inter = cell_poly.buffer(0).intersection(flood_geom.buffer(0))
+            inter = cell_proj.buffer(0).intersection(flood_proj.buffer(0))
         except Exception:
             return 0.0
     if inter.is_empty:

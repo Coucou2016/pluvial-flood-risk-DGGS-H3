@@ -1,0 +1,6 @@
+{
+  "role": "evaluation_split",
+  "fit_rows": 209,
+  "random_seed": 42,
+  "note": "Random-split diagnostic only; never use for maps or adaptive."
+}

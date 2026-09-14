@@ -15,6 +15,7 @@ TINY = (-74.015, 40.705, -74.005, 40.712)
 
 
 def test_negative_control_separates_coastal_and_pluvial(tmp_path: Path):
+    # Fixture-only geometry/label test: rasters omitted, synthetic fill explicit.
     paths = write_public_schema_fixtures(tmp_path, TINY)
     sources = FeatureSources(
         buildings_path=paths["buildings"],
@@ -24,7 +25,9 @@ def test_negative_control_separates_coastal_and_pluvial(tmp_path: Path):
         coastal_path=paths["fema_sandy"],
         assembly_mode="fixture",
     )
-    df = assemble_h3_table(TINY, resolution=10, rainfall_mm_h=40.0, sources=sources)
+    df = assemble_h3_table(
+        TINY, resolution=10, rainfall_mm_h=40.0, sources=sources, fallback_synthetic=True
+    )
     assert "sandy_area_frac" in df.columns
     assert (df["label_source"] == "open_public_evidence").all()
     # Overlay must not overwrite pluvial labels with Sandy
@@ -54,15 +57,15 @@ def test_negative_control_opendata_note():
 
 
 def test_assemble_label_scale_table_fast(tmp_path: Path):
+    # Labels-only diagnostic: no DEM/impervious. Do not call assemble_h3_table.
     paths = write_public_schema_fixtures(tmp_path, TINY)
     sources = FeatureSources(
         flood_polygons_path=paths["flood_polygons"],
         flood_points_paths=[paths["flood_311"]],
         assembly_mode="fixture",
     )
-    parent = assemble_h3_table(TINY, resolution=9, sources=sources)
     df = assemble_label_scale_table(
-        TINY, resolution=10, sources=sources, parent_label_df=parent
+        TINY, resolution=10, sources=sources, parent_label_df=None
     )
     assert len(df) > 0
     assert "flood_risk" in df.columns
@@ -77,7 +80,9 @@ def test_attach_coastal_overlay_does_not_change_labels(tmp_path: Path):
         flood_polygons_path=paths["flood_polygons"],
         assembly_mode="fixture",
     )
-    table = assemble_h3_table(TINY, resolution=10, sources=sources)
+    table = assemble_h3_table(
+        TINY, resolution=10, sources=sources, fallback_synthetic=True
+    )
     before = table["flood_class"].to_numpy().copy()
     out = attach_coastal_overlay(table, paths["fema_sandy"])
     assert (out["flood_class"].to_numpy() == before).all()

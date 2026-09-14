@@ -64,9 +64,9 @@ def main() -> None:
     summary = {
         "source_fold_csv": str(FOLD_CSV),
         "note": (
-            "Trivial baselines for the n=141 smoke fold table. Positive class "
-            "dominates (overall prevalence %.4f), so always-positive is the "
-            "majority-class baseline." % (df["n_positive_test"].sum() / df["n_test"].sum())
+            "Trivial baselines for the Lower Manhattan Option B fold table "
+            f"(n_test pooled={int(df['n_test'].sum())}). Positive prevalence "
+            f"{df['n_positive_test'].sum() / df['n_test'].sum():.4f}."
         ),
         "overall_positive_prevalence": float(df["n_positive_test"].sum() / df["n_test"].sum()),
         "model_mean_acc": model_acc,

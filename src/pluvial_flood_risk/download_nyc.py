@@ -9,6 +9,7 @@ Does not download 7Analytics PFIb. Fixture fallback remains when fetch fails.
 from __future__ import annotations
 
 import csv
+import hashlib
 import io
 import json
 import time
@@ -36,19 +37,28 @@ _3DEP_EXPORT = (
     "3DEPElevation/ImageServer/exportImage"
 )
 
-# NYC DEP stormwater via public ArcGIS Hub mirror.
-# Layer "New_York_City_Map_WFL1/FeatureServer/2" holds three Flooding_Category
-# classes: 1 = moderate rainfall flooding, 2 = extreme rainfall flooding, and
-# 3 = "Future High Tides 2050" (coastal tidal inundation under sea-level rise).
-# Categories 1–2 are hydrologic/hydraulic MODEL OUTPUTS (not observations);
-# category 3 is coastal, not pluvial. For the pluvial susceptibility target we
-# therefore (a) exclude category 3, and (b) treat categories 1–2 as a
-# model-derived pseudo-label, never as "observed" flooding.
-_DEP_STORMWATER = (
+# NYC DEP stormwater via public ArcGIS Hub mirror. The service
+# "New_York_City_Map_WFL1" holds three flood layers:
+#   Layer 1 = "Moderate Flood with Current Sea Levels"  -> PRIMARY pluvial target
+#   Layer 2 = "Moderate Flood with 2050 Sea Level Rise" -> sensitivity analysis
+#   Layer 3 = "Extreme Flood with 2080 Sea Level Rise"  -> not used
+# Layers 1-3 share the coded field Flooding_Category:
+#   1 = Nuisance Flooding (>=4 in to <1 ft) and 2 = Deep and Contiguous Flooding
+#   (>=1 ft), both hydrologic/hydraulic MODEL OUTPUTS from extreme-rainfall
+#   simulations; 3 = Future High Tides (coastal tidal inundation).
+# For the pluvial susceptibility target we therefore (a) use the CURRENT-sea-level
+# layer 1 so the target reflects present-day rainfall flooding rather than a 2050
+# climate scenario, (b) exclude category 3 (coastal, not pluvial), and (c) treat
+# categories 1-2 as a model-derived pseudo-label, never as "observed" flooding.
+_DEP_STORMWATER_CURRENT = (
+    "https://services.arcgis.com/g8EzU2gNHvGpFUGY/ArcGIS/rest/services/"
+    "New_York_City_Map_WFL1/FeatureServer/1/query"
+)
+_DEP_STORMWATER_2050SLR = (
     "https://services.arcgis.com/g8EzU2gNHvGpFUGY/ArcGIS/rest/services/"
     "New_York_City_Map_WFL1/FeatureServer/2/query"
 )
-# Only pluvial model classes; category 3 (Future High Tides 2050) is dropped.
+# Only pluvial model classes; category 3 (Future High Tides) is dropped.
 _DEP_WHERE = "Flooding_Category IN (1,2)"
 
 # Official NYC MapHub building footprints view
@@ -82,32 +92,62 @@ _SANDY_CANDIDATES = [
 
 _IDA_ITEM = "https://www.sciencebase.gov/catalog/item/618975c8d34ec04fc9c5a049?format=json"
 
-# 311 flooding — SODA often 403; prefer ArcGIS / CDN mirrors of Street Flooding (SJ)
+# 311 street flooding. Prefer the official NYC Open Data historical extract
+# (2010–2019, dataset 76ig-c548) with a frozen 2010–2014 / Street Flooding (SJ)
+# query, ordered pagination, and unique_key dedup. Derived ArcGIS/CDN layers are
+# fallbacks only and must be labelled as unverified public mirrors.
+_311_OFFICIAL_DATASET = "76ig-c548"
+_311_OFFICIAL_LANDING = (
+    "https://data.cityofnewyork.us/Social-Services/"
+    "311-Service-Requests-from-2010-to-2019/76ig-c548"
+)
+_311_SODA_JSON = f"https://data.cityofnewyork.us/resource/{_311_OFFICIAL_DATASET}.json"
+_311_SELECT_FIELDS = (
+    "unique_key,created_date,agency,complaint_type,descriptor,"
+    "latitude,longitude,incident_address,borough"
+)
+_311_DESCRIPTOR = "Street Flooding (SJ)"
+_311_DATE_START = "2010-01-01T00:00:00"
+_311_DATE_END_EXCLUSIVE = "2015-01-01T00:00:00"
+_311_PAGE_SIZE = 1000
 _311_CANDIDATES = [
     (
-        "arcgis_streetfloodtime",
+        "soda_76ig_c548_official",
+        _311_SODA_JSON,
+    ),
+    (
+        "arcgis_streetfloodtime_derived",
         "https://services.arcgis.com/ximI3fAlai1oq9BZ/arcgis/rest/services/"
         "streetfloodtime/FeatureServer/0/query",
     ),
     (
-        "jsdelivr_street_flooding_csv",
+        "jsdelivr_street_flooding_csv_derived",
         "https://cdn.jsdelivr.net/gh/mebauer/nyc-311-street-flooding@main/data/"
         "street-flooding-complaints.csv",
     ),
     (
-        "socrata_erm2",
-        "https://data.cityofnewyork.us/resource/erm2-nwe9.geojson",
+        "socrata_erm2_nwe9_wrong_vintage",
+        "https://data.cityofnewyork.us/resource/erm2-nwe9.json",
     ),
 ]
+
+# FloodNet: official NYC Open Data events (aq7i-eu5q) + sensor metadata (kb2e-tjy3).
+# Downloaded for held-out external validation only; never a default training label.
+# Do not treat the legacy api.floodnet.nyc/status probe as "no usable data".
+_FLOODNET_EVENTS_DATASET = "aq7i-eu5q"
+_FLOODNET_SENSORS_DATASET = "kb2e-tjy3"
+_FLOODNET_OPEN_DATA = f"https://data.cityofnewyork.us/d/{_FLOODNET_EVENTS_DATASET}"
+_FLOODNET_SENSORS_LANDING = f"https://data.cityofnewyork.us/d/{_FLOODNET_SENSORS_DATASET}"
+_DEP_OPEN_DATA_LANDING = (
+    "https://data.cityofnewyork.us/Environment/NYC-Stormwater-Flood-Maps/9i7c-xyvv"
+)
+_DEP_ADAPTNYC_LANDING = "https://www.nyc.gov/content/climate/pages/initiatives/adaptnyc"
 
 # Annual NLCD fractional impervious (0–100%) via Esri ImageServer; scale to 0–1
 _NLCD_IMPERVIOUS = (
     "https://di-nlcd.img.arcgis.com/arcgis/rest/services/"
     "USA_NLCD_Annual_LandCover_Fractional_Impervious_Surface/ImageServer/exportImage"
 )
-
-# Optional FloodNet sensor stub (documented; may be unavailable)
-_FLOODNET_STUB = "https://api.floodnet.nyc/status"  # placeholder probe
 
 # USGS NHDPlus High Resolution (hydro.nationalmap.gov) — flowlines + waterbodies
 # Lower Manhattan has few classic inland streams; expect tidal rivers / shoreline /
@@ -207,24 +247,55 @@ def download_nyc_layers(
         log(f"DEM failed: {exc}")
 
     # --- DEP stormwater (model-derived pluvial classes 1–2; category 3 excluded) ---
+    # Official NYC Open Data landing: 9i7c-xyvv. Geospatial SODA export observed as
+    # HTTP 400, so production uses the public AdaptNYC/ArcGIS FeatureServer mirror
+    # with official_identity_verified=false. Layer 1 = primary; Layer 2 = SLR only.
     dep_path = out_dir / "dep_stormwater_flood.geojson"
+    dep_slr_path = out_dir / "dep_stormwater_flood_2050slr.geojson"
     try:
-        log("Downloading DEP stormwater flood polygons (categories 1–2)…")
+        log("Downloading DEP stormwater flood polygons (categories 1–2, current sea levels)…")
         n = _download_arcgis_geojson(
-            _DEP_STORMWATER, bbox, dep_path, page_size=2000, where=_DEP_WHERE
+            _DEP_STORMWATER_CURRENT, bbox, dep_path, page_size=2000, where=_DEP_WHERE
         )
         report.layers.append(
             LayerResult(
                 "dep_stormwater_flood",
                 str(dep_path),
                 "downloaded",
-                "ArcGIS Hub DEP moderate/extreme rainfall (model-derived; category 3 high-tides excluded)",
+                (
+                    "public_mirror ArcGIS FeatureServer Layer 1 (Moderate Flood, Current Sea Levels; "
+                    "category 3 excluded). "
+                    f"Official landing {_DEP_OPEN_DATA_LANDING}; AdaptNYC {_DEP_ADAPTNYC_LANDING}; "
+                    "official_identity_verified=false"
+                ),
                 n_features=n,
+                detail=f"service={_DEP_STORMWATER_CURRENT}",
             )
         )
     except Exception as exc:
         report.layers.append(_failed_or_kept("dep_stormwater_flood", dep_path, "ArcGIS DEP", exc))
         log(f"DEP stormwater failed: {exc}")
+
+    try:
+        log("Downloading DEP stormwater 2050 SLR sensitivity polygons (categories 1–2)…")
+        n_slr = _download_arcgis_geojson(
+            _DEP_STORMWATER_2050SLR, bbox, dep_slr_path, page_size=2000, where=_DEP_WHERE
+        )
+        report.layers.append(
+            LayerResult(
+                "dep_stormwater_flood_2050slr",
+                str(dep_slr_path),
+                "downloaded",
+                (
+                    "public_mirror ArcGIS FeatureServer Layer 2 (2050 SLR; category 3 excluded). "
+                    f"Official landing {_DEP_OPEN_DATA_LANDING}; official_identity_verified=false"
+                ),
+                n_features=n_slr,
+            )
+        )
+    except Exception as exc:
+        report.layers.append(_failed_or_kept("dep_stormwater_flood_2050slr", dep_slr_path, "ArcGIS DEP", exc))
+        log(f"DEP stormwater 2050 SLR failed: {exc}")
 
     # --- Buildings ---
     bldg_path = out_dir / "building_footprints.geojson"
@@ -381,24 +452,52 @@ def download_nyc_layers(
             )
         )
 
-    # FloodNet stub path (document only unless API responds)
+    # FloodNet: download official aq7i-eu5q + kb2e-tjy3 for held-out validation only.
+    # Never added to training labels (labels.include_floodnet remains False).
     floodnet_path = out_dir / "floodnet_sensors.geojson"
     try:
-        _http_get(_FLOODNET_STUB, timeout=15)
+        log("Downloading FloodNet sensors+events (held-out only; aq7i-eu5q / kb2e-tjy3)…")
+        from pluvial_flood_risk.floodnet import download_floodnet_heldout
+
+        fn_meta = download_floodnet_heldout(out_dir, bbox=bbox)
+        report.layers.append(
+            LayerResult(
+                "floodnet",
+                str(floodnet_path) if floodnet_path.exists() else None,
+                "downloaded",
+                (
+                    f"NYC Open Data {_FLOODNET_EVENTS_DATASET}+{_FLOODNET_SENSORS_DATASET} "
+                    "(held-out external validation only; not a training label)"
+                ),
+                n_features=int(fn_meta.get("n_sensors_in_bbox") or 0),
+                detail=(
+                    f"events={fn_meta.get('n_events_citywide')}; "
+                    f"sensors_citywide={fn_meta.get('n_sensors_citywide')}; "
+                    f"sensors_bbox={fn_meta.get('n_sensors_in_bbox')}; "
+                    f"landing={_FLOODNET_OPEN_DATA}"
+                ),
+            )
+        )
+    except Exception as exc:
         report.layers.append(
             LayerResult(
                 "floodnet",
                 None,
                 "skipped",
                 "FloodNet",
-                detail="API reachable but sensor GeoJSON export not wired; stub only",
+                detail=(
+                    f"download failed ({exc}); datasets remain public at "
+                    f"{_FLOODNET_OPEN_DATA} and {_FLOODNET_SENSORS_LANDING}; "
+                    "reserved for held-out validation — do not claim data unavailable"
+                ),
             )
         )
-    except Exception as exc:
-        report.layers.append(
-            LayerResult("floodnet", None, "skipped", "FloodNet", detail=f"stub unreachable: {exc}")
-        )
-        _ = floodnet_path
+        try:
+            from pluvial_flood_risk.floodnet import write_floodnet_stub
+
+            write_floodnet_stub(out_dir)
+        except Exception:
+            pass
 
     dem_ok = dem_path.exists() and dem_path.stat().st_size > 1000
     dep_ok = dep_path.exists() and dep_path.stat().st_size > 100
@@ -820,25 +919,71 @@ def _download_ida_hwm(out_path: Path, bbox: tuple[float, float, float, float] | 
 
 
 def _download_311_flooding(out_path: Path, bbox: tuple[float, float, float, float]) -> tuple[str, int]:
-    """Try ArcGIS / CDN / SODA mirrors; return (source_name, n_features)."""
+    """Official 76ig-c548 first; derived ArcGIS/CDN only as labelled fallbacks."""
     last_err: Exception | None = None
+    query_sidecar = out_path.with_name(out_path.stem + "_query.json")
     for name, url in _311_CANDIDATES:
         try:
+            if name == "soda_76ig_c548_official":
+                n, meta = _download_311_soda_official(url, out_path, bbox=bbox)
+                if n <= 0:
+                    raise RuntimeError(f"{name} returned 0 features in bbox")
+                query_sidecar.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+                return name, n
             if name.startswith("arcgis_") and url.endswith("/query"):
                 n = _download_arcgis_geojson(url, bbox, out_path, page_size=2000)
                 if n <= 0:
                     raise RuntimeError(f"{name} returned 0 features in bbox")
-                _annotate_geojson_source(out_path, source=name, extra={"hazard": "pluvial_311"})
+                n = _filter_311_geojson_date_window(out_path)
+                if n <= 0:
+                    raise RuntimeError(f"{name} had 0 features after 2010-2014 date filter")
+                _annotate_geojson_source(
+                    out_path,
+                    source=name,
+                    extra={
+                        "hazard": "pluvial_311",
+                        "official_identity_verified": False,
+                        "mirror_status": "public_derived_layer",
+                        "producer_note": (
+                            "ArcGIS streetfloodtime (owner jeichen_GIS) is a derived "
+                            "complaint layer, not an official NYC 311 extract. "
+                            f"Preferred official dataset is {_311_OFFICIAL_DATASET}."
+                        ),
+                        "date_window": f"{_311_DATE_START} <= created < {_311_DATE_END_EXCLUSIVE}",
+                    },
+                )
+                query_sidecar.write_text(
+                    json.dumps(
+                        {
+                            "source": name,
+                            "official_identity_verified": False,
+                            "preferred_dataset": _311_OFFICIAL_DATASET,
+                            "date_window": [_311_DATE_START, _311_DATE_END_EXCLUSIVE],
+                            "n_features": n,
+                        },
+                        indent=2,
+                    ),
+                    encoding="utf-8",
+                )
                 return name, n
             if name.startswith("jsdelivr_") or url.endswith(".csv"):
                 n = _download_311_csv_mirror(url, out_path, bbox=bbox, source=name)
                 if n <= 0:
                     raise RuntimeError(f"{name} returned 0 features in bbox")
+                n = _filter_311_geojson_date_window(out_path)
+                if n <= 0:
+                    raise RuntimeError(f"{name} had 0 features after 2010-2014 date filter")
                 return name, n
-            # SODA geojson / json
-            n = _download_311_soda(url, out_path, bbox=bbox)
+            n, meta = _download_311_soda_paginated(
+                url,
+                out_path,
+                bbox=bbox,
+                dataset_id="erm2-nwe9",
+                include_date_filter=True,
+            )
             if n <= 0:
                 raise RuntimeError(f"{name} returned 0 features in bbox")
+            query_sidecar.write_text(json.dumps(meta, indent=2), encoding="utf-8")
             return name, n
         except Exception as exc:
             last_err = exc
@@ -846,54 +991,199 @@ def _download_311_flooding(out_path: Path, bbox: tuple[float, float, float, floa
     raise RuntimeError(f"All 311 sources failed: {last_err}")
 
 
-def _download_311_soda(url: str, out_path: Path, bbox: tuple[float, float, float, float]) -> int:
+def _311_where_clause(bbox: tuple[float, float, float, float], *, include_date: bool) -> str:
     minx, miny, maxx, maxy = bbox
-    where = (
-        "(complaint_type LIKE '%Flood%' OR descriptor LIKE '%Flood%' "
-        "OR complaint_type LIKE '%Sewer%') "
-        f"AND latitude between '{miny}' and '{maxy}' "
-        f"AND longitude between '{minx}' and '{maxx}'"
+    parts = [
+        f"descriptor = '{_311_DESCRIPTOR}'",
+        f"latitude between '{miny}' and '{maxy}'",
+        f"longitude between '{minx}' and '{maxx}'",
+    ]
+    if include_date:
+        parts.insert(
+            1,
+            f"created_date >= '{_311_DATE_START}' AND created_date < '{_311_DATE_END_EXCLUSIVE}'",
+        )
+    return " AND ".join(parts)
+
+
+def _download_311_soda_official(
+    url: str,
+    out_path: Path,
+    bbox: tuple[float, float, float, float],
+) -> tuple[int, dict[str, Any]]:
+    return _download_311_soda_paginated(
+        url,
+        out_path,
+        bbox=bbox,
+        dataset_id=_311_OFFICIAL_DATASET,
+        include_date_filter=True,
+        landing_page=_311_OFFICIAL_LANDING,
+        official=True,
     )
-    params = {
-        "$where": where,
-        "$limit": "5000",
-        "$select": "unique_key,complaint_type,descriptor,created_date,latitude,longitude",
-    }
-    full = url + ("&" if "?" in url else "?") + urllib.parse.urlencode(params)
-    raw = _http_get(full, timeout=90)
-    payload = json.loads(raw.decode("utf-8"))
-    if isinstance(payload, dict) and payload.get("error"):
-        raise RuntimeError(str(payload))
-    if isinstance(payload, dict) and payload.get("type") == "FeatureCollection":
-        feats = payload.get("features") or []
-        for f in feats:
-            props = f.setdefault("properties", {})
-            props.setdefault("source", "nyc_311_soda")
-            props.setdefault("hazard", "pluvial_311")
-        out_path.write_text(json.dumps(payload), encoding="utf-8")
-        return len(feats)
-    if isinstance(payload, list):
-        records = []
+
+
+def _download_311_soda_paginated(
+    url: str,
+    out_path: Path,
+    bbox: tuple[float, float, float, float],
+    *,
+    dataset_id: str,
+    include_date_filter: bool,
+    landing_page: str | None = None,
+    official: bool = False,
+) -> tuple[int, dict[str, Any]]:
+    """SODA JSON with frozen select/where/order, $offset pages, unique_key dedup."""
+    base = url.split("?")[0]
+    where = _311_where_clause(bbox, include_date=include_date_filter)
+    page_hashes: list[str] = []
+    by_key: dict[str, dict[str, Any]] = {}
+    offset = 0
+    while True:
+        params = {
+            "$select": _311_SELECT_FIELDS,
+            "$where": where,
+            "$order": "unique_key",
+            "$limit": str(_311_PAGE_SIZE),
+            "$offset": str(offset),
+        }
+        full = base + "?" + urllib.parse.urlencode(params)
+        raw = _http_get(full, timeout=90)
+        page_hashes.append(hashlib.sha256(raw).hexdigest())
+        payload = json.loads(raw.decode("utf-8"))
+        if isinstance(payload, dict) and payload.get("error"):
+            raise RuntimeError(str(payload))
+        if isinstance(payload, dict) and payload.get("type") == "FeatureCollection":
+            rows = []
+            for feat in payload.get("features") or []:
+                props = dict(feat.get("properties") or {})
+                geom = feat.get("geometry") or {}
+                coords = geom.get("coordinates") or [None, None]
+                props.setdefault("longitude", coords[0])
+                props.setdefault("latitude", coords[1])
+                rows.append(props)
+            payload = rows
+        if not isinstance(payload, list):
+            raise RuntimeError("Unexpected 311 SODA payload")
+        if not payload:
+            break
         for row in payload:
-            lon = _float_field(row, ("longitude",))
-            lat = _float_field(row, ("latitude",))
-            if lon is None or lat is None:
+            key = str(row.get("unique_key") or "").strip()
+            if not key:
                 continue
-            records.append(
-                (
-                    Point(lon, lat),
-                    {
-                        "complaint_type": row.get("complaint_type"),
-                        "descriptor": row.get("descriptor"),
-                        "unique_key": row.get("unique_key"),
-                        "source": "nyc_311_soda",
-                        "hazard": "pluvial_311",
-                    },
-                )
+            by_key[key] = row
+        if len(payload) < _311_PAGE_SIZE:
+            break
+        offset += len(payload)
+        if offset > 200_000:
+            break
+        time.sleep(0.15)
+
+    records = []
+    for key in sorted(by_key):
+        row = by_key[key]
+        lon = _float_field(row, ("longitude",))
+        lat = _float_field(row, ("latitude",))
+        if lon is None or lat is None:
+            continue
+        records.append(
+            (
+                Point(lon, lat),
+                {
+                    "unique_key": key,
+                    "complaint_type": row.get("complaint_type"),
+                    "descriptor": row.get("descriptor"),
+                    "created_date": row.get("created_date"),
+                    "agency": row.get("agency"),
+                    "incident_address": row.get("incident_address"),
+                    "borough": row.get("borough"),
+                    "source": f"nyc_311_soda_{dataset_id}",
+                    "hazard": "pluvial_311",
+                    "official_identity_verified": official,
+                },
             )
-        write_geojson_features(out_path, records)
-        return len(records)
-    raise RuntimeError("Unexpected 311 SODA payload")
+        )
+    write_geojson_features(out_path, records)
+    meta = {
+        "dataset_id": dataset_id,
+        "landing_page": landing_page or f"https://data.cityofnewyork.us/d/{dataset_id}",
+        "soda_url": base,
+        "select": _311_SELECT_FIELDS,
+        "where": where,
+        "order": "unique_key",
+        "page_size": _311_PAGE_SIZE,
+        "date_start": _311_DATE_START if include_date_filter else None,
+        "date_end_exclusive": _311_DATE_END_EXCLUSIVE if include_date_filter else None,
+        "descriptor": _311_DESCRIPTOR,
+        "bbox": list(bbox),
+        "n_pages": len(page_hashes),
+        "page_sha256": page_hashes,
+        "n_unique_keys": len(by_key),
+        "n_features_written": len(records),
+        "official_identity_verified": official,
+        "retrieved_utc": _now(),
+    }
+    return len(records), meta
+
+
+def _parse_311_created_date(value: Any) -> datetime | None:
+    if value is None or value == "":
+        return None
+    text = str(value).strip()
+    for fmt in (
+        "%Y-%m-%dT%H:%M:%S.%f",
+        "%Y-%m-%dT%H:%M:%S",
+        "%Y-%m-%d %H:%M:%S",
+        "%m/%d/%Y %H:%M",
+        "%m/%d/%Y %H:%M:%S",
+        "%Y/%m/%d",
+        "%Y-%m-%d",
+    ):
+        try:
+            return datetime.strptime(text.replace("Z", ""), fmt)
+        except ValueError:
+            continue
+    return None
+
+
+def _filter_311_geojson_date_window(path: Path) -> int:
+    """Keep 2010–2014 records when a created-date field is present; dedup if possible."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    feats = data.get("features") or []
+    start = datetime(2010, 1, 1)
+    end = datetime(2015, 1, 1)
+    kept: list[dict] = []
+    seen: set[str] = set()
+    for feat in feats:
+        props = feat.get("properties") or {}
+        created = None
+        for key in ("created_date", "Created_Da", "Created Date", "created"):
+            if key in props:
+                created = _parse_311_created_date(props.get(key))
+                if created is not None:
+                    break
+        if created is not None and not (start <= created < end):
+            continue
+        uniq = str(props.get("unique_key") or props.get("Unique Key") or props.get("FID") or "")
+        if uniq:
+            if uniq in seen:
+                continue
+            seen.add(uniq)
+        kept.append(feat)
+    data["features"] = kept
+    path.write_text(json.dumps(data), encoding="utf-8")
+    return len(kept)
+
+
+def _download_311_soda(url: str, out_path: Path, bbox: tuple[float, float, float, float]) -> int:
+    """Back-compat wrapper: paginated SODA with the frozen 2010–2014 filter."""
+    n, _meta = _download_311_soda_paginated(
+        url,
+        out_path,
+        bbox=bbox,
+        dataset_id="legacy",
+        include_date_filter=True,
+    )
+    return n
 
 
 def _download_311_csv_mirror(
@@ -1169,12 +1459,18 @@ def _http_get(url: str, timeout: float = 60) -> bytes:
         url,
         headers={"User-Agent": USER_AGENT, "Accept": "*/*"},
     )
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return resp.read()
-    except urllib.error.HTTPError as exc:
-        body = exc.read()[:300] if hasattr(exc, "read") else b""
-        raise RuntimeError(f"HTTP {exc.code} for {url[:120]}… {body!r}") from exc
+    last_exc: Exception | None = None
+    for attempt in range(1, 4):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return resp.read()
+        except urllib.error.HTTPError as exc:
+            body = exc.read()[:300] if hasattr(exc, "read") else b""
+            raise RuntimeError(f"HTTP {exc.code} for {url[:120]}… {body!r}") from exc
+        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as exc:
+            last_exc = exc
+            time.sleep(0.8 * attempt)
+    raise RuntimeError(f"HTTP GET failed for {url[:120]}… {last_exc}") from last_exc
 
 
 def _float_field(row: dict, keys: tuple[str, ...]) -> float | None:

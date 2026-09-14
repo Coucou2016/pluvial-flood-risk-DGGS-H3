@@ -164,14 +164,27 @@ def main() -> None:
         raise SystemExit(2)
 
     sources = sources_from_config(cfg)
-    df = assemble_h3_table(bbox, resolution, rainfall_mm_h=rainfall, sources=sources)
+    df = assemble_h3_table(
+        bbox,
+        resolution,
+        rainfall_mm_h=rainfall,
+        sources=sources,
+        fallback_synthetic=False,
+    )
 
     table_path = PROCESSED_DIR / "nyc_h3_cells_expanded.parquet"
     table_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(table_path, index=False)
 
     model_dir = MODELS_DIR / "nyc_expanded"
-    train_metrics = run_training(table_path, model_dir=model_dir)
+    seed = int(cfg.get("random_seed", 42))
+    train_metrics = run_training(
+        table_path,
+        model_dir=model_dir,
+        random_seed=seed,
+        allow_synthetic=False,
+        refuse_synthetic=True,
+    )
 
     fold_csv = model_dir / "spatial_cv_folds.csv"
     baseline = _constant_baselines(fold_csv) if fold_csv.exists() else {}
@@ -192,11 +205,11 @@ def main() -> None:
         "fold_csv": str(fold_csv),
         "table_path": str(table_path),
         "note": (
-            "Expanded-bbox primary table (manhattan_expanded). Separate from the n=141 "
-            "Lower Manhattan smoke. accuracy/F1 are reported alongside always-positive "
-            "and always-negative constant classifiers, with the true constant-majority "
-            "derived from the pooled class count. Classification discrimination is not "
-            "claimed from thresholded accuracy/F1 alone."
+            "Expanded-bbox primary table (manhattan_expanded). Separate from the "
+            "Lower Manhattan paper pilot (Option B, ~262 R9 cells). accuracy/F1 are "
+            "reported alongside always-positive and always-negative constant classifiers, "
+            "with the true constant-majority derived from the pooled class count. "
+            "Classification discrimination is not claimed from thresholded accuracy/F1 alone."
         ),
     }
 

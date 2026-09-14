@@ -115,6 +115,11 @@ def plot_jaccard_ladder(
     df = pd.read_csv(table) if not isinstance(table, pd.DataFrame) else table.copy()
     if df.empty:
         raise ValueError("Jaccard table is empty; run pluvial-diagnostics first.")
+    if "fine_res" in df.columns:
+        native = int(df["fine_res"].max())
+        df = df.loc[df["fine_res"].astype(int) == native].copy()
+    jac_col = "jaccard" if "jaccard" in df.columns else "jaccard_soft"
+    f1_col = "f1" if "f1" in df.columns else jac_col
 
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -135,12 +140,12 @@ def plot_jaccard_ladder(
         sub = df.loc[df["aggregation"] == agg].sort_values("coarse_res")
         xv = sub["coarse_res"].astype(float).to_numpy() + offsets[agg]
         marker, color = style[agg]
-        axes[0].plot(xv, sub["jaccard"], marker=marker, linestyle="", color=color, label=display[agg])
-        axes[1].plot(xv, sub["f1"], marker=marker, linestyle="", color=color, label=display[agg])
+        axes[0].plot(xv, sub[jac_col], marker=marker, linestyle="", color=color, label=display[agg])
+        axes[1].plot(xv, sub[f1_col], marker=marker, linestyle="", color=color, label=display[agg])
 
     coarse_ticks = sorted(int(r) for r in df["coarse_res"].unique())
-    axes[0].set_title("Jaccard similarity")
-    axes[1].set_title("F1")
+    axes[0].set_title("Area-weighted soft Jaccard")
+    axes[1].set_title("Area-weighted F1")
     axes[0].set_ylabel("Hotspot Jaccard")
     axes[1].set_ylabel("Hotspot F1")
     for ax in axes:
@@ -237,12 +242,22 @@ def plot_spatial_cv_bars(
         fontsize=8, color="#888888", ha="right", va="top",
     )
 
-    # Per-fold test size and positive prevalence under each fold marker.
+    # Per-fold test size and positive prevalence — inside axes to avoid clipping.
     for i in range(len(df)):
         n_i = int(n_test[i])
         p_i = pos[i] / n_i
-        ax.text(i, -0.16, f"n={n_i}\n{p_i*100:.0f}% +",
-                ha="center", va="top", fontsize=6.5, color="#555555")
+        ax.text(
+            i,
+            0.02,
+            f"n={n_i}\n{p_i*100:.0f}% +",
+            ha="center",
+            va="bottom",
+            fontsize=6.5,
+            color="#555555",
+            transform=ax.get_xaxis_transform(),
+            clip_on=False,
+            bbox=dict(boxstyle="round,pad=0.15", facecolor="white", edgecolor="none", alpha=0.75),
+        )
 
     # Mean ± SD at a final x-position (extra half-step gap so it does not read
     # as a sixth fold), with error bars. ddof=0 matches the population-SD
@@ -263,14 +278,14 @@ def plot_spatial_cv_bars(
 
     ax.set_xticks(list(range(len(df))) + [mx])
     ax.set_xticklabels([f"Fold {i}" for i in df["fold_id"].astype(int)] + ["Mean ± SD"])
-    ax.set_ylim(-0.24, 1.05)
+    ax.set_ylim(0.0, 1.05)
     ax.set_ylabel("Score")
     ax.set_xlabel("H3-block spatial CV")
     ax.legend(loc="lower left", fontsize=8)
     ax.grid(True, axis="y", alpha=0.3)
     if title:
         fig.suptitle(title, fontsize=11)
-    fig.tight_layout()
+    fig.subplots_adjust(bottom=0.18, top=0.90 if title else 0.95)
     fig.savefig(out_path, dpi=300, bbox_inches="tight")
     fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
     plt.close(fig)
@@ -695,45 +710,57 @@ def _resolution_rollups(r10_scores: pd.Series, out_res: int) -> pd.Series:
     return tmp.groupby("parent")["score"].mean()
 
 
-def _hotspot_cells(scores: pd.Series, quantile: float = 0.9) -> set[str]:
-    """Cells at or above the ``quantile`` of their resolution's own scores."""
-    thr = scores.quantile(quantile)
-    return set(scores[scores >= thr].index)
+def _load_canonical_ladder(ladder_table: pd.DataFrame | Path | str) -> pd.DataFrame:
+    """Read the canonical scale-results table. Never recompute Jaccard here."""
+    from pluvial_flood_risk.rollups import canonical_ladder_heatmap
 
-
-def _pairwise_hotspot_jaccard(fine_scores: pd.Series, coarse_scores: pd.Series) -> float:
-    """Jaccard between fine hotspots projected to coarse parents and coarse hotspots."""
-    import h3
-
-    fine_hot = _hotspot_cells(fine_scores)
-    coarse_res = h3.get_resolution(next(iter(coarse_scores.index)))
-    fine_parents = {h3.cell_to_parent(c, coarse_res) for c in fine_hot}
-    coarse_hot = _hotspot_cells(coarse_scores)
-    inter = len(fine_parents & coarse_hot)
-    union = len(fine_parents | coarse_hot)
-    return inter / union if union else float("nan")
+    if isinstance(ladder_table, pd.DataFrame):
+        table = ladder_table.copy()
+    else:
+        path = Path(ladder_table)
+        if not path.exists():
+            raise FileNotFoundError(
+                f"Canonical scale-results table not found: {path}. "
+                "Run resolution_ladder_topk_diagnostics and write the CSV first."
+            )
+        table = pd.read_csv(path)
+    if table.empty:
+        raise ValueError("Canonical scale-results table is empty.")
+    # Touch the heatmap helper so Fig. 6 cannot drift from Table 4.
+    _ = canonical_ladder_heatmap(table, value_col="jaccard")
+    return table
 
 
 def plot_resolution_effects(
     r10_labels_path: pd.DataFrame | Path | str,
     out_path: Path | str,
     quantile: float = 0.9,
+    budget: float | None = None,
     title: str | None = None,
     caption: str | None = None,
+    ladder_table: pd.DataFrame | Path | str | None = None,
 ) -> Path:
     """
-    Resolution-effect diagnostics (reference-paper style, one two-panel figure).
+    Resolution-effect diagnostics.
 
-    (a) Violin plots of the open-label score at R10, R9, and R8 (mean rollup),
-    showing the variance compression as the grid coarsens. (b) Jaccard
-    similarity between hotspot sets (top ``quantile``) at R10, R9, and R8,
-    computed on the coarser support in each pair so the R10-vs-R9 and
-    R10-vs-R8 entries reproduce the scale-loss ladder exactly.
+    (a) Violin plots of the open-label score at R10, R9, and R8 (mean rollup).
+    (b) Area-weighted soft Jaccard from the **canonical scale-results table**
+    (Table 4 / ``outputs/jaccard_by_resolution.csv``). Jaccard is never
+    recomputed in this function. ``quantile`` and ``budget`` are ignored for
+    panel (b) and kept only so older call sites still import.
     """
+    del quantile, budget  # Jaccard is read from the canonical table only.
     require_matplotlib()
-    import h3
     import matplotlib.pyplot as plt
     import numpy as np
+    from pluvial_flood_risk.rollups import canonical_ladder_heatmap
+
+    if ladder_table is None:
+        raise ValueError(
+            "plot_resolution_effects requires ladder_table (canonical CSV/DataFrame "
+            "from rollups.resolution_ladder_topk_diagnostics). Jaccard is not "
+            "recomputed in figures.py."
+        )
 
     if isinstance(r10_labels_path, pd.DataFrame):
         df = r10_labels_path[["h3_index", "flood_risk"]].copy()
@@ -744,6 +771,13 @@ def plot_resolution_effects(
     s10 = df.set_index("h3_index")["flood_risk"]
     s9 = _resolution_rollups(s10, 9)
     s8 = _resolution_rollups(s10, 8)
+
+    ladder = _load_canonical_ladder(ladder_table)
+    heatmap = canonical_ladder_heatmap(ladder, value_col="jaccard")
+    # Column order: coarser first (R8 then R9) to match prior visual layout.
+    coarse_cols = sorted(int(c) for c in heatmap.columns)
+    agg_order = [a for a in ("mean", "max", "p90") if a in heatmap.index]
+    mat = heatmap.loc[agg_order, coarse_cols].to_numpy(dtype=float)
 
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -770,34 +804,22 @@ def plot_resolution_effects(
     ax_v.set_title("Score distribution by resolution (mean rollup)")
     ax_v.text(0.02, 0.97, "(a)", transform=ax_v.transAxes, fontsize=12, fontweight="bold", ha="left", va="top")
 
-    # --- panel (b): Jaccard cross-resolution similarity matrix ---
-    j10_9 = _pairwise_hotspot_jaccard(s10, s9)
-    j10_8 = _pairwise_hotspot_jaccard(s10, s8)
-    j9_8 = _pairwise_hotspot_jaccard(s9, s8)
-    matrix = np.array(
-        [
-            [1.0, j9_8, j10_8],
-            [j9_8, 1.0, j10_9],
-            [j10_8, j10_9, 1.0],
-        ]
-    )
-    labels = ["R8", "R9", "R10"]
-    im = ax_h.imshow(matrix, cmap="YlGnBu", vmin=0.0, vmax=1.0)
-    ax_h.set_xticks(range(3))
-    ax_h.set_yticks(range(3))
-    ax_h.set_xticklabels(labels)
-    ax_h.set_yticklabels(labels)
-    ax_h.set_xlabel("Hotspot resolution")
-    ax_h.set_ylabel("Hotspot resolution")
-    for i in range(3):
-        for j in range(3):
-            val = matrix[i, j]
+    # --- panel (b): canonical Table 4 heatmap (no independent Jaccard) ---
+    im = ax_h.imshow(mat, cmap="YlGnBu", vmin=0.0, vmax=1.0, aspect="auto")
+    ax_h.set_xticks(range(len(coarse_cols)))
+    ax_h.set_yticks(range(len(agg_order)))
+    ax_h.set_xticklabels([f"R{c}" for c in coarse_cols])
+    ax_h.set_yticklabels([a.capitalize() if a != "p90" else "P90" for a in agg_order])
+    ax_h.set_xlabel("Coarse resolution")
+    ax_h.set_ylabel("Aggregation")
+    for i in range(mat.shape[0]):
+        for j in range(mat.shape[1]):
+            val = mat[i, j]
+            if not np.isfinite(val):
+                continue
             color = "white" if val >= 0.6 else "black"
             ax_h.text(j, i, f"{val:.3f}", ha="center", va="center", fontsize=9, color=color)
-    ax_h.grid(which="major", color="white", linewidth=1.2, alpha=0.7)
-    ax_h.set_xticks(np.arange(3))
-    ax_h.set_yticks(np.arange(3))
-    ax_h.set_title("Cross-resolution hotspot Jaccard similarity (q = 0.9)")
+    ax_h.set_title("Area-weighted soft Jaccard (Table 4)")
     ax_h.text(0.02, 0.97, "(b)", transform=ax_h.transAxes, fontsize=12, fontweight="bold", ha="left", va="top", color="white")
     fig.colorbar(im, ax=ax_h, fraction=0.046, pad=0.04, label="Jaccard similarity")
 

@@ -83,11 +83,17 @@ def generate_demo_data(
 @click.option("--model-dir", type=click.Path(path_type=Path), default=MODELS_DIR)
 @click.option("--spatial-cv-k", default=DEFAULT_SPATIAL_CV_K, show_default=True)
 @click.option("--spatial-cv-folds", default=DEFAULT_SPATIAL_CV_FOLDS, show_default=True)
+@click.option(
+    "--allow-synthetic/--no-allow-synthetic",
+    default=False,
+    help="Permit synthetic/demo tables (required for Oslo demo; forbidden for paper).",
+)
 def train(
     data_path: Path | None,
     model_dir: Path,
     spatial_cv_k: int,
     spatial_cv_folds: int,
+    allow_synthetic: bool,
 ):
     """Train classifier + regressor; report random-split + spatial block CV."""
     metrics = run_training(
@@ -95,6 +101,7 @@ def train(
         model_dir,
         spatial_cv_k=spatial_cv_k,
         spatial_cv_folds=spatial_cv_folds,
+        allow_synthetic=allow_synthetic,
     )
     click.echo(json.dumps(metrics, indent=2))
 

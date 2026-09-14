@@ -72,6 +72,10 @@ class FeatureSources:
         return names
 
 
+class AssemblyError(RuntimeError):
+    """Raised when fail-closed assembly cannot produce observed features."""
+
+
 def discover_sources(raw_dir: Path | str, assembly_mode: str | None = None) -> FeatureSources:
     """Pick conventional filenames under ``data/raw`` or ``data/raw/nyc``."""
     raw_dir = Path(raw_dir)
@@ -189,19 +193,87 @@ def sources_from_config(cfg: dict) -> FeatureSources:
     )
 
 
+def _empty_feature_frame(cells: list[str], rainfall_mm_h: float) -> pd.DataFrame:
+    """Skeleton feature table with NaN static columns (fail-closed start)."""
+    n = len(cells)
+    data: dict[str, object] = {"h3_index": cells}
+    for col in FEATURE_COLUMNS:
+        if col == "rainfall_mm_h":
+            data[col] = np.full(n, rainfall_mm_h, dtype=np.float64)
+        else:
+            data[col] = np.full(n, np.nan, dtype=np.float64)
+    return pd.DataFrame(data)
+
+
+def _column_provenance_counts(
+    df: pd.DataFrame,
+    observed: set[str],
+    synth_mask: dict[str, np.ndarray] | None = None,
+) -> dict[str, dict[str, int]]:
+    """Per-column observed / synthetic / null counts for audit manifests."""
+    counts: dict[str, dict[str, int]] = {}
+    n = len(df)
+    for col in FEATURE_COLUMNS:
+        if col not in df.columns:
+            counts[col] = {"observed_count": 0, "synthetic_count": 0, "null_count": n}
+            continue
+        series = df[col]
+        null_count = int(series.isna().sum())
+        if col == "rainfall_mm_h":
+            # Rainfall is scenario/config (or event raster hook), not a static observed DEM feature.
+            counts[col] = {
+                "observed_count": 0,
+                "synthetic_count": int(n - null_count),
+                "null_count": null_count,
+            }
+            continue
+        if col in observed:
+            if synth_mask and col in synth_mask:
+                syn = synth_mask[col]
+                counts[col] = {
+                    "observed_count": int((~syn & series.notna()).sum()),
+                    "synthetic_count": int(syn.sum()),
+                    "null_count": null_count,
+                }
+            else:
+                counts[col] = {
+                    "observed_count": int(series.notna().sum()),
+                    "synthetic_count": 0,
+                    "null_count": null_count,
+                }
+        else:
+            syn_n = int(series.notna().sum())
+            counts[col] = {
+                "observed_count": 0,
+                "synthetic_count": syn_n,
+                "null_count": null_count,
+            }
+    return counts
+
+
 def assemble_feature_table(
     cells: list[str],
     rainfall_mm_h: float = 25.0,
     sources: FeatureSources | None = None,
-    fallback_synthetic: bool = True,
+    fallback_synthetic: bool = False,
 ) -> pd.DataFrame:
     """
-    Build per-cell features. Hash/synthetic fills gaps when rasters/vectors are missing.
+    Build per-cell features.
+
+    Production default is fail-closed (``fallback_synthetic=False``): missing
+    static layers or NaNs raise ``AssemblyError``. Synthetic / hash fills are
+    allowed only when explicitly enabled (``--demo`` / ``--allow-synthetic``).
     """
     sources = sources or FeatureSources()
-    df = engineer_features_for_cells(cells, rainfall_mm_h=rainfall_mm_h)
-    synth_backup = df[FEATURE_COLUMNS].copy() if len(df) else df
+    if fallback_synthetic:
+        df = engineer_features_for_cells(cells, rainfall_mm_h=rainfall_mm_h)
+        synth_backup = df[FEATURE_COLUMNS].copy() if len(df) else df
+    else:
+        df = _empty_feature_frame(cells, rainfall_mm_h=rainfall_mm_h)
+        synth_backup = None
+
     observed: set[str] = set()
+    synth_mask: dict[str, np.ndarray] = {}
 
     if sources.dem_path and Path(sources.dem_path).exists():
         zonal = zonal_mean_raster_to_h3(cells, sources.dem_path)
@@ -232,6 +304,9 @@ def assemble_feature_table(
         zonal = zonal_mean_raster_to_h3(cells, sources.impervious_path)
         df = merge_raster_feature(df, zonal, "impervious_frac")
         df["land_cover_urban"] = (df["impervious_frac"] > 0.45).astype(np.float64)
+        # Preserve NaN where impervious is missing (avoid casting NaN>0.45 → False).
+        missing_imp = df["impervious_frac"].isna()
+        df.loc[missing_imp, "land_cover_urban"] = np.nan
         observed.update({"impervious_frac", "land_cover_urban"})
 
     if sources.buildings_path and Path(sources.buildings_path).exists():
@@ -258,16 +333,40 @@ def assemble_feature_table(
         except ImportError:
             pass
 
-    if not fallback_synthetic:
-        for col in FEATURE_COLUMNS:
-            if col not in observed and col != "rainfall_mm_h" and col in df.columns:
-                df[col] = np.nan
-    elif len(df):
+    if fallback_synthetic and synth_backup is not None and len(df):
         for col in FEATURE_COLUMNS:
             if col in df.columns and col in synth_backup.columns:
+                before_na = df[col].isna()
                 df[col] = df[col].fillna(synth_backup[col])
+                synth_mask[col] = before_na.to_numpy()
+    elif not fallback_synthetic:
+        static_cols = [c for c in FEATURE_COLUMNS if c != "rainfall_mm_h"]
+        missing_layers = [c for c in static_cols if c not in observed]
+        if missing_layers:
+            raise AssemblyError(
+                "Fail-closed assembly: missing observed static feature columns "
+                f"{missing_layers}. Provide layers or pass fallback_synthetic=True "
+                "(--demo / --allow-synthetic)."
+            )
+        null_report = {
+            c: int(df[c].isna().sum())
+            for c in static_cols
+            if c in df.columns and df[c].isna().any()
+        }
+        if null_report:
+            raise AssemblyError(
+                "Fail-closed assembly: NaN values in observed static features "
+                f"{null_report}. Refusing synthetic fill."
+            )
 
-    for col in ("elevation_m", "slope_deg", "flow_accum_proxy", "impervious_frac", "building_density", "dist_stream_m"):
+    for col in (
+        "elevation_m",
+        "slope_deg",
+        "flow_accum_proxy",
+        "impervious_frac",
+        "building_density",
+        "dist_stream_m",
+    ):
         if col in df.columns:
             df[col] = df[col].astype(np.float64)
 
@@ -279,6 +378,10 @@ def assemble_feature_table(
     else:
         feature_source = PROVENANCE_MIXED
 
+    provenance = _column_provenance_counts(df, observed, synth_mask if fallback_synthetic else None)
+    total_synth = int(sum(v["synthetic_count"] for k, v in provenance.items() if k != "rainfall_mm_h"))
+    total_null_static = int(sum(v["null_count"] for k, v in provenance.items() if k != "rainfall_mm_h"))
+
     if cells:
         lons, lats = cell_centers(cells)
         df["lon"] = lons
@@ -288,6 +391,21 @@ def assemble_feature_table(
     df["assembly_mode"] = sources.assembly_mode
     df["observed_feature_cols"] = ",".join(sorted(observed)) if observed else ""
     df["rainfall_source"] = rainfall_source
+    df["data_mode"] = "synthetic" if fallback_synthetic and feature_source == PROVENANCE_SYNTHETIC else (
+        "synthetic" if fallback_synthetic and total_synth > 0 else "observed"
+    )
+    if fallback_synthetic and feature_source == PROVENANCE_SYNTHETIC:
+        df["data_mode"] = "synthetic"
+    elif fallback_synthetic and total_synth > 0:
+        df["data_mode"] = "mixed_synthetic"
+    else:
+        df["data_mode"] = "production"
+    df.attrs["column_provenance"] = provenance
+    df.attrs["synthetic_value_count"] = total_synth
+    df.attrs["null_value_count"] = total_null_static
+    # Also expose as scalar columns for parquet round-trip friendliness
+    df["synthetic_value_count"] = total_synth
+    df["null_value_count"] = total_null_static
     return df
 
 
@@ -296,7 +414,7 @@ def assemble_h3_table(
     resolution: int,
     rainfall_mm_h: float = 25.0,
     sources: FeatureSources | None = None,
-    fallback_synthetic: bool = True,
+    fallback_synthetic: bool = False,
     synthetic_label_threshold: float = 0.55,
 ) -> pd.DataFrame:
     """H3 cells + features + labels (observed join when flood files exist)."""
@@ -322,8 +440,13 @@ def assemble_h3_table(
 
     if label_paths:
         df = attach_observed_labels(df, label_paths)
-    else:
+    elif fallback_synthetic:
         df = attach_labels(df, threshold=synthetic_label_threshold)
+    else:
+        raise AssemblyError(
+            "Fail-closed assembly: no flood label files found. "
+            "Provide DEP/311/HWM layers or pass fallback_synthetic=True."
+        )
 
     if sources.coastal_path and Path(sources.coastal_path).exists():
         from pluvial_flood_risk.negative_control import attach_coastal_overlay
@@ -350,6 +473,7 @@ def assemble_label_scale_table(
     is not circular.
     """
     del parent_label_df  # native overlay supersedes parent inheritance
+    del synthetic_label_threshold
     import h3  # noqa: F401  (resolution guard kept for clarity)
 
     min_lon, min_lat, max_lon, max_lat = bbox

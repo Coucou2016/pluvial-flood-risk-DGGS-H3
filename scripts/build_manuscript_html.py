@@ -33,9 +33,9 @@ FIGURES = [
     ("workflow_schematic.png", "summarised in Fig. 1.", 1),
     ("source_evidence_maps.png", "the composite score is the maximum over the source-specific layers.", 3),
     ("spatial_maps.png", "predictive performance is assessed separately from the out-of-fold metrics reported in Section 4.2.", 2),
-    ("spatial_cv_folds.png", "and is not interpreted in isolation.", 4),
-    ("multi_resolution_spatial.png", "does not imply an absence of scale loss.", 5),
+    ("spatial_cv_folds.png", "Table 3 summarises these numbers together with the expanded-pilot results.", 4),
     ("resolution_effects.png", "Table 4 lists the full ladder.", 6),
+    ("multi_resolution_spatial.png", "providing a spatial view of the smoothing that accompanies coarsening.", 5),
 ]
 
 
@@ -119,9 +119,12 @@ h2 { color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom:
 h3 { margin-top: 1.5rem; font-size: 1.05rem; }
 h4 { margin-top: 1.2rem; color: #333; }
 table { border-collapse: collapse; width: 100%; margin: 12px 0 8px; font-size: 0.9rem; }
+thead { display: table-header-group; }
+tr, figure { page-break-inside: avoid; }
 th, td { border: 1px solid var(--line); padding: 5px 7px; text-align: left; vertical-align: top; }
 th { background: #eef3f7; }
-figure { margin: 20px 0 26px; page-break-inside: avoid; }
+figure { margin: 20px 0 26px; }
+figure img { max-width: 100%; width: 100%; height: auto; }
 figcaption { font-size: 0.9rem; color: #222; margin-top: 8px; line-height: 1.45; text-align: justify; }
 code { font-family: Consolas, "Courier New", monospace; font-size: 0.86em; }
 blockquote { border-left: 4px solid var(--accent); margin: 12px 0; padding: 6px 14px; background: #f3f7fb; }
@@ -137,14 +140,12 @@ a { color: var(--accent); }
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<title>Manuscript — Spatially blocked pluvial-flood susceptibility learning on the H3 grid using heterogeneous open public data</title>
+<title>Manuscript - Spatially blocked pluvial-flood susceptibility learning on the H3 grid using heterogeneous open public data</title>
 <style>{css}</style>
 </head>
 <body>
 <div class="wrap">
-<div style="font-size:0.82rem;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:18px">
-Self-contained manuscript · figures embedded (Base64) · generated {now}
-</div>
+<!-- generated {now} -->
 {body}
 </div>
 </body>

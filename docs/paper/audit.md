@@ -1,5 +1,7 @@
 # 审查文档（Audit）：数据真实性、准确性与完整性证据
 
+> **⚠ 当前权威数字（2026-09-14 Major Revision P0 pass）：** 以 `outputs/paper_results.json`、`outputs/jaccard_by_resolution.csv`、以及重训后的 `models/nyc_smoke/` + `models/nyc_expanded/` 为准。LM Option B：n=262、正类 63.7%、acc 0.820±0.057、F1 0.858、pooled ROC-AUC 0.848；扩展：n=956、正类 47.9%、acc 0.823±0.028、F1 0.826、pooled ROC-AUC 0.882。尺度损失主指标为 area-weighted soft Jaccard（R10→R9 mean 0.227；R10→R8 mean 0.136）。311 源为官方 SODA `76ig-c548`。下文历史对账段落中若出现 0.809/0.846/0.883/n=141-as-current 等旧值，一律视为快照，不以之为现行主表。
+
 **用途：** 本文档用于证明手稿 `manuscript.md` 与研究报告 `report.md` 中的所有数字，均为**本仓库自身代码在本机数据上运行所得**，而非从参考文献（尤其 Svellingen et al. 2026 IJDRR 及其 PFIb / Jaccard 0.14 数字）或任何第三方论文中抄录；并证明结果**可逐条复算、可对账、无“做一半臆断一半”**。
 
 **审查对象：** `docs/paper/manuscript.md`、`docs/paper/report.md`、`README.md` 中的全部量化结论。
@@ -11,7 +13,7 @@
 **口径约定（贯穿全文）：**
 
 - **本方法自己算出的数字**：全部来自 `src/pluvial_flood_risk/` 与 `scripts/` 在本机 `data/raw/` 上的运行产物（`outputs/*.json/csv`、`models/*/*.csv/joblib`、`data/processed/*.parquet`）。
-- **明确的“待补充 / synthetic”项**：观测事件降雨（当前为合成常数）、FloodNet 留出传感器、citywide 范围。这些在文中以“尚未建立 / 未主张 / 待补充”显式标注，**不做臆断性数值填充**。
+- **明确的“待补充 / synthetic”项**：观测事件降雨（当前为合成常数）、citywide 范围。FloodNet 已作严格留出诊断（不入训练标签）。这些在文中以“尚未建立 / 未主张 / 待补充”显式标注，**不做臆断性数值填充**。
 - **绝不使用他人数字**：本工作**不复现 PFIb**、**不引用 Svellingen 的 Jaccard 0.14 或 ~98% 效率作为自己的结果**。文中仅把 0.14 作为“不同标签/分辨率/热点定义”的概念对照，并明确禁止数值等同。
 
 ---
@@ -56,12 +58,14 @@ configs/nyc.yaml
 |------|------|
 | 标签来源 | `expanded_primary_table.json → data_provenance = "observed"`，`assembly_mode = "opendata"`（非 PFIb/保险） |
 | 明确排除 | `data/raw/DATA_SOURCES.md`：“This repository does not reproduce 7Analytics PFIb and does not ship insurance claims.” |
-| Jaccard 说明 | 手稿 Results §4.2 / Discussion §5.2 与图注明确：0.167 是本仓库开放标签在 R10→R8 mean 聚合下的结果，**不得**等同 Svellingen 0.14 |
+| Jaccard 说明 | 手稿 Results §4.2 / Discussion §5.2 与图注明确：0.111 是本仓库开放标签在 R10→R8 mean 聚合（exact top-10% 预算）下的结果，**不得**等同 Svellingen 0.14 |
 | 合成项显式标注 | 降雨为合成常数、情景 `PFI_h` 平坦（within-cell range = 0）——文中作为“未演示降雨条件判别”如实报告，而非编造响应 |
 
 ---
 
 ## 2. 准确性（Accuracy）：逐条对账
+
+> **⚠ 历史版本提示（2026-08-24）：** §2–§6 为**首代装配**的原始对账（正类 80.1%/47.9%、accuracy 0.784/0.722 等），其后历经 C1/C3/C4 数据语义修复（§9–§10）与 M4 当前海平面 DEP 主层修复（§9.3 注）。**当前权威数字以 §9.3「修订后主表对账」为准**（小窗口正类 67.4%、accuracy 0.781；扩展窗口正类 47.5%、accuracy 0.821），§2–§6 保留作为首代快照与演进证据，不代表最终手稿数值。
 
 ### 2.1 扩展窗口（`manhattan_expanded`，n=956）主表对账
 
@@ -100,7 +104,9 @@ configs/nyc.yaml
 
 ### 2.3 小窗口（Lower Manhattan，n=141）对账
 
-来源：`models/nyc_smoke/spatial_cv_folds.csv` + `outputs/classification_baselines.json`。
+> **历史快照（pre-Option-B）：** 本节对账的是修订前 LM smoke **n=141** 主表数字。现行 Option B 真相见 **§14.3** / `outputs/paper_results.json`（n=262）。勿把本节当作当前主表。
+
+来源：`models/nyc_smoke/spatial_cv_folds.csv` + `outputs/classification_baselines.json`（历史路径；现行 Option B 元数据同路径但 n_cells=262）。
 
 | 手稿数字 | 产物字段 | 原始值 | 对账 |
 |----------|----------|--------|------|
@@ -116,6 +122,8 @@ configs/nyc.yaml
 ### 2.4 阈值无关判别指标（ROC-AUC / AP）
 
 由 `spatial_block_cv_metrics`（`src/pluvial_flood_risk/spatial_cv.py`）在**留出折**上逐 cell 收集 `y_true` 与 `predict_proba`，写出 `models/<name>/spatial_cv_oof_predictions.csv`，并报 pooled 与折内均值的 ROC-AUC 与 average precision（AP）。小窗口由 `scripts/compute_oof_discrimination.py` 复算归档，扩展窗口由 `scripts/run_expanded_study.py` 直接产出。
+
+> **历史快照（pre-Option-B）：** 下表 LM smoke 行为 **n=141** 时期数字。现行 Option B LM 见 **§14.3**（n=262，ROC-AUC pooled 0.847）。
 
 | 试点 | ROC-AUC pooled | ROC-AUC 折内均值 ± std | AP pooled | AP 折内均值 ± std | 随机 AP 基线（=正类占比） |
 |------|----------------|------------------------|---------------|------------------------|-------------------------------|
@@ -190,7 +198,7 @@ python -m pytest -q
 | 观测事件降雨（非合成） | 待补充 | 当前 `event_rainfall.tif` 为合成常数；文中明示未演示降雨条件判别 |
 | `PFI_h(c,r)` 情景非平坦 | 待补充 | 当前 within-cell range = 0，如实报告 |
 | citywide 范围 | 待补充 | 两个试点均为曼哈顿子集，未主张全市技能 |
-| FloodNet 留出验证 | 待补充 | 传感器层未接入（当前无可用的 FloodNet 观测） |
+| FloodNet 留出验证 | 已做严格 held-out 诊断 | 官方 `aq7i-eu5q`+`kb2e-tjy3`；不入训练标签；见 `outputs/floodnet_heldout_validation.json` |
 | 雷达降雨 / PFIb 复现 | 明确不做 | 文中以“不主张/不复现”显式排除 |
 
 ---
@@ -209,7 +217,7 @@ python -m pytest -q
 
 | 手稿位置 | 代码依据 | 结论 |
 |----------|----------|------|
-| §3.3 模型超参 | `src/pluvial_flood_risk/estimators.py`：`GradientBoostingClassifier/Regressor(n_estimators=80, max_depth=4, learning_rate=0.08, random_state=42)` + `StandardScaler`；`LogisticRegression(max_iter=500, random_state=42)`（默认 C=1.0 / L2 / lbfgs） | 已写入超参与 sklearn 1.8 默认；版本来自 `models/nyc_smoke/run_metadata.json`（sklearn 1.8.0，h3 4.4.2） |
+| §3.3 模型超参 | `src/pluvial_flood_risk/estimators.py`：`GradientBoostingClassifier/Regressor(n_estimators=80, max_depth=4, learning_rate=0.08, random_state=42)` + `StandardScaler`；`LogisticRegression(max_iter=500, random_state=42)`（默认 C=1.0 / L2 / lbfgs） | 已写入超参与 sklearn 1.8 默认；版本来自冻结 `models/nyc_smoke/run_metadata.json`（sklearn 1.8.0，h3 4.4.2；仓库 pin `h3==4.4.2`；live 环境或见 4.5.0，勿改写冻结 metadata） |
 | §3.4 AP 定义 | `metrics.py` / `spatial_cv.py` 使用 `sklearn.metrics.average_precision_score` | 改为“recall-weighted mean of precision”，不再写作“PR-AUC 面积” |
 | §3.6 自适应加密 | `pipeline.py nyc_smoke_test` + `adaptive.py` + `outputs/adaptive_vs_fixed_ablation.csv`：`score_col=PFI_h`、`proba_col=flood_probability`、`score_quantile=0.8`、`uncertainty_min=0.7`（即 p∈[0.35,0.65]）、`expand_k=1`；79/141 → 3933 vs 6909；**未重训练 R11**；**未计算 hotspot recall** | 补不确定性准则 + 一环邻域扩展；删除“hotspot recall”（代码未产出该指标）；明确“仅改变表征、不重训 R11” |
 | §3.8 / §4.5 负对照 | `negative_control.py` + `outputs/negative_control.json`：`score_col = flood_risk`（**观测标签分**），非模型预测 | 改为“观测标签分”表述，不再误写“预测” |
@@ -240,12 +248,12 @@ python -m pytest -q
 
 | 图 | 数据文件 | 复核项 | 结果 |
 |----|----------|--------|------|
-| Fig 2a 观测 | `data/processed/nyc_h3_cells.parquet` | median=1.0, mean=0.605, ≥0.8 共 84/141 | 脚本重算一致 |
-| Fig 2b 留出概率 | `models/nyc_smoke/spatial_cv_oof_predictions.csv` | mean=0.798；pooled ROC-AUC=0.683、AP=0.861 与手稿一致 | `sklearn.metrics` 重算一致 |
-| Fig 2c PFI_h | `outputs/pfi_h_scenarios.parquet`（ida_like） | mean=0.803；与 §4.5 四情景均值 0.8029 一致；面板（c）仅展示一个情景，正文说明全情景不变 | 一致 |
-| Fig 2 相关性 | 同上两两 Pearson | observed~oof=0.245, observed~pfi=0.468, oof~pfi=0.509 | 脚本重算一致；正文如实写入 |
-| Fig 5a 小提琴 | `data/processed/nyc_h3_cells_r10_labels.parquet`（991 R10）→ `h3.cell_to_parent` mean 上卷 R9(160)/R8(31) | 单元数与 `jaccard_by_resolution.csv` 的 n_fine/n_coarse 一致 | 一致 |
-| Fig 5b 热力矩阵 | 同上 + q=0.9 分位 | J(R10,R9)=0.977、J(R10,R8)=0.167 与阶梯 mean 行一致；新增 J(R9,R8)=0.167 | 脚本重算一致 |
+| Fig 2a 观测 | `data/processed/nyc_h3_cells.parquet` | median=1.0, mean=0.598, ≥0.8 共 84/141 | 脚本重算一致 |
+| Fig 2b 留出概率 | `models/nyc_smoke/spatial_cv_oof_predictions.csv` | mean=0.655；pooled ROC-AUC=0.780、AP=0.805 与手稿一致 | `sklearn.metrics` 重算一致 |
+| Fig 2c PFI_h | `outputs/pfi_h_scenarios.parquet`（ida_like） | mean=0.677（正文"约 0.68"）；与 §4.5 四情景均值一致；面板（c）仅展示一个情景，正文说明全情景不变 | 一致 |
+| Fig 2 相关性 | 同上两两 Pearson | observed~oof=0.467, observed~pfi=0.765, oof~pfi=0.634（正文只报告 oof~pfi=0.63） | 脚本重算一致；正文如实写入 |
+| Fig 6a 小提琴 | `data/processed/nyc_h3_cells_r10_labels.parquet`（991 R10）→ `h3.cell_to_parent` mean 上卷 R9(160)/R8(31) | 单元数与 `jaccard_by_resolution.csv` 的 n_fine/n_coarse 一致 | 一致 |
+| Fig 6b 热力矩阵 | 同上 + exact top-10% 预算（H3 tie-break） | J(R10,R9)=0.180、J(R10,R8)=0.111 与阶梯 mean 行一致；新增 J(R9,R8)=0.200 | 脚本重算一致 |
 
 ### 8.3 新增表的数据来源
 
@@ -255,7 +263,7 @@ python -m pytest -q
 | 表 2 模型规格 | `src/pluvial_flood_risk/estimators.py` | 与 §3.3 一致 |
 | 表 3 空间 CV 汇总 | `models/nyc_smoke/spatial_cv_folds.csv`、`outputs/expanded_primary_table.json`、`outputs/classification_baselines*.json` | 两试点同构；SD 为 ddof=0 |
 | 表 4 尺度损失阶梯 | `outputs/jaccard_by_resolution.csv` | 6 行逐值抄录 |
-| 表 5 自适应单元数 | `outputs/adaptive_vs_fixed_ablation.csv` | 141/3933/6909、27.9×、56.9% |
+| 表 5 自适应单元数 | `outputs/adaptive_vs_fixed_ablation.csv` | 141/4845/6909、34.4×、70.1% |
 | 表 6 Sandy 负对照 | `outputs/negative_control.json` | 逐字段抄录 |
 
 ### 8.4 手稿一致性检查（W6 编辑后）
@@ -532,57 +540,61 @@ PNG+PDF 均已按新尺寸重生成到 `docs/paper/figures/`。图号/正文 fir
 | 311 来源 | `source=arcgis_streetfloodtime`；日期 2010-01-07 → 2014-12-26；Lower n=488、Expanded n=1134 | ✓ 正文已更正（非 "2010–present"） |
 | 311 字段 | 含 `Created_Da`、`WPCP`、`COMB_OR_SE`、`Outfall`、`Intercepto`（雨水井/合流制上下文），**无** complaint_type/descriptor 字段 | ✓ 该图层即"街道积水"主题层，非宽泛 sewer 查询 |
 | HWM 质量 | `hwm_quality`：Fair 58 / Good 54 / Excellent 32 / Poor 15（共 159）；`height_above_gnd` 0–2.2 ft | ✓ 质量字段已保留；融合仍用 presence-only（§2 已声明为局限） |
-| 每源正类单元（Lower） | DEP `dep_area_frac>0`：54/141；311 `complaint_count>0`：84/141；Ida HWM `ida_hwm_count>0`：**0/141**；union 正类 98/141 | ✓ 与 composite `flood_class` 一致；**HWM 在该 bbox 内无点（数据现实，非处理 bug）** |
-| 每源正类单元（Expanded） | DEP polygon：268/956；311 point：367/956（raw 1134 点）；Ida HWM：14 点（6 cell）/956；union 正类 475/956 | ✓ 一致（2026-08-23 修复扩展窗口数据路径 bug 后更新） |
+| 每源正类单元（Lower） | DEP `dep_area_frac>0`：40/141；311 `complaint_count>0`：84/141；Ida HWM `ida_hwm_count>0`：**0/141**；union 正类 95/141 | ✓ 与 composite `flood_class` 一致；**HWM 在该 bbox 内无点（数据现实，非处理 bug）** |
+| 每源正类单元（Expanded） | DEP polygon：231/956；311 point：367/956（raw 1134 点）；Ida HWM：14 点（6 cell）/956；union 正类 454/956 | ✓ 一致（2026-08-23 修复扩展窗口数据路径 bug + 2026-08-24 M4 当前海平面 DEP 主层后更新） |
 | R10 原生 overlay 断言 | `outputs/jaccard_by_resolution.csv`：`n_fine=991`、`n_hotspot_fine=149`（非旧 571）；`assembly_mode=native_overlay` | ✓ 无 parent inheritance |
-| 负对照 pluvial 定义 | `negative_control.json`：n_pluvial=98（=composite flood_class 正类），非旧 flood_area_frac>0 的 71 | ✓ 分组一致 |
+| 负对照 pluvial 定义 | `negative_control.json`：n_pluvial=95（=composite flood_class 正类），非旧 flood_area_frac>0 的 71 | ✓ 分组一致 |
 
 ### 9.3 修订后主表对账（空间 CV）
 
-**Lower Manhattan（n=141，7 R7 block，正类 69.5%）** — 来源 `models/nyc_smoke/spatial_cv_folds.csv` + `outputs/classification_baselines.json`：
+> **历史快照（pre-Option-B）：** 本节对账的是修订前 LM smoke **n=141** 主表。现行 Option B 真相见 **§14.3** / `outputs/paper_results.json`（n=262，acc 0.809，ROC-AUC 0.847）。
+
+**Lower Manhattan（n=141，7 R7 block，正类 67.4%）** — 来源 `models/nyc_smoke/spatial_cv_folds.csv` + `outputs/classification_baselines.json`：
 
 | 手稿数字 | 产物字段 | 原始值 | 对账 |
 |----------|----------|--------|------|
-| accuracy 0.808 ± 0.085 | `spatial_cv_accuracy_mean/std` | 0.808090 / 0.085380 | ✓ |
-| F1 0.864 ± 0.061 | `spatial_cv_f1_mean`（std ddof=0） | 0.863716 / 0.0612 | ✓ |
-| evidence-score R² 0.079 ± 0.338 | `spatial_cv_r2_mean/std` | 0.078968 / 0.338043 | ✓ |
-| MAE 0.326 ± 0.074 | `spatial_cv_mae_mean`（std ddof=0） | 0.326358 / 0.073607 | ✓ |
-| pooled ROC-AUC 0.741 | `spatial_cv_roc_auc_pooled` | 0.740626 | ✓ |
-| pooled AP 0.803 | `spatial_cv_pr_auc_pooled` | 0.802505 | ✓ |
-| always-positive acc 0.687 | `always_positive_mean_acc` | 0.687168 | ✓ |
-| always-positive F1 0.813 | `always_positive_mean_f1` | 0.812907 | ✓ |
-| always-negative acc 0.313 | `always_negative_mean_acc` | 0.312832 | ✓ |
-| 模型超 always-positive | `model_beats_majority_acc/f1` | true / true | ✓（0.808>0.687，0.864>0.813） |
+| accuracy 0.781 ± 0.123 | `spatial_cv_accuracy_mean/std` | 0.781432 / 0.123141 | ✓ |
+| F1 0.822 ± 0.116 | `spatial_cv_f1_mean`（std ddof=0） | 0.821905 / 0.116 | ✓ |
+| evidence-score R² 0.048 ± 0.348 | `spatial_cv_r2_mean/std` | 0.048052 / 0.347867 | ✓ |
+| MAE 0.330 ± 0.073 | `spatial_cv_mae_mean`（std ddof=0） | 0.330337 / 0.073 | ✓ |
+| pooled ROC-AUC 0.780 | `spatial_cv_roc_auc_pooled` | 0.779748 | ✓ |
+| pooled AP 0.805 | `spatial_cv_pr_auc_pooled` | 0.804805 | ✓ |
+| always-positive acc 0.662 | `always_positive_mean_acc` | 0.662 | ✓ |
+| always-positive F1 0.794 | `always_positive_mean_f1` | 0.794 | ✓ |
+| always-negative acc 0.338 | `always_negative_mean_acc` | 0.338 | ✓ |
+| 模型超 always-positive | `model_beats_majority_acc/f1` | true / true | ✓（0.781>0.662，0.822>0.794） |
 
-**Expanded（n=956，28 block，正类 49.7%）** — 来源 `models/nyc_expanded/run_metadata.json` + `outputs/classification_baselines_expanded.json`：
+**Expanded（n=956，28 block，正类 47.5%）** — 来源 `models/nyc_expanded/run_metadata.json` + `outputs/classification_baselines_expanded.json`：
 
 | 手稿数字 | 产物字段 | 原始值 | 对账 |
 |----------|----------|--------|------|
-| accuracy 0.824 ± 0.013 | `spatial_cv_accuracy_mean/std` | 0.824269 / 0.013032 | ✓ |
-| F1 0.832 ± 0.019 | `spatial_cv_f1_mean`（std ddof=0） | 0.832008 / 0.019181 | ✓ |
-| evidence-score R² 0.346 ± 0.138 | `spatial_cv_r2_mean/std` | 0.345874 / 0.138463 | ✓ |
-| MAE 0.284 ± 0.033 | `spatial_cv_mae_mean`（std ddof=0） | 0.283719 / 0.032830 | ✓ |
-| pooled ROC-AUC 0.875 | `spatial_cv_roc_auc_pooled` | 0.875 | ✓ |
-| pooled AP 0.822 | `spatial_cv_pr_auc_pooled` | 0.822 | ✓ |
-| always-positive acc 0.497 / F1 0.663 | `always_positive_acc/f1_mean` | 0.497 / 0.663 | ✓ |
-| 恒定多数类（恒判负）acc 0.503 | `always_negative_acc_mean` = `majority_acc_mean` | 0.503 | ✓ |
+| accuracy 0.821 ± 0.033 | `spatial_cv_accuracy_mean/std` | 0.821260 / 0.032772 | ✓ |
+| F1 0.819 ± 0.038 | `spatial_cv_f1_mean`（std ddof=0） | 0.819120 / 0.038 | ✓ |
+| evidence-score R² 0.333 ± 0.144 | `spatial_cv_r2_mean/std` | 0.333494 / 0.144229 | ✓ |
+| MAE 0.286 ± 0.036 | `spatial_cv_mae_mean`（std ddof=0） | 0.285732 / 0.036 | ✓ |
+| pooled ROC-AUC 0.883 | `spatial_cv_roc_auc_pooled` | 0.883398 | ✓ |
+| pooled AP 0.812 | `spatial_cv_pr_auc_pooled` | 0.812127 | ✓ |
+| always-positive acc 0.475 / F1 0.643 | `always_positive_acc/f1_mean` | 0.475 / 0.643 | ✓ |
+| 恒定多数类（恒判负）acc 0.525 | `always_negative_acc_mean` = `majority_acc_mean` | 0.525 | ✓ |
 
-> **重要（2026-08-23 数据路径 bug 修复）：** 上一版扩展窗口主表误用了 `configs/nyc.yaml` 中硬编码的 `data/raw/nyc/` 小窗口栅格/矢量（DEM、不透水、建筑、水系、311 点）覆盖在 `manhattan_expanded` bbox 上，导致扩展窗口大量单元的特征被合成哈希填充却标记为 "observed"，且 311 证据单元仅 145（应为 367）。修复 `scripts/run_expanded_study.py`（清除硬编码路径、改由 `discover_sources(raw_dir=nyc_expanded)` 解析）后重跑，扩展窗口正类占比由 36.5%→49.7%，上述全部指标相应更新。该 bug 仅影响扩展窗口，不影响 Lower Manhattan（`n=141`）小窗口——小窗口 `raw_dir=data/raw/nyc` 与其 bbox 天然一致。
+> **重要（2026-08-24 M4 当前海平面 DEP 主层）：** 上一版把 DEP「Moderate Flood with **2050 Sea Level Rise**」层（Layer 2）误当作主雨洪证据层。审稿人 M4 指出应以「Moderate Flood with **Current Sea Levels**」（Layer 1）为主层、2050 SLR 作为敏感性。修复 `download_nyc.py`（拆分 `_DEP_STORMWATER_CURRENT` / `_DEP_STORMWATER_2050SLR`）并重下两图层后重跑两试点：小窗口正类 98→95（69.5%→67.4%）、扩展窗口正类 475→454（49.7%→47.5%），DEP-only 证据单元 54→40（Lower）/ 268→231（Expanded），各项指标相应更新。结论（模型超过多数类基线、ROC-AUC/AP 高于随机）**不变**。2050 SLR 敏感性见 §13（`outputs/slr_sensitivity.{json,csv}`）。
 
-### 9.4 尺度损失阶梯（R10 原生 overlay，修订后）
+### 9.4 尺度损失阶梯（R10 原生 overlay + exact top-10% 预算，修订后）
 
-来源 `outputs/jaccard_by_resolution.csv`（`n_fine=991`、`n_hotspot_fine=149`）：
+来源 `outputs/jaccard_by_resolution.csv`（`n_fine=991`、exact top-10% 热点 `k=99`、H3 index tie-break）：
 
-| 行 | Jaccard | F1 | 对账 |
-|----|---------|----|------|
-| R8 mean | 0.167 | 0.286 | ✓ |
-| R8 max | 1.000 | 1.000 | ✓ |
-| R8 p90 | 0.500 | 0.667 | ✓（旧为 1.000，因去 parent inheritance 后变化） |
-| R9 mean | 0.210 | 0.347 | ✓（旧 0.977，因去 parent inheritance 后变化） |
-| R9 max | 1.000 | 1.000 | ✓ |
-| R9 p90 | 0.543 | 0.704 | ✓（旧 0.977/0.988） |
+| 行 | Jaccard | F1 | fine-parent recall | coarse precision | 对账 |
+|----|---------|----|-------------------|------------------|------|
+| R8 mean | 0.111 | 0.200 | 0.118 | 0.667 | ✓ |
+| R8 max | 0.176 | 0.300 | 0.176 | 1.000 | ✓ |
+| R8 p90 | 0.176 | 0.300 | 0.176 | 1.000 | ✓ |
+| R9 mean | 0.180 | 0.306 | 0.196 | 0.688 | ✓ |
+| R9 max | 0.286 | 0.444 | 0.286 | 1.000 | ✓ |
+| R9 p90 | 0.286 | 0.444 | 0.286 | 1.000 | ✓ |
 
-**关键变化**：旧版 R10 hotspot = 571/991（57.6%，因分数饱和 tied at max），R10→R9 mean Jaccard 0.977 主要来自 parent-inherit 循环。原生 overlay 后 hotspot = **149/991（15.0%）**，R10→R9 mean Jaccard = **0.210**，真实揭示尺度损失。
+**关键变化（两阶段）**：
+1. **C3（原生 overlay）**：旧版 R10 hotspot = 571/991（57.6%，因分数饱和 tied at max），R10→R9 mean Jaccard 0.977 主要来自 parent-inherit 循环。原生 overlay 后 q=0.9 hotspot = 149/991（15.0%），R10→R9 mean Jaccard = 0.210。
+2. **M3（exact top-k）**：q=0.9 因 149/991 个最大分数单元 tie 而把"名义 top-10%"膨胀为 15.0%。改为 exact top-k（k = round(0.10 × 991) = 99，H3 index 确定性 tie-break），消除 tie 膨胀；粗网格同预算（R9 k=16、R8 k=3）重阈值，两组热点预算匹配。最终 R10→R9 mean Jaccard = 0.180、R10→R8 mean Jaccard = 0.111，真实揭示尺度损失。
 
 ### 9.5 自适应消融（修订后）
 
@@ -590,10 +602,12 @@ PNG+PDF 均已按新尺寸重生成到 `docs/paper/figures/`。图号/正文 fir
 
 | 量 | 旧 | 新 |
 |----|----|----|
-| 被加密 R9 cell | 79/141 | **84/141** |
-| adaptive mixed cells | 3,933 | **4,173** |
+| 被加密 R9 cell | 84/141 | **98/141** |
+| adaptive mixed cells | 4,173 | **4,845** |
 | uniform R11 | 6,909 | 6,909 |
-| 占比 / 倍数 | 56.9% / 27.9× | **60.4% / 29.6×** |
+| 占比 / 倍数 | 60.4% / 29.6× | **70.1% / 34.4×** |
+
+> **说明（2026-08-24 M4）**：自适应选择用 full-fit `PFI_h` 0.8 分位 + 不确定 + one-ring 邻域，`PFI_h` 随 M4 当前海平面 DEP 主层变化，被加密 R9 cell 由 84→98、mixed cells 4,173→4,845。本表仍为「表征规模（representation-size）比较」，非效率/hotspot 证明。
 
 ### 9.6 Sandy 负对照（composite flood_class + OOF 模型分，修订后）
 
@@ -601,13 +615,13 @@ PNG+PDF 均已按新尺寸重生成到 `docs/paper/figures/`。图号/正文 fir
 
 | 量 | 值 |
 |----|----|
-| 海岸 31 / 雨洪 98 / 两者 22 | ✓ |
-| coastal-only 9（6.4%） / pluvial-only 76（53.9%） / neither 34（24.1%） | ✓ |
-| OOF 分：coastal-only 0.644 / pluvial-only 0.840 / both 0.771 / neither 0.323 | ✓（旧 target 口径 0.000/0.888/0.776/0.000 已废弃） |
-| pluvial − coastal OOF 分差 0.195 | ✓（旧 0.888 为循环论证，见 §10.2） |
-| top-20% 分数单元中 coastal-only 3.4% / pluvial 75.9% | ✓ |
+| 海岸 31 / 雨洪 95 / 两者 20 | ✓ |
+| coastal-only 11（7.8%） / pluvial-only 75（53.2%） / neither 35（24.8%） | ✓ |
+| OOF 分：coastal-only 0.435 / pluvial-only 0.823 / both 0.750 / neither 0.308 | ✓（旧 target 口径 0.000/0.888/0.776/0.000 已废弃） |
+| pluvial − coastal OOF 分差 0.387 | ✓（旧 0.888 为循环论证，见 §10.2） |
+| top-20% 分数单元中 coastal-only 3.4% / pluvial 79.3% | ✓ |
 
-**结论修正**：旧版用 target `flood_risk` 比较，得到 coastal-only=0.000 是「定义恒等式」而非模型结论。改用留出（OOF）模型分后，coastal-only 单元 OOF 均值 **0.644**（非 0），说明模型**部分**学习了低海拔/近岸信号；但 pluvial-only 仍最高（0.840）、top 分数单元 75.9% 为 pluvial，故模型未被海岸位置单独驱动。
+**结论修正**：旧版用 target `flood_risk` 比较，得到 coastal-only=0.000 是「定义恒等式」而非模型结论。改用留出（OOF）模型分后，coastal-only 单元 OOF 均值 **0.435**（非 0），说明模型**部分**学习了低海拔/近岸信号；但 pluvial-only 仍最高（0.823）、top 分数单元 79.3% 为 pluvial，故模型未被海岸位置单独驱动。
 
 ### 9.7 全量测试与复现
 
@@ -700,3 +714,214 @@ PY
 | 防回归 | 用临时诊断脚本复现了 `_count_points` 与 parquet 的对账差异（311 文件直接映射=367 单元 vs 修复前 parquet=145 单元）；修复后对账一致。后续应在 `run_expanded_study.py` 增加断言：`assembly_mode=opendata` 且 `feature_source=observed` 时，扩展窗口 `complaint_count>0` 单元数应等于 311 文件直接映射数 |
 
 **教训**：`manuscript/report/audit` 的措辞必须先于"可复现 claim"通过**代码对账**验证，尤其当多个 `raw_dir`（`nyc` vs `nyc_expanded`）并存时，配置优先级会导致静默的数据替换。这正是形式审稿人 C6"GitHub 多版本产物混用"背后更隐蔽的成因之一。
+
+## 11. 源消融（source-ablation）——M2/M9 落实记录（2026-08-24）
+
+### 11.1 背景与动机
+
+审稿人 M2 质疑 composite target `flood_risk = max(dep_area_frac, complaint_presence, ida_hwm_presence)` 的 construct validity：三个源不是同一 latent 变量的等价测量，建议做 source-ablation（DEP-only / 311-only / HWM-only / 311+HWM / composite / composite-without-shoreline）。审稿人 M9 进一步指出 DEP 是 H&H 模型输出、与地形/不透水面预测变量共享驱动，存在「教师—学生循环」风险。本节记录该消融的实现、数据来源与结论，作为真实性/有效性证据。
+
+### 11.2 实现与可复现性
+
+| 项 | 说明 |
+|----|------|
+| 脚本 | `scripts/run_source_ablation.py`（新增） |
+| 协议 | 与主评价**完全相同**：`spatial_block_cv_metrics`（k=2 H3 父块、5 折 GroupKFold、GBM），`spatial_cv_k=2`、`spatial_cv_folds=5` |
+| 输入 | `data/processed/nyc_h3_cells.parquet`（LM n=141）、`data/processed/nyc_h3_cells_expanded.parquet`（扩展 n=956） |
+| 目标定义 | 直接由 source-specific 列构造（C3 修复后这些列已在表中）：DEP-only=`dep_area_frac>1e-9`；311-only=`complaint_presence`；HWM-only=`ida_hwm_presence`；311+HWM=OR；composite=`flood_class/flood_risk`；composite_no_diststream=同 composite 但 X 去掉 `dist_stream_m` |
+| 单类守卫 | `len(np.unique(y_class))<2` 时只记 prevalence、不拟合（LM 的 HWM-only 正类=0 即此情形） |
+| 输出 | `outputs/source_ablation.json`（按 pilot 嵌套）、`outputs/source_ablation.csv`（长表） |
+
+### 11.3 结果与对账
+
+> **历史快照（pre-Option-B）：** 下表 LM 列为 n=141 时期数字。现行 Option B 源消融见 `outputs/source_ablation.json`（LM n=262：DEP 74 / ROC 0.802；311 141 / 0.864；composite 165 / 0.847）及 `docs/paper/report.md` §5.8。
+
+| 目标定义 | 正类单元（LM/扩展） | pooled ROC-AUC（LM/扩展） | fold-mean ROC-AUC（LM/扩展） | F1（LM/扩展） |
+|----------|--------------------|--------------------------|-----------------------------|--------------|
+| DEP-only | 40 / 231 | 0.792 / 0.811 | 0.791 / 0.804 | 0.583 / 0.589 |
+| 311-only | 84 / 367 | 0.748 / 0.848 | 0.746 / 0.849 | 0.742 / 0.709 |
+| HWM-only | 0 / 6 | — / 0.233 | — / 0.484 | — / 0.000 |
+| 311 + HWM | 84 / 369 | 0.748 / 0.846 | 0.746 / 0.846 | 0.742 / 0.714 |
+| composite | 95 / 454 | 0.780 / 0.883 | 0.798 / 0.883 | 0.822 / 0.819 |
+| composite 无 dist_stream_m | 95 / 454 | 0.783 / 0.887 | 0.791 / 0.884 | 0.826 / 0.821 |
+
+**与主表一致性**：composite 行与 `outputs/expanded_primary_table.json`（扩展 0.883 / acc 0.821 / F1 0.819）及小窗口主表（0.780）**逐位一致**，证明消融脚本复用了同一协议、无独立参数漂移。DEP-only/311-only/composite 正类数随 M4 当前海平面 DEP 主层更新（54/268/98/475 → 40/231/95/454）。
+
+### 11.4 结论（审稿 M2/M9 的直接回答）
+
+1. **判别不由单一源独占**：扩展窗口 DEP-only 0.811、311-only 0.848，均接近 composite 0.883；311-only 是观测性众包源、非模型导出，其判别**无法用「重建 DEP H&H 图」解释**，故 M9 教师—学生循环不构成唯一解释。
+2. **composite 略优于单源**（0.883 > 0.848），定位为「开放伪标签同化 + 温和融合」，而非「强融合技能」。
+3. **HWM-only 无判别**（扩展 pooled 0.233、F1=0；LM 0 点未拟合）：HWM 仅贡献 presence，无独立排序能力。
+4. **海岸距离代理不承载判别**：去掉 `dist_stream_m` 后扩展 0.887、LM 0.783（vs composite 0.883/0.780），判别不变甚至略升，说明排序能力非海岸位置伪影。
+
+### 11.5 边界（防过度解读）
+
+上述结论仅证明「判别复现于多种源定义、且非海岸代理伪影」，**不等于**「三类证据等价」或「HWM 已可独立建模」。HWM-only 无判别恰说明 HWM 的独立样本量（6 单元）不足以支撑单独训练。
+
+## 12. 分块尺度敏感性（block-size sensitivity）——M1 落实记录（2026-08-24）
+
+### 12.1 背景与动机
+
+审稿人 M1 指出主评价的 R7 块（k=2）是「先验固定、未验证是否足以打断空间相关」，建议 R6/R7/R8 敏感性 + Moran's I + buffer。本节记录 R6/R7/R8 分块敏感性（k=1/2/3）与 composite 证据分 Moran's I 的实现与结果；buffer 与 leave-one-block-out 留作后续。
+
+### 12.2 实现与可复现性
+
+| 项 | 说明 |
+|----|------|
+| 脚本 | `scripts/run_block_sensitivity.py`（新增） |
+| 协议 | `spatial_block_cv_metrics`（GBM、5 折 GroupKFold），k ∈ {1,2,3}；`block_ids_for_cells` 同主评价 |
+| Moran's I | composite `flood_risk` 在 R9 原生 `h3.grid_disk(c,1)` k-ring 邻接（仅保留在集合内的邻居，行归一化）：I = Σᵢⱼ wᵢⱼ zᵢzⱼ / Σᵢ zᵢ² |
+| 单块守卫 | `n_blocks<2` 时记 NaN、不拟合 |
+| 输出 | `outputs/block_sensitivity.json`、`outputs/block_sensitivity.csv` |
+
+### 12.3 结果与对账
+
+| 试点 | k | 块数 | pooled ROC-AUC | fold-mean ROC-AUC | accuracy | F1 | R² |
+|------|---|------|----------------|-------------------|----------|----|-----|
+| LM | 1 | 27 | 0.750 | 0.650 | 0.814 | 0.869 | −0.078 |
+| LM | 2 | 7 | 0.780 | 0.798 | 0.781 | 0.822 | 0.048 |
+| LM | 3 | 3 | 0.697 | 0.586 | 0.796 | 0.859 | −0.188 |
+| 扩展 | 1 | 157 | 0.888 | 0.890 | 0.821 | 0.841 | 0.344 |
+| 扩展 | 2 | 28 | 0.883 | 0.883 | 0.821 | 0.819 | 0.333 |
+| 扩展 | 3 | 7 | 0.873 | 0.851 | 0.820 | 0.819 | 0.340 |
+
+**Moran's I（composite 证据分）：LM 0.224、扩展 0.433。** k=2 行与主表（§9.3）**逐位一致**，证明敏感性脚本复用同一协议。数值随 M4 当前海平面 DEP 主层更新。
+
+### 12.4 结论（审稿 M1 的直接回答）
+
+1. **扩展窗口稳健**：pooled ROC-AUC 在 R8/R7/R6 为 0.888/0.883/0.873，R7 选择不驱动扩展结论。
+2. **小窗口不稳**：fold-mean ROC-AUC 0.650/0.798/0.586、R² 在 R8/R6 转负，证实「0.781 ± 0.123」是不稳定小样本估计。
+3. **Moran's I 为正**（0.224/0.433），量化支持「空间分块而非 i.i.d.」的必要性。
+
+### 12.5 边界（防过度解读）
+
+「扩展窗口稳健」不推广到小窗口；Moran's I 绝对值不与线性相关强度混同；未做 spatial buffer / leave-one-block-out（§5.5 列为后续）。
+
+## 13. DEP 海平面情景敏感性（sea-level sensitivity）——M4 落实记录（2026-08-24）
+
+### 13.1 背景与动机
+
+审稿人 M4 指出：主雨洪证据应使用 DEP「Moderate Flood with **Current Sea Levels**」（Layer 1），而非「Moderate Flood with **2050 Sea Level Rise**」（Layer 2）。上一版误把 2050 SLR 层当作主层，属于**数据语义错误**（把未来情景投影当作当前雨洪证据）。修复后以当前海平面为主层，并保留 2050 SLR 作为**敏感性**，量化两种海平面情景对目标与判别指标的影响。两种 DEP 变体均为 H&H 模型输出，比较是「数据语义敏感性」，不是「观测验证」。
+
+### 13.2 实现与可复现性
+
+| 项 | 说明 |
+|----|------|
+| 脚本 | `scripts/run_slr_sensitivity.py`（新增） |
+| 协议 | 同主评价：`assemble_h3_table`（resolution=9）+ `spatial_block_cv_metrics`（GBM、5 折、k=2 R7 块），`flood_polygons_path` 分别指向 `dep_stormwater_flood.geojson`（current）与 `dep_stormwater_flood_2050slr.geojson`（2050） |
+| 类别过滤 | 两变体均 `Flooding_Category 1–2`，排除沿海「future high tides」类 |
+| 输出 | `outputs/slr_sensitivity.json`（按 pilot 嵌套）、`outputs/slr_sensitivity.csv`（长表） |
+
+### 13.3 结果与对账
+
+> **当前权威（2026-09-14 post–76ig-c548）：** 下表来自重跑后的 `outputs/slr_sensitivity.json`。current 行与主表 / `paper_results.json` 一致。
+
+| pilot | DEP 变体 | n | 正类 | 占比 | DEP 单元 | pooled ROC-AUC | fold-mean ROC-AUC | accuracy | F1 | R² |
+|-------|----------|---|------|------|----------|----------------|-------------------|----------|----|-----|
+| LM Option B | current | 262 | 167 | 63.7% | 74 | 0.848 | 0.821 | 0.820 | 0.858 | 0.191 |
+| LM Option B | 2050 SLR | 262 | 177 | 67.6% | 98 | 0.836 | 0.837 | 0.870 | 0.906 | 0.212 |
+| 扩展 | current | 956 | 458 | 47.9% | 231 | 0.882 | 0.881 | 0.823 | 0.826 | 0.348 |
+| 扩展 | 2050 SLR | 956 | 478 | 50.0% | 268 | 0.872 | 0.873 | 0.821 | 0.831 | 0.345 |
+
+> **历史注记（pre–76ig-c548 Option B）：** 曾为 LM 165/63.0%/ROC 0.847 vs 176/67.2%/0.833；扩展 454/47.5%/0.883 vs 475/49.7%/0.875。**更早 pre-Option-B n=141：** LM current 95/67.4%/ROC 0.780 vs 2050 98/69.5%/ROC 0.741。勿与现行表混用。
+
+**关键事实（post–76ig-c548 重跑后）**：
+1. **current 行与主表 / `outputs/paper_results.json` 逐位一致**（LM pooled ROC-AUC 0.848、acc 0.820；扩展 0.882 / 0.823）。
+2. **current 层的判别力不降反略升**：LM pooled ROC-AUC 0.848 > 0.836；扩展 0.882 > 0.872（差异约 0.01，属噪声级）。
+3. 两变体下**所有实质结论不变**：模型超过 prevalence-aware 基线、ROC-AUC/AP 高于随机、扩展判别稳定。
+4. （审计轨迹）pre-M4 主表曾误用 2050 SLR 层；该语义错误定位见历史 n=141 注记与 §9.3。
+
+### 13.4 结论（审稿 M4 的直接回答）
+
+以当前海平面层为主层是**语义正确**的（代表当前雨洪证据，非未来情景）；且该选择**不弱化**论文结论（判别力持平或略升）。2050 SLR 作为敏感性保留，二者差异只体现为目标占比与次要指标的小幅平移。
+
+### 13.5 边界（防过度解读）
+
+「current 判别力略高」不解释为「当前海平面层更真实」——两种 DEP 变体都是同一 H&H 建模框架的产物，差异主要来自淹没范围（2050 更广、正类更多、判别略降）。本敏感性只证明「结论不依赖海平面情景选择」，不构成对 DEP 模型本身的验证。
+
+
+
+## 14. Major Revision pass (2026-08-31) — Option B
+
+Formal audit conclusion was **Major Revision — do not submit yet**. This section records the remediation pass.
+
+### 14.1 Choices
+
+| Item | Decision |
+|------|----------|
+| Bbox | **Option B**: manuscript Lower Manhattan bbox `[-74.02, 40.70, -73.97, 40.76]` → **262 R9 cells** (legacy smoke 141 retained as QA-only profile) |
+| Fail-closed | `fallback_synthetic=False` default; paper path refuses synthetic fills |
+| Models | Split `evaluation/` (CV/OOF/split diagnostic) vs `deployment/` (`classifier_full` / `regressor_full`, `fit_rows == n_cells`) |
+| Hotspots | Fractional membership ties + projected-parent-area budgets; no false cell-count matched-budget claim |
+| Area ratios | Polygon intersections in EPSG:2263 |
+| Seed | Config `random_seed` passed through estimators and written to metadata |
+
+### 14.2 Evidence paths
+
+- `data/raw/data_manifest.json` / `.csv` — official landing pages, mirror flags, SHA-256
+- `审查输出/evidence/audit_evidence.json` — pre-revision audit snapshot
+- `outputs/paper_results.json` — post-rerun metrics summary
+- `models/nyc_smoke/` and `models/nyc_expanded/` — evaluation + deployment artifacts
+
+### 14.3 Post-rerun headline metrics (do not mix with pre-revision n=141 numbers)
+
+| Pilot | n | Acc (mean±SD) | F1 | ROC-AUC pooled | AP pooled |
+|-------|---|---------------|----|----------------|-----------|
+| Lower Manhattan (Option B) | 262 | 0.820 ± 0.057 | 0.858 | 0.848 | 0.855 |
+| Expanded | 956 | 0.823 ± 0.028 | 0.826 | 0.882 | 0.823 |
+
+LM always-positive baselines: acc 0.637, F1 0.769 (model exceeds both).
+
+### 14.4 P0 status
+
+| ID | Status |
+|----|--------|
+| P0-01 bbox | **Done** (Option B, n=262) |
+| P0-02 full deployment model | **Done** |
+| P0-03 provenance / mirror honesty | **Partial→strengthened** (311 official 76ig-c548; DEP still public mirror verified=false with 9i7c-xyvv+AdaptNYC landing chain; FloodNet official held-out) |
+| P0-04 fail-closed assembly | **Done** |
+| P0-05 projected area CRS | **Done** (EPSG:2263) |
+| P0-06 Fig 4 clipping | **Done** |
+| P0-07 hotspot ties/budgets | **Done** (fractional + strict area budget; Fig.6 from canonical CSV) |
+| P0-08 seed / Table 8 caption | **Done** |
+
+### 14.5 Remaining author confirmation
+
+- Real author names / affiliations / ORCID / CRediT
+- Optional: replace DEP ArcGIS mirror with verified official NYC geospatial export if/when `9i7c-xyvv` machine download works
+- Human push to remote / DOI / Zenodo release after review
+
+### 14.6 Quarantine
+
+Temporary scripts and third-party ZIP moved to `审查输出/quarantine/` (not deleted).
+
+---
+
+## 15. 收尾完成（2026-09-15）— Major Revision auto-doable closeout
+
+本轮按「不要留尾巴」把可自动落实的投稿前工程全部落地。权威数字仅以 `outputs/paper_results.json` 为准。
+
+### 15.1 Closed (auto-doable)
+
+| Item | Evidence |
+|------|----------|
+| P0-01 Jaccard one-source | `outputs/jaccard_by_resolution.csv` + Fig.6 reads canonical ladder; soft Jaccard R10→R9 mean 0.227 / R10→R8 mean 0.136 |
+| P0-02 311 official | SODA `76ig-c548`; query sidecar; `official_identity_verified=true` |
+| P0-03 run provenance / lock | `models/*/run_manifest.json`, `requirements.lock.txt`, `paper_results.software_environment` |
+| P0-04 tests green | full pytest green (see commit notes) |
+| P0-05 FloodNet | Official `aq7i-eu5q`+`kb2e-tjy3` downloaded; strict held-out diagnostic `outputs/floodnet_heldout_validation.json`; **not** training labels |
+| P0-06 numeric drift | manuscript/README/report headlines synced to Option B post-rerun metrics |
+| DEP honesty | manifest keeps `verified=false` + Open Data `9i7c-xyvv` + AdaptNYC landing chain (SODA geospatial export HTTP 400) |
+| Results registry | `paper_results.json` includes LM/Exp CV, Jaccard, adaptive, negative control, source ablation, block sensitivity, SLR, baselines, FloodNet, software pins |
+| Quarantine | `_tmp_*` + leftover ZIP under `审查输出/quarantine/` |
+
+### 15.2 Human-only leftovers (cannot invent)
+
+1. Real author names, affiliations, ORCID, CRediT roles (keep `[待补充]`)
+2. `git push` / remote release / DOI / Zenodo
+3. Independent human unit audit sign-off (optional journal process)
+4. Optional DEP official geospatial replace when NYC Open Data export becomes machine-downloadable
+
+### 15.3 Explicitly no intentional “next phase later” in code/docs
+
+FloodNet is no longer described as “data unavailable”. Further denser FloodNet / rainfall / citywide work is scientific scope expansion, not unfinished P0 engineering.

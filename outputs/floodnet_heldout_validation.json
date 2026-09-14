@@ -1,0 +1,62 @@
+{
+  "generated_utc": "2026-09-14T18:04:14.023622+00:00",
+  "analysis_freeze_utc": "2026-08-30T00:00:00+00:00",
+  "role": "strict_held_out_external_validation_diagnostic",
+  "used_in_training_or_evaluation_labels": false,
+  "events_dataset_id": "aq7i-eu5q",
+  "events_landing_page": "https://data.cityofnewyork.us/Environment/FloodNet-Street-Flooding-Events-Measured-by-FloodN/aq7i-eu5q",
+  "sensors_dataset_id": "kb2e-tjy3",
+  "sensors_landing_page": "https://data.cityofnewyork.us/Environment/FloodNet-Sensor-Deployment-Metadata/kb2e-tjy3",
+  "published": "2026-03-03",
+  "outcome_definition": "Study R9 cell is positive if it contains \u22651 FloodNet sensor with \u22651 QC street-flooding event in aq7i-eu5q; scores are spatial-CV OOF probabilities from the composite open-evidence model (FloodNet excluded).",
+  "pilots": [
+    {
+      "pilot": "lower_manhattan",
+      "bbox": [
+        -74.02,
+        40.7,
+        -73.97,
+        40.76
+      ],
+      "resolution": 9,
+      "score_column": "y_proba",
+      "n_sensors_in_bbox": 26,
+      "n_sensors_with_events": 19,
+      "n_sensors_in_study_table": 26,
+      "n_study_cells_with_sensor": 23,
+      "n_study_cells_with_event": 17,
+      "n_tidally_influenced_sensors": 0,
+      "positive_prevalence_sensor_cells": 0.7391304347826086,
+      "roc_auc": 0.3431372549019608,
+      "average_precision": 0.6441028613629233,
+      "mean_score_event_cells": 0.8705787186833936,
+      "mean_score_no_event_cells": 0.8122825187692482,
+      "held_out": true,
+      "used_in_training_labels": false
+    },
+    {
+      "pilot": "manhattan_expanded",
+      "bbox": [
+        -74.03,
+        40.68,
+        -73.94,
+        40.8
+      ],
+      "resolution": 9,
+      "score_column": "y_proba",
+      "n_sensors_in_bbox": 69,
+      "n_sensors_with_events": 45,
+      "n_sensors_in_study_table": 68,
+      "n_study_cells_with_sensor": 57,
+      "n_study_cells_with_event": 40,
+      "n_tidally_influenced_sensors": 0,
+      "positive_prevalence_sensor_cells": 0.7017543859649122,
+      "roc_auc": 0.4676470588235294,
+      "average_precision": 0.6922393290222043,
+      "mean_score_event_cells": 0.728729818248253,
+      "mean_score_no_event_cells": 0.7503970649203147,
+      "held_out": true,
+      "used_in_training_labels": false
+    }
+  ]
+}

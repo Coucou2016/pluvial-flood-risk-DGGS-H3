@@ -10,10 +10,10 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [
-  { name = "NTNU / 7Analytics / Ostfold University College" },
+  { name = "Authors (confirm names, affiliations, ORCID before submission)" },
 ]
 dependencies = [
-  "h3>=4.0.0",
+  "h3==4.4.2",
   "numpy>=1.24",
   "pandas>=2.0",
   "scikit-learn>=1.3",

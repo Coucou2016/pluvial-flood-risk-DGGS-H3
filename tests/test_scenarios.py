@@ -9,7 +9,7 @@ from pluvial_flood_risk.synthetic import write_demo_data
 def test_scenarios_vary_rainfall_not_static_hash(tmp_path: Path):
     data = write_demo_data(output_dir=tmp_path, bbox=(10.70, 59.90, 10.78, 59.95), resolution=9)
     model_dir = tmp_path / "models"
-    run_training(data, model_dir=model_dir)
+    run_training(data, model_dir=model_dir, allow_synthetic=True)
     bbox = (10.70, 59.90, 10.74, 59.93)
     scen = [{"name": "a", "mm_h": 20.0}, {"name": "b", "mm_h": 80.0}]
     out = run_inference_scenarios(
@@ -18,6 +18,7 @@ def test_scenarios_vary_rainfall_not_static_hash(tmp_path: Path):
         scen,
         model_dir=model_dir,
         output_dir=tmp_path / "out",
+        fallback_synthetic=True,
     )
     assert {"PFI_h", "scenario", "rainfall_mm_h"}.issubset(out.columns)
     assert set(out["scenario"]) == {"a", "b"}

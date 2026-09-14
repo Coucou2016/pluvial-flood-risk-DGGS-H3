@@ -1,0 +1,24 @@
+{
+  "role": "held_out_external_validation_only",
+  "include_in_training_labels": false,
+  "analysis_freeze_utc": "2026-08-30T00:00:00+00:00",
+  "published": "2026-03-03",
+  "events_dataset_id": "aq7i-eu5q",
+  "events_landing_page": "https://data.cityofnewyork.us/Environment/FloodNet-Street-Flooding-Events-Measured-by-FloodN/aq7i-eu5q",
+  "sensors_dataset_id": "kb2e-tjy3",
+  "sensors_landing_page": "https://data.cityofnewyork.us/Environment/FloodNet-Sensor-Deployment-Metadata/kb2e-tjy3",
+  "retrieved_utc": "2026-09-14T18:01:53.854200+00:00",
+  "n_events_citywide": 3184,
+  "n_sensors_citywide": 491,
+  "n_sensors_in_bbox": 26,
+  "bbox": [
+    -74.02,
+    40.7,
+    -73.97,
+    40.76
+  ],
+  "geojson": "E:/Projects/20260522-pluvial-flood-risk-DGGS-H3/data/raw/nyc/floodnet_sensors.geojson",
+  "events_json": "E:/Projects/20260522-pluvial-flood-risk-DGGS-H3/data/raw/nyc/floodnet_events.json",
+  "official_identity_verified": true,
+  "mirror_status": "official"
+}

@@ -151,6 +151,7 @@ def building_density_from_vector(
     )
     count_map = dict(zip(counts["h3_index"], counts["point_count"])) if len(counts) else {}
 
+    from pluvial_flood_risk.crs_warp import project_geometry_for_area
     from pluvial_flood_risk.h3_grid import cell_boundary_polygon, geometry_to_candidate_cells
     import shapely
 
@@ -158,15 +159,16 @@ def building_density_from_vector(
     area_frac = {c: 0.0 for c in cells}
     if polys:
         union = shapely.union_all(polys) if len(polys) > 1 else polys[0]
+        union_proj = project_geometry_for_area(union)
         candidates = set(geometry_to_candidate_cells(union, res, k_buffer=1))
         cell_set = set(cells)
         for cell in candidates & cell_set:
-            poly = cell_boundary_polygon(cell)
+            poly = project_geometry_for_area(cell_boundary_polygon(cell))
             ca = poly.area
             if ca <= 0:
                 continue
             try:
-                inter = poly.intersection(union)
+                inter = poly.intersection(union_proj)
                 area_frac[cell] = float(min(1.0, inter.area / ca)) if not inter.is_empty else 0.0
             except Exception:
                 area_frac[cell] = 0.0
@@ -187,7 +189,11 @@ def building_density_from_vector(
 
 
 def dist_stream_from_vector(cells: list[str], hydro_path) -> pd.DataFrame:
-    """Distance (m) from each cell centre to the nearest hydro geometry."""
+    """Distance (m) from each cell centre to the nearest mapped water geometry.
+
+    Column name remains ``dist_stream_m`` for schema compatibility; conceptually
+    this is distance-to-mapped-water (NHD/OSM), not necessarily inland streams.
+    """
     from shapely.geometry import Point
     from shapely.ops import nearest_points
 

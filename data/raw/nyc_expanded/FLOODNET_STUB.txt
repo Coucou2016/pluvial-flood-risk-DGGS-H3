@@ -1,0 +1,14 @@
+# FloodNet — reserved held-out external validation
+
+Official NYC Open Data (published 2026-03-03):
+
+- Events: https://data.cityofnewyork.us/Environment/FloodNet-Street-Flooding-Events-Measured-by-FloodN/aq7i-eu5q (`aq7i-eu5q`)
+- Sensor locations: https://data.cityofnewyork.us/Environment/FloodNet-Sensor-Deployment-Metadata/kb2e-tjy3 (`kb2e-tjy3`)
+
+These layers are **public**. This analysis freeze does **not** use FloodNet as a
+training or evaluation label (`labels.include_floodnet: false`). Downloaded
+sensor/event files support a **strict held-out diagnostic** only
+(`scripts/run_floodnet_heldout.py` → `outputs/floodnet_heldout_validation.json`).
+
+Do not treat sensor depth as insurance PFIb labels. Do not claim the portal
+lacks FloodNet data — the dataset IDs above are the authoritative sources.

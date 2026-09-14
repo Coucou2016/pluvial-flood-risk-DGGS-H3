@@ -12,8 +12,14 @@ venv/
 .mypy_cache/
 data/raw/*
 !data/raw/.gitkeep
+!data/raw/*/
+!data/raw/**/
 !data/raw/**/*.md
 !data/raw/**/*.txt
+!data/raw/data_manifest.json
+!data/raw/data_manifest.csv
+!data/raw/**/*query.json
+!data/raw/**/DOWNLOAD_MANIFEST.json
 data/processed/*
 !data/processed/.gitkeep
 outputs/*

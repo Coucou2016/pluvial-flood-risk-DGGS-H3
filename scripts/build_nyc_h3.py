@@ -28,6 +28,11 @@ def main() -> None:
     parser.add_argument("--fixtures", action="store_true", help="Force public-schema fixtures even if data/raw/nyc/dem.tif exists")
     parser.add_argument("--no-fixtures", action="store_true", help="Fail if live rasters/vectors are missing")
     parser.add_argument(
+        "--allow-synthetic",
+        action="store_true",
+        help="Allow hash/synthetic feature fills (demo only; forbidden for paper tables)",
+    )
+    parser.add_argument(
         "--bbox-profile",
         default=None,
         help="Extent profile from configs/nyc.yaml bbox_profiles (default: default_build_profile)",
@@ -70,7 +75,14 @@ def main() -> None:
     sources = sources_from_config(cfg)
     if used_fixtures:
         sources.assembly_mode = "fixture"
-    df = assemble_h3_table(bbox, resolution, rainfall_mm_h=rainfall, sources=sources)
+    allow_synth = bool(args.allow_synthetic or used_fixtures)
+    df = assemble_h3_table(
+        bbox,
+        resolution,
+        rainfall_mm_h=rainfall,
+        sources=sources,
+        fallback_synthetic=allow_synth,
+    )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(args.output, index=False)
     summary = {

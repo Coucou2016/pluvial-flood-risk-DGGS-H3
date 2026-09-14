@@ -12,6 +12,51 @@ from shapely.ops import transform as shp_transform
 
 
 TARGET_CRS = "EPSG:4326"
+# NYC Long Island State Plane (ftUS) — used for polygon intersection area ratios.
+AREA_CRS_NYC = "EPSG:2263"
+
+_AREA_TRANSFORMER = None
+
+
+def _area_transformer(area_crs: str = AREA_CRS_NYC):
+    global _AREA_TRANSFORMER
+    if _AREA_TRANSFORMER is not None and getattr(_AREA_TRANSFORMER, "_area_crs", None) == area_crs:
+        return _AREA_TRANSFORMER
+    try:
+        from pyproj import Transformer
+    except ImportError:
+        return None
+    transformer = Transformer.from_crs(TARGET_CRS, area_crs, always_xy=True)
+    transformer._area_crs = area_crs  # type: ignore[attr-defined]
+    _AREA_TRANSFORMER = transformer
+    return transformer
+
+
+def project_geometry_for_area(geom, area_crs: str = AREA_CRS_NYC):
+    """
+    Reproject a WGS84 (lon/lat) shapely geometry to a projected CRS for area ratios.
+
+    Intersection fractions computed in geographic degrees are biased; EPSG:2263
+    (NAD83 / New York Long Island) is the local engineering CRS for NYC pilots.
+    Falls back to the input geometry if pyproj is unavailable.
+    """
+    if geom is None or geom.is_empty:
+        return geom
+    transformer = _area_transformer(area_crs)
+    if transformer is None:
+        warnings.warn(
+            "pyproj not installed; area ratios remain in EPSG:4326 degrees.",
+            stacklevel=2,
+        )
+        return geom
+
+    def _xy(x, y, z=None):
+        easting, northing = transformer.transform(x, y)
+        if z is None:
+            return (easting, northing)
+        return (easting, northing, z)
+
+    return shp_transform(_xy, geom)
 
 
 def warp_raster_to_4326(

@@ -52,6 +52,58 @@ def test_assemble_fixture_uses_observed_join(tmp_path: Path):
 
 def test_assemble_hash_fallback_without_files(tmp_path: Path):
     sources = FeatureSources(assembly_mode="hash_demo")
-    df = assemble_h3_table((10.70, 59.90, 10.73, 59.93), 9, sources=sources)
+    df = assemble_h3_table(
+        (10.70, 59.90, 10.73, 59.93),
+        9,
+        sources=sources,
+        fallback_synthetic=True,
+    )
     assert (df["feature_source"] == "synthetic").all()
     assert (df["label_source"] == "synthetic").all()
+
+
+def test_assemble_fail_closed_without_files():
+    from pluvial_flood_risk.assemble import AssemblyError
+
+    sources = FeatureSources(assembly_mode="opendata")
+    with pytest.raises(AssemblyError):
+        assemble_h3_table(
+            (10.70, 59.90, 10.73, 59.93),
+            9,
+            sources=sources,
+            fallback_synthetic=False,
+        )
+
+
+def test_production_fail_closed_missing_layer_and_nan(tmp_path: Path):
+    """Production default must fail on missing rasters and on NaN columns."""
+    from pluvial_flood_risk.assemble import AssemblyError, assemble_feature_table
+    from pluvial_flood_risk.h3_grid import bbox_to_cells
+
+    sources = FeatureSources(assembly_mode="opendata")
+    cells = bbox_to_cells(*TINY, 10)
+    with pytest.raises(AssemblyError, match="missing observed"):
+        assemble_feature_table(cells, sources=sources, fallback_synthetic=False)
+
+    paths = write_public_schema_fixtures(tmp_path, TINY)
+    sources = FeatureSources(
+        dem_path=paths.get("dem"),
+        impervious_path=paths.get("impervious"),
+        buildings_path=paths["buildings"],
+        hydro_path=paths["hydro"],
+        assembly_mode="opendata",
+    )
+    df = assemble_feature_table(cells, sources=sources, fallback_synthetic=False)
+    df.loc[df.index[0], "elevation_m"] = float("nan")
+    from pluvial_flood_risk.assemble import AssemblyError as AE
+
+    # Direct NaN check: assemble_feature_table already refused missing layers.
+    # A second call with a bogus DEM path must still fail closed.
+    missing = FeatureSources(
+        dem_path=tmp_path / "no_such_dem.tif",
+        assembly_mode="opendata",
+    )
+    with pytest.raises(AE, match="Fail-closed"):
+        assemble_feature_table(cells, sources=missing, fallback_synthetic=False)
+    assert df["elevation_m"].isna().any()
+

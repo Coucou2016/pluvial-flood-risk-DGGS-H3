@@ -10,7 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from pluvial_flood_risk.config import RANDOM_SEED
 
 
-def build_classifier() -> Pipeline:
+def build_classifier(random_state: int = RANDOM_SEED) -> Pipeline:
     return Pipeline(
         [
             ("scaler", StandardScaler()),
@@ -20,14 +20,14 @@ def build_classifier() -> Pipeline:
                     n_estimators=80,
                     max_depth=4,
                     learning_rate=0.08,
-                    random_state=RANDOM_SEED,
+                    random_state=random_state,
                 ),
             ),
         ]
     )
 
 
-def build_regressor() -> Pipeline:
+def build_regressor(random_state: int = RANDOM_SEED) -> Pipeline:
     return Pipeline(
         [
             ("scaler", StandardScaler()),
@@ -37,14 +37,14 @@ def build_regressor() -> Pipeline:
                     n_estimators=80,
                     max_depth=4,
                     learning_rate=0.08,
-                    random_state=RANDOM_SEED,
+                    random_state=random_state,
                 ),
             ),
         ]
     )
 
 
-def build_logistic_classifier() -> Pipeline:
+def build_logistic_classifier(random_state: int = RANDOM_SEED) -> Pipeline:
     return Pipeline(
         [
             ("scaler", StandardScaler()),
@@ -52,7 +52,7 @@ def build_logistic_classifier() -> Pipeline:
                 "model",
                 LogisticRegression(
                     max_iter=500,
-                    random_state=RANDOM_SEED,
+                    random_state=random_state,
                 ),
             ),
         ]
@@ -66,4 +66,3 @@ def build_linear_regressor() -> Pipeline:
             ("model", LinearRegression()),
         ]
     )
-

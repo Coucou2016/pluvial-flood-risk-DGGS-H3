@@ -15,7 +15,7 @@ def test_adaptive_uses_trained_pfi_h_columns(tmp_path: Path):
     """After training, inference yields PFI_h; adaptive metrics tag score_source."""
     table = write_demo_data(output_dir=tmp_path / "processed")
     model_dir = tmp_path / "models"
-    run_training(table, model_dir=model_dir)
+    run_training(table, model_dir=model_dir, allow_synthetic=True)
 
     pred = run_inference(
         bbox=(10.70, 59.90, 10.73, 59.93),
@@ -23,6 +23,7 @@ def test_adaptive_uses_trained_pfi_h_columns(tmp_path: Path):
         model_dir=model_dir,
         rainfall_mm_h=75.0,
         output_dir=tmp_path / "out",
+        fallback_synthetic=True,
     )
     assert "PFI_h" in pred.columns
     assert "flood_probability" in pred.columns

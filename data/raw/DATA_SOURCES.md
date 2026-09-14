@@ -47,14 +47,17 @@ python scripts\build_nyc_h3.py --fixtures
 | Layer | File | Status | Source / notes |
 |-------|------|--------|----------------|
 | DEM | `dem.tif` | **Live** | USGS 3DEP ImageServer export, EPSG:4326, 500×600 for bbox |
-| DEP stormwater | `dep_stormwater_flood.geojson` | **Live** | ArcGIS Hub moderate+2050 SLR (Flooding_Category) |
+| DEP stormwater (primary) | `dep_stormwater_flood.geojson` | **Live** | ArcGIS Hub **Moderate Flood, Current Sea Levels** (Layer 1; `Flooding_Category` 1–2 = Nuisance / Deep-and-Contiguous, model-derived) |
+| DEP stormwater (sensitivity) | `dep_stormwater_flood_2050slr.geojson` | **Live** | ArcGIS Hub **Moderate Flood, 2050 Sea Level Rise** (Layer 2; same categories, used only as a sea-level sensitivity) |
 | Buildings | `building_footprints.geojson` | **Live** | NYC MapHub `BUILDING_view` (~18k footprints in bbox) |
 | USGS Ida HWM | `usgs_ida_hwm.geojson` | **Live** | ScienceBase DOI [10.5066/P9OMBJPQ](https://doi.org/10.5066/P9OMBJPQ) (~159 pts; retry if 502) |
-| 311 flooding | `flooding_311.geojson` | **Live (mirror)** | ArcGIS `streetfloodtime` FeatureServer (~488 pts in bbox). SODA `erm2-nwe9` still 403; CDN Street Flooding (SJ) CSV is fallback |
+| 311 flooding | `flooding_311.geojson` | **Live (official)** | NYC Open Data historical dataset **76ig-c548** (2010–2014; descriptor Street Flooding (SJ); paginated; unique_key dedup; ~510 pts in LM bbox). Query freeze: `flooding_311_query.json` |
 | Sandy inundation | `fema_sandy.geojson` | **Live (mirror)** | ArcGIS Online `Sandy_Inundation_Zone` (~9 polys in bbox). Negative control only — not a training label |
 | Impervious / NLCD | `impervious.tif` | **Live** | Esri Annual NLCD Fractional Impervious ImageServer; values scaled to 0–1 fraction |
 | Hydro / NHD | `hydro_streams.geojson` | **Live** | USGS NHDPlus HR MapServer (flowlines + NHDArea + NHDWaterbody), bbox-clipped (~13 features). Lower Manhattan is tidal-river / shoreline-heavy — `dist_stream_m` is a **distance-to-water** proxy, not classic inland stream proximity. OSM Overpass waterways are a downloader fallback |
-| FloodNet | `FLOODNET_STUB.txt` | Stub only | Sensor GeoJSON not wired |
+| FloodNet sensors | `floodnet_sensors.geojson` | **Live (held-out only)** | Official NYC Open Data sensors `kb2e-tjy3` + events `aq7i-eu5q` (published 2026-03-03). Downloaded and bbox-clipped; **never** used as training/eval labels (`labels.include_floodnet: false`). Diagnostic: `outputs/floodnet_heldout_validation.json` |
+| FloodNet events dump | `floodnet_events.json` | **Live (held-out only)** | Full SODA pull of `aq7i-eu5q` for audit; join key = `sensor_id` |
+| FloodNet query freeze | `floodnet_query.json` / `FLOODNET_STUB.txt` | Manifest | Exact dataset IDs, landing pages, retrieval time, role=held_out |
 | Event rainfall | `event_rainfall.tif` | **Synthetic hook** | Uniform 75 mm/h grid over bbox (Ida-like scenario); **not** gauge/radar |
 
 `SCHEMA_FIXTURE.txt` is **absent** when the live DEM+DEP stack is present. With hydro present, assemble tags **`feature_source=observed`** for static terrain/exposure columns (rainfall may still come from the scenario/`event_rainfall` hook — see `assemble.py` provenance rules). Do not claim PFIb reproduction; Jaccard on this stack is open-label scale-loss QA, not Svellingen et al. 0.14.
@@ -68,9 +71,10 @@ All layers should be reprojected to **EPSG:4326** before H3 zonal stats / polygo
 | Building Footprints | NYC Open Data / MapHub | https://data.cityofnewyork.us/Housing-Development/Building-Footprints/nqwf-w8eh | GeoJSON | EPSG:2263 or 4326 | NYC Open Data Terms | `building_density` |
 | 1 ft DEM (NYC) | NYC / DoITT | NYC Open Data / GIS | GeoTIFF | EPSG:2263 | City of NY | Prefer over 3DEP when available; warp with `crs_warp` |
 | 3DEP DEM | USGS | National Map ImageServer | GeoTIFF | 4326 export | USGS public domain | Default automated DEM |
-| DEP Stormwater Flood Maps | NYC DEP | Open Data + ArcGIS Hub | polygons | 2263 / 4326 | NYC Open Data Terms | Pluvial labels |
-| 311 flooding subset | NYC 311 | https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-Present/erm2-nwe9 | CSV / GeoJSON | WGS84 | NYC Open Data Terms | Point labels |
-| FloodNet | FloodNet-NYC | https://www.floodnet.nyc/ | sensor points | WGS84 | see FloodNet terms | Optional stub |
+| DEP Stormwater Flood Maps | NYC DEP | Open Data `9i7c-xyvv` + AdaptNYC ArcGIS mirror (verified=false) | polygons | 2263 / 4326 | NYC Open Data Terms | Pluvial labels (mirror until official export works) |
+| 311 flooding subset | NYC 311 | https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-2019/76ig-c548 | JSON / GeoJSON | WGS84 | NYC Open Data Terms | Point labels (2010–2014 Street Flooding (SJ)) |
+| FloodNet events | NYC Open Data / FloodNet | https://data.cityofnewyork.us/d/aq7i-eu5q | event summaries | WGS84 | NYC Open Data Terms | Held-out diagnostic only |
+| FloodNet sensor locations | NYC Open Data / FloodNet | https://data.cityofnewyork.us/d/kb2e-tjy3 | points | WGS84 | NYC Open Data Terms | Held-out diagnostic only |
 | USGS Ida HWM | USGS | https://doi.org/10.5066/P9OMBJPQ | CSV → GeoJSON | NAD83 / WGS84 | USGS public domain | Independent HWM points |
 | NHDPlus HR hydro | USGS | https://hydro.nationalmap.gov/arcgis/rest/services/NHDPlus_HR/MapServer | flowlines / waterbodies | 4326 export | USGS public domain | `dist_stream_m` (water-proximity proxy) |
 | FEMA / Sandy surge | FEMA / NYC | Open Data `uyj8-7rv5` | polygons | varies | FEMA / NYC | Negative control only |
@@ -83,6 +87,7 @@ data/raw/nyc/
   impervious.tif                  # optional
   building_footprints.geojson
   dep_stormwater_flood.geojson
+  dep_stormwater_flood_2050slr.geojson  # sensitivity (2050 sea-level rise)
   flooding_311.geojson            # optional if SODA reachable
   usgs_ida_hwm.geojson
   hydro_streams.geojson           # optional
