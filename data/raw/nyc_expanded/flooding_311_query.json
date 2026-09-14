@@ -1,0 +1,31 @@
+{
+  "dataset_id": "76ig-c548",
+  "landing_page": "https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-2019/76ig-c548",
+  "soda_url": "https://data.cityofnewyork.us/resource/76ig-c548.json",
+  "select": "unique_key,created_date,agency,complaint_type,descriptor,latitude,longitude,incident_address,borough",
+  "where": "descriptor = 'Street Flooding (SJ)' AND created_date >= '2010-01-01T00:00:00' AND created_date < '2015-01-01T00:00:00' AND latitude between '40.68' and '40.8' AND longitude between '-74.03' and '-73.94'",
+  "order": "unique_key",
+  "page_size": 1000,
+  "date_start": "2010-01-01T00:00:00",
+  "date_end_exclusive": "2015-01-01T00:00:00",
+  "descriptor": "Street Flooding (SJ)",
+  "bbox": [
+    -74.03,
+    40.68,
+    -73.94,
+    40.8
+  ],
+  "n_pages": 2,
+  "page_sha256": [
+    "b14ec2b1fe6ed04d7aef878ac1754e1841f2771393bd0ce2d978fe9f382a317a",
+    "ed5fc4919809e6789440fb435adec810ce558cce37cf8b55d1edb90dab1e4cb1"
+  ],
+  "n_unique_keys": 1164,
+  "n_features_written": 1164,
+  "official_identity_verified": true,
+  "retrieved_utc": "2026-09-14T08:44:29.628844+00:00",
+  "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc_expanded\\flooding_311.geojson",
+  "n_features": 1164,
+  "sha256": "a275d4540e268acea81ccb3fb50589b21f8d16ea19fb15d291c2f2340d1052b8",
+  "size_bytes": 498356
+}

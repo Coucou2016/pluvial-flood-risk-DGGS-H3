@@ -1,0 +1,26 @@
+{
+  "dataset_id": "76ig-c548",
+  "landing_page": "https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-2019/76ig-c548",
+  "soda_url": "https://data.cityofnewyork.us/resource/76ig-c548.json",
+  "select": "unique_key,created_date,agency,complaint_type,descriptor,latitude,longitude,incident_address,borough",
+  "where": "descriptor = 'Street Flooding (SJ)' AND created_date >= '2010-01-01T00:00:00' AND created_date < '2015-01-01T00:00:00' AND latitude between '40.7' and '40.76' AND longitude between '-74.02' and '-73.97'",
+  "order": "unique_key",
+  "page_size": 1000,
+  "date_start": "2010-01-01T00:00:00",
+  "date_end_exclusive": "2015-01-01T00:00:00",
+  "descriptor": "Street Flooding (SJ)",
+  "bbox": [
+    -74.02,
+    40.7,
+    -73.97,
+    40.76
+  ],
+  "n_pages": 1,
+  "page_sha256": [
+    "5f67bd59abd9d791d75db2444bb0a92d15a5b81141102b12a390487f043d7c07"
+  ],
+  "n_unique_keys": 510,
+  "n_features_written": 510,
+  "official_identity_verified": true,
+  "retrieved_utc": "2026-09-14T08:42:22.165339+00:00"
+}

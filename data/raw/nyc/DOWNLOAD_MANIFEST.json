@@ -1,0 +1,100 @@
+{
+  "bbox": [
+    -74.02,
+    40.7,
+    -73.97,
+    40.76
+  ],
+  "out_dir": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc",
+  "started_at": "2026-08-15T11:10:12.575756+00:00",
+  "finished_at": "2026-08-15T11:53:13.265995+00:00",
+  "assembly_ready": true,
+  "notes": [
+    "Lower Manhattan bbox subset (configs/nyc.yaml). Not citywide 1ft DEM.",
+    "Socrata may be blocked; ArcGIS/USGS/CDN mirrors used when needed.",
+    "Not 7Analytics PFIb.",
+    "Live stack: DEM/DEP/buildings/Ida/311/Sandy/NLCD + NHDPlus HR hydro (dist_stream_m = distance-to-water proxy; LM tidal/shoreline-heavy). event_rainfall remains synthetic constant hook. Not PFIb."
+  ],
+  "layers": [
+    {
+      "name": "dem",
+      "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc\\dem.tif",
+      "status": "downloaded",
+      "source": "USGS 3DEP ImageServer",
+      "n_features": null,
+      "detail": "EPSG:4326 GeoTIFF"
+    },
+    {
+      "name": "dep_stormwater_flood",
+      "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc\\dep_stormwater_flood.geojson",
+      "status": "downloaded",
+      "source": "ArcGIS Hub DEP moderate+2050 SLR",
+      "n_features": 3,
+      "detail": null
+    },
+    {
+      "name": "building_footprints",
+      "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc\\building_footprints.geojson",
+      "status": "downloaded",
+      "source": "NYC MapHub BUILDING_view",
+      "n_features": 18767,
+      "detail": null
+    },
+    {
+      "name": "usgs_ida_hwm",
+      "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc\\usgs_ida_hwm.geojson",
+      "status": "downloaded",
+      "source": "USGS ScienceBase P9OMBJPQ",
+      "n_features": 159,
+      "detail": null
+    },
+    {
+      "name": "flooding_311",
+      "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc\\flooding_311.geojson",
+      "status": "downloaded",
+      "source": "arcgis_streetfloodtime",
+      "n_features": 488,
+      "detail": null
+    },
+    {
+      "name": "fema_sandy",
+      "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc\\fema_sandy.geojson",
+      "status": "downloaded",
+      "source": "arcgis_sandy_jzHs",
+      "n_features": 9,
+      "detail": null
+    },
+    {
+      "name": "impervious",
+      "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc\\impervious.tif",
+      "status": "downloaded",
+      "source": "Esri Annual NLCD Fractional Impervious ImageServer",
+      "n_features": null,
+      "detail": "EPSG:4326 GeoTIFF, values scaled to fraction 0\u20131"
+    },
+    {
+      "name": "event_rainfall",
+      "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc\\event_rainfall.tif",
+      "status": "downloaded",
+      "source": "synthetic_constant_grid",
+      "n_features": null,
+      "detail": "Uniform 75.0 mm/h over bbox (Ida-like scenario hook; not gauge radar)"
+    },
+    {
+      "name": "hydro_streams",
+      "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc\\hydro_streams.geojson",
+      "status": "downloaded",
+      "source": "usgs_nhdplus_hr",
+      "n_features": 13,
+      "detail": "NHDPlus HR flowlines+areas+waterbodies; NetworkNHDFlowline=2, NonNetworkNHDFlowline=3, NHDArea=1, NHDWaterbody=8; wrote 13 after bbox clip. Honesty: mostly tidal rivers/waterbodies for LM \u2014 dist_stream_m is distance-to-water, not classic stream proximity."
+    },
+    {
+      "name": "floodnet",
+      "path": null,
+      "status": "skipped",
+      "source": "FloodNet",
+      "n_features": null,
+      "detail": "stub unreachable: HTTP 404 for https://api.floodnet.nyc/status\u2026 b'{\"error\":\"resource does not exist\",\"path\":\"$\",\"code\":\"not-found\"}'"
+    }
+  ]
+}

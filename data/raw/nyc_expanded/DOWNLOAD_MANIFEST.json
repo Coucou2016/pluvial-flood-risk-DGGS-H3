@@ -1,0 +1,100 @@
+{
+  "bbox": [
+    -74.03,
+    40.68,
+    -73.94,
+    40.8
+  ],
+  "out_dir": "data\\raw\\nyc_expanded",
+  "started_at": "2026-08-17T15:23:31.196758+00:00",
+  "finished_at": "2026-08-17T15:29:11.796950+00:00",
+  "assembly_ready": true,
+  "notes": [
+    "Lower Manhattan bbox subset (configs/nyc.yaml). Not citywide 1ft DEM.",
+    "Socrata may be blocked; ArcGIS/USGS/CDN mirrors used when needed.",
+    "Not 7Analytics PFIb.",
+    "Live core + optional layers present (311/Sandy/impervious/hydro when downloaded). Hydro in Lower Manhattan is mostly tidal river/waterbody \u2014 dist_stream_m is a distance-to-water proxy. event_rainfall constant grid is a scenario hook, not gauge/radar observations."
+  ],
+  "layers": [
+    {
+      "name": "dem",
+      "path": "data\\raw\\nyc_expanded\\dem.tif",
+      "status": "downloaded",
+      "source": "USGS 3DEP ImageServer",
+      "n_features": null,
+      "detail": "EPSG:4326 GeoTIFF"
+    },
+    {
+      "name": "dep_stormwater_flood",
+      "path": "data\\raw\\nyc_expanded\\dep_stormwater_flood.geojson",
+      "status": "downloaded",
+      "source": "ArcGIS Hub DEP moderate+2050 SLR",
+      "n_features": 3,
+      "detail": null
+    },
+    {
+      "name": "building_footprints",
+      "path": "data\\raw\\nyc_expanded\\building_footprints.geojson",
+      "status": "downloaded",
+      "source": "NYC MapHub BUILDING_view",
+      "n_features": 69718,
+      "detail": null
+    },
+    {
+      "name": "usgs_ida_hwm",
+      "path": "data\\raw\\nyc_expanded\\usgs_ida_hwm.geojson",
+      "status": "downloaded",
+      "source": "USGS ScienceBase P9OMBJPQ",
+      "n_features": 159,
+      "detail": null
+    },
+    {
+      "name": "flooding_311",
+      "path": "data\\raw\\nyc_expanded\\flooding_311.geojson",
+      "status": "downloaded",
+      "source": "arcgis_streetfloodtime",
+      "n_features": 1134,
+      "detail": null
+    },
+    {
+      "name": "fema_sandy",
+      "path": "data\\raw\\nyc_expanded\\fema_sandy.geojson",
+      "status": "downloaded",
+      "source": "arcgis_sandy_jzHs",
+      "n_features": 45,
+      "detail": null
+    },
+    {
+      "name": "impervious",
+      "path": "data\\raw\\nyc_expanded\\impervious.tif",
+      "status": "downloaded",
+      "source": "Esri Annual NLCD Fractional Impervious ImageServer",
+      "n_features": null,
+      "detail": "EPSG:4326 GeoTIFF, values scaled to fraction 0\u20131"
+    },
+    {
+      "name": "event_rainfall",
+      "path": "data\\raw\\nyc_expanded\\event_rainfall.tif",
+      "status": "downloaded",
+      "source": "synthetic_constant_grid",
+      "n_features": null,
+      "detail": "Uniform 75.0 mm/h over bbox (Ida-like scenario hook; not gauge radar)"
+    },
+    {
+      "name": "hydro_streams",
+      "path": "data\\raw\\nyc_expanded\\hydro_streams.geojson",
+      "status": "downloaded",
+      "source": "usgs_nhdplus_hr",
+      "n_features": 117,
+      "detail": "NHDPlus HR flowlines+areas+waterbodies; NetworkNHDFlowline=36, NonNetworkNHDFlowline=9, NHDArea=4, NHDWaterbody=69; wrote 117 after bbox clip. Honesty: mostly tidal rivers/waterbodies for LM \u2014 dist_stream_m is distance-to-water, not classic stream proximity."
+    },
+    {
+      "name": "floodnet",
+      "path": null,
+      "status": "skipped",
+      "source": "FloodNet",
+      "n_features": null,
+      "detail": "stub unreachable: HTTP 404 for https://api.floodnet.nyc/status\u2026 b'{\"error\":\"resource does not exist\",\"path\":\"$\",\"code\":\"not-found\"}'"
+    }
+  ]
+}

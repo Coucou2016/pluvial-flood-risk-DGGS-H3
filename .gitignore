@@ -20,6 +20,8 @@ data/raw/*
 !data/raw/data_manifest.csv
 !data/raw/**/*query.json
 !data/raw/**/DOWNLOAD_MANIFEST.json
+# Large SODA dumps are re-downloadable via scripts/run_floodnet_heldout.py
+data/raw/**/floodnet_events.json
 data/processed/*
 !data/processed/.gitkeep
 outputs/*
@@ -46,6 +48,9 @@ artifacts/*.zip
 artifacts/cdp_payload.json
 artifacts/chatgpt_paste_payload.*
 artifacts/inject_composer.js
+# Local Chinese audit packs / QA page dumps (keep out of submission tree)
+审查输出/
+"审查输出/"
 # Browser-injection scratch + extracted reference-paper figures (copyright/derived)
 .upload_chunks/
 artifacts/reference_paper_figures/
