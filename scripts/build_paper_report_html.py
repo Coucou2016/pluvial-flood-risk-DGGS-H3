@@ -205,7 +205,7 @@ def inject_figures(body_html: str, figs: dict[str, str | None]) -> str:
                 "<strong>图 4 · Figure 4</strong> — 空间 H3 块 CV 各折 Accuracy 与 F1（SciencePlots + Times New Roman）。"
                 "<br/><em>如何读：</em>横轴为折号 + Mean±SD，纵轴为 0–1 分数；成对标记点表示同一折的 Accuracy/F1，末位为 Mean±SD 误差棒；虚线/点线标记恒判正/恒判负常量类基线。"
                 "<br/><em>意义：</em>展示评价协议的折间稳定性，而非单一乐观分数。"
-                "<br/><em>结论：</em>多数折 Accuracy≈0.64–0.82，Fold4（n=24）更高；与表 3 均值一致。样本仍是 Lower Manhattan smoke。",
+                "<br/><em>结论：</em>五折 Accuracy/F1 与表 2 一致；水平线为恒判正/恒判负基线。样本为 Lower Manhattan Option B（n=262）。",
             ),
         ),
         (

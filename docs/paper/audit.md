@@ -925,3 +925,45 @@ Temporary scripts and third-party ZIP moved to `审查输出/quarantine/` (not d
 ### 15.3 Explicitly no intentional “next phase later” in code/docs
 
 FloodNet is no longer described as “data unavailable”. Further denser FloodNet / rainfall / citywide work is scientific scope expansion, not unfinished P0 engineering.
+## 16. Paper maturation pass (2026-09-15) — end-to-end package
+
+**Manuscript spine used:** `docs/paper/manuscript.md` (newest user mainline; no separate `manuscript_new*` / Desktop copy found).  
+**Framework note:** `docs/paper/framework_note.md` (Option B freeze; literature-informed IJDRR skeleton + Nature claim discipline).  
+**Numeric authority:** `outputs/paper_results.json` (generated_utc 2026-09-14T18:04:59+00:00).
+
+### 16.1 Headline reconciliation (manuscript ↔ registry)
+
+| Quantity | Registry | Manuscript / report |
+|----------|----------|---------------------|
+| LM n_cells | 262 | 262 |
+| LM prevalence | 0.6374 | 63.7% |
+| LM spatial_cv accuracy mean±std | 0.820±0.057 | 0.820 ± 0.057 |
+| LM F1 mean | 0.8576 | 0.858 |
+| LM pooled ROC-AUC / AP | 0.8480 / 0.8546 | 0.848 / 0.855 |
+| Exp n / acc / F1 / ROC | 956 / 0.823 / 0.826 / 0.882 | matched |
+| Soft Jaccard R10→R9 / R10→R8 mean | 0.2267 / 0.1358 | 0.227 / 0.136 |
+| Adaptive cells | 7222 vs 12838 (145/262 refined) | 56.3% |
+| FloodNet LM ROC-AUC (held-out) | 0.343 | reported as diagnostic only |
+| 311 official | 76ig-c548 verified=true | matched |
+| fail_closed | true | Methods + report |
+| deployment_fit_rows LM | 262 | matched |
+
+### 16.2 Authenticity / completeness evidence this pass
+
+| Check | Evidence |
+|-------|----------|
+| Numbers not from Svellingen | Soft Jaccard from `outputs/jaccard_by_resolution.csv`; PFIb/0.14 explicitly non-reproduction |
+| Fold table live | `models/nyc_smoke/spatial_cv_folds.csv` regenerated into report Table 2 |
+| Report no longer truncated / stale | `scripts/_gen_report_md.py` rebuilds `docs/paper/report.md` from registry |
+| Figures SciencePlots + TNR | `src/pluvial_flood_risk/figures.py` `apply_paper_style`; `scripts/make_figures.py` |
+| Self-contained HTML | `scripts/build_manuscript_html.py`, `scripts/build_paper_report_html.py` (Base64, inline CSS) |
+| Paper vs report path policy | Manuscript stripped of local `outputs/` / `models/` paths; report retains paths |
+| Author placeholders | CRediT / names remain **待补充** |
+
+### 16.3 Remaining 待补充 (human-only)
+
+1. Author names, affiliations, ORCID, CRediT  
+2. Observed event rainfall (non-flat `PFI_h(c,r)`)  
+3. Citywide evaluation  
+4. Optional DEP official geospatial replace  
+5. Remote `git push` / DOI (not performed this pass)

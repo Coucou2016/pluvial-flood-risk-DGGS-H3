@@ -1,4 +1,55 @@
-# 研究报告 / Research Report（深度自包含对照稿）
+# -*- coding: utf-8 -*-
+"""One-shot generator: docs/paper/report.md from paper_results.json + live CSVs."""
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import pandas as pd
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def f3(x: float) -> str:
+    return f"{float(x):.3f}"
+
+
+def main() -> None:
+    d = json.loads((ROOT / "outputs" / "paper_results.json").read_text(encoding="utf-8"))
+    lm = d["lower_manhattan"]
+    ex = d["manhattan_expanded"]
+    scv = lm["spatial_cv"]
+    b = lm["baselines"]
+    folds = pd.read_csv(ROOT / "models" / "nyc_smoke" / "spatial_cv_folds.csv")
+    jac = pd.read_csv(ROOT / "outputs" / "jaccard_by_resolution.csv")
+    fn = d["floodnet"]["pilots"][0]
+    fn2 = d["floodnet"]["pilots"][1]
+    ada = d["adaptive"]["rows"][0]
+    neg = d["negative_control"]
+
+    fold_rows = []
+    for _, r in folds.iterrows():
+        fold_rows.append(
+            f"| {int(r.fold_id)} | {int(r.n_train)} | {int(r.n_test)} | "
+            f"{int(r.n_positive_test)}/{int(r.n_negative_test)} | "
+            f"{r.accuracy:.3f} | {r.f1:.3f} | {r.r2:+.3f} | {r.mae:.3f} | "
+            f"{r.roc_auc:.3f} | {r.pr_auc:.3f} |"
+        )
+
+    jac_rows = []
+    for _, r in jac.iterrows():
+        jac_rows.append(
+            f"| R{int(r.coarse_res)} | {r.aggregation} | {r.jaccard_soft:.3f} | "
+            f"{r.jaccard_hard_median:.3f} "
+            f"[{r.jaccard_hard_ci_low:.3f}, {r.jaccard_hard_ci_high:.3f}] | "
+            f"{r.fine_parent_recall:.3f} | {r.coarse_precision:.3f} |"
+        )
+
+    pluvial_coastal_diff = float(neg["mean_score_pluvial_only"]) - float(
+        neg["mean_score_coastal_only"]
+    )
+
+    report = f"""# 研究报告 / Research Report（深度自包含对照稿）
 
 **主 HTML（自包含 Base64 图 + 内联 CSS，无 CDN）：** `docs/paper/report.html`（根目录 `report.html` 为逐字副本）  
 **PDF：** `docs/paper/report.pdf`（Chrome headless；HTML 为规范源）  
@@ -30,7 +81,7 @@
 
 本报告是仓库 **live Lower Manhattan open-data Option B（n=262）** 的教师向过程说明：对每张表/图交代**来龙去脉、如何读、意义、可下结论、不可下结论**。
 
-在 H3 R9 上组装 **n_cells = 262**（bbox `[-74.02, 40.70, -73.97, 40.76]`）。主评价为 **spatial H3-block CV**（12 个 R7 块，5 折）：准确率 **0.820 ± 0.057**，F1 **0.858**；正类占比 **63.7%**；恒判正基线 accuracy **0.637**、F1 **0.769**，模型超过该基线。留出 pooled ROC-AUC **0.848**、AP **0.855**。扩展试点 n=956：acc **0.823 ± 0.028**，F1 **0.826**，pooled ROC-AUC **0.882**。尺度损失（strict area budget）：R10→R9 mean soft Jaccard **0.227**，R10→R8 mean **0.136**。自适应相对均匀 R11 单元数比 **≈0.563**（145/262 父单元加密 → 7,222 vs 12,838）。FloodNet 为严格留出诊断（LM ROC-AUC 0.343，23 传感器单元）。
+在 H3 R9 上组装 **n_cells = 262**（bbox `[-74.02, 40.70, -73.97, 40.76]`）。主评价为 **spatial H3-block CV**（12 个 R7 块，5 折）：准确率 **{f3(scv['spatial_cv_accuracy_mean'])} ± {f3(scv['spatial_cv_accuracy_std'])}**，F1 **{f3(scv['spatial_cv_f1_mean'])}**；正类占比 **{lm['positive_prevalence']*100:.1f}%**；恒判正基线 accuracy **{f3(b['always_positive_mean_acc'])}**、F1 **{f3(b['always_positive_mean_f1'])}**，模型超过该基线。留出 pooled ROC-AUC **{f3(scv['spatial_cv_roc_auc_pooled'])}**、AP **{f3(scv['spatial_cv_pr_auc_pooled'])}**。扩展试点 n=956：acc **{f3(ex['spatial_cv']['spatial_cv_accuracy_mean'])} ± {f3(ex['spatial_cv']['spatial_cv_accuracy_std'])}**，F1 **{f3(ex['spatial_cv']['spatial_cv_f1_mean'])}**，pooled ROC-AUC **{f3(ex['spatial_cv']['spatial_cv_roc_auc_pooled'])}**。尺度损失（strict area budget）：R10→R9 mean soft Jaccard **0.227**，R10→R8 mean **0.136**。自适应相对均匀 R11 单元数比 **≈0.563**（145/262 父单元加密 → 7,222 vs 12,838）。FloodNet 为严格留出诊断（LM ROC-AUC {f3(fn['roc_auc'])}，23 传感器单元）。
 
 > **历史注记：** 修订前曾用 n=141 smoke 主表。该数字**不是**当前真相。
 
@@ -99,9 +150,9 @@
 
 ### 3.5 PFI_h(c,r)
 
-\[
-\mathrm{PFI}_h(c,r)=\widehat{P}(Y_c=1\mid X_c,r)
-\]
+\\[
+\\mathrm{{PFI}}_h(c,r)=\\widehat{{P}}(Y_c=1\\mid X_c,r)
+\\]
 当前 r 恒定 → 情景表 within-cell range = 0 → **不宣称降雨条件判别力**。
 
 #### 图 1 · `docs/paper/figures/workflow_schematic.png`
@@ -133,19 +184,19 @@
 
 | Metric | Value |
 |--------|-------|
-| n_cells | 262 |
-| spatial_cv_n_folds / n_blocks | 5 / 12 |
-| accuracy mean ± std | 0.820 ± 0.057 |
-| F1 mean | 0.858 |
-| R² mean ± std | 0.191 ± 0.287 |
-| MAE mean | 0.279 |
-| random_split_val_accuracy（诊断） | 0.811 |
-| 正类占比 | 0.6374 |
-| 恒判正 accuracy / F1 | 0.637 / 0.769 |
-| 恒判负 accuracy | 0.363 |
+| n_cells | {lm['n_cells']} |
+| spatial_cv_n_folds / n_blocks | {int(scv['spatial_cv_n_folds'])} / {int(scv['spatial_cv_n_blocks'])} |
+| accuracy mean ± std | {f3(scv['spatial_cv_accuracy_mean'])} ± {f3(scv['spatial_cv_accuracy_std'])} |
+| F1 mean | {f3(scv['spatial_cv_f1_mean'])} |
+| R² mean ± std | {f3(scv['spatial_cv_r2_mean'])} ± {f3(scv['spatial_cv_r2_std'])} |
+| MAE mean | {f3(scv['spatial_cv_mae_mean'])} |
+| random_split_val_accuracy（诊断） | {f3(scv['random_split_val_accuracy'])} |
+| 正类占比 | {lm['positive_prevalence']:.4f} |
+| 恒判正 accuracy / F1 | {f3(b['always_positive_mean_acc'])} / {f3(b['always_positive_mean_f1'])} |
+| 恒判负 accuracy | {f3(b['always_negative_mean_acc'])} |
 | 模型是否超过多数类 acc / f1 | **是 / 是** |
-| pooled ROC-AUC / AP | **0.848 / 0.855** |
-| evaluation_fit_rows / deployment_fit_rows | 209 / 262 |
+| pooled ROC-AUC / AP | **{f3(scv['spatial_cv_roc_auc_pooled'])} / {f3(scv['spatial_cv_pr_auc_pooled'])}** |
+| evaluation_fit_rows / deployment_fit_rows | {lm['evaluation']['fit_rows']} / {lm['deployment']['fit_rows']} |
 
 **来龙去脉：** 训练脚本按 R7 父块 GroupKFold 留出；折均写入 metadata/registry；常量基线按同一折表聚合。这是报告与手稿优先引用的主表。  
 **如何读：** 先看正类占比（63.7%），再看恒判正基线（0.637 / 0.769），最后才看模型（0.820 / 0.858）。ROC-AUC/AP 是阈值无关排序指标。  
@@ -157,11 +208,7 @@
 
 | fold | n_train | n_test | +/− | accuracy | f1 | r2 | mae | roc_auc | pr_auc |
 |------|---------|--------|-----|----------|-----|-----|-----|---------|--------|
-| 0 | 209 | 53 | 36/17 | 0.755 | 0.835 | +0.152 | 0.311 | 0.688 | 0.774 |
-| 1 | 209 | 53 | 47/6 | 0.906 | 0.948 | -0.347 | 0.307 | 0.723 | 0.951 |
-| 2 | 211 | 51 | 28/23 | 0.784 | 0.807 | +0.402 | 0.270 | 0.879 | 0.899 |
-| 3 | 209 | 53 | 25/28 | 0.868 | 0.877 | +0.443 | 0.237 | 0.899 | 0.805 |
-| 4 | 210 | 52 | 31/21 | 0.788 | 0.820 | +0.306 | 0.268 | 0.914 | 0.934 |
+{chr(10).join(fold_rows)}
 
 **来龙去脉：** 每折留出若干 R7 块；折间正负比不均导致跳动（尤其 Fold1 正类极高）。  
 **如何读：** 同时看 n_test 与正负计数，再读 accuracy/F1；末列 ROC/PR 是折内排序。  
@@ -198,12 +245,7 @@
 
 | Coarse | Agg | Soft Jaccard | Hard median [95% CI] | Fine-parent recall | Coarse precision |
 |--------|-----|--------------|----------------------|--------------------|------------------|
-| R8 | mean | 0.136 | 0.000 [0.000, 0.000] | 0.239 | 0.239 |
-| R8 | max | 0.570 | 0.000 [0.000, 0.000] | 0.726 | 0.726 |
-| R8 | p90 | 0.682 | 0.000 [0.000, 0.000] | 0.811 | 0.811 |
-| R9 | mean | 0.227 | 0.148 [0.074, 0.259] | 0.370 | 0.370 |
-| R9 | max | 0.649 | 0.031 [0.000, 0.100] | 0.787 | 0.787 |
-| R9 | p90 | 0.571 | 0.034 [0.000, 0.138] | 0.727 | 0.727 |
+{chr(10).join(jac_rows)}
 
 **来龙去脉：** 在原生 R10 证据上按 10% 面积预算定义热点，再上卷到 R9/R8；图 6b 与本表同 CSV，禁止图中重算。  
 **如何读：** 主看 mean 聚合：R9=0.227，R8=0.136；max/p90 更高是因为极值保留，不是“更正确”。  
@@ -229,8 +271,8 @@
 
 | Representation | Cell count |
 |---|---|
-| Fixed R9 | 262 |
-| Adaptive R9/R11 | 7222 |
+| Fixed R9 | {ada['adaptive_n_coarse']} |
+| Adaptive R9/R11 | {ada['adaptive_n_adaptive']} |
 | Uniform R11 | 12838 |
 
 筛选：分数 ≥0.8 分位或不确定区间，再扩一环；**deployment_full** 入样分数。
@@ -253,9 +295,9 @@
 
 | Statistic | Value |
 |---|---|
-| Coastal / pluvial / both / coastal-only / neither | 74 / 165 / 44 / 30 / 67 |
-| Mean OOF coastal-only / pluvial-only | 0.406 / 0.886 |
-| Pluvial − coastal OOF difference | 0.480 |
+| Coastal / pluvial / both / coastal-only / neither | {int(neg['n_coastal'])} / {int(neg['n_pluvial'])} / {int(neg['n_both'])} / {int(neg['n_coastal_only'])} / {int(neg['n_neither'])} |
+| Mean OOF coastal-only / pluvial-only | {f3(neg['mean_score_coastal_only'])} / {f3(neg['mean_score_pluvial_only'])} |
+| Pluvial − coastal OOF difference | {f3(pluvial_coastal_diff)} |
 
 **来龙去脉：** Sandy **不是**训练标签；比较的是 OOF 模型分，不是目标分（海岸-only 目标分恒为 0）。  
 **结论（允许）：** 模型不完全由海岸位置驱动，但海岸-only 仍获非零分。  
@@ -265,8 +307,8 @@
 
 | Pilot | Sensor cells | Event cells | ROC-AUC | AP |
 |-------|--------------|-------------|---------|-----|
-| LM | 23 | 17 | 0.343 | 0.644 |
-| Exp | 57 | 40 | 0.468 | 0.692 |
+| LM | {fn['n_study_cells_with_sensor']} | {fn['n_study_cells_with_event']} | {f3(fn['roc_auc'])} | {f3(fn['average_precision'])} |
+| Exp | {fn2['n_study_cells_with_sensor']} | {fn2['n_study_cells_with_event']} | {f3(fn2['roc_auc'])} | {f3(fn2['average_precision'])} |
 
 **来龙去脉：** 传感器足迹稀疏；诊断弱且不可外推。  
 **结论（禁止）：** 把 FloodNet 写成外部验证成功或训练标签。
@@ -275,12 +317,12 @@
 
 | Metric | Expanded n=956 |
 |--------|----------------|
-| Prevalence | 0.4791 |
-| Acc ± SD | 0.823 ± 0.028 |
-| F1 | 0.826 |
-| Pooled ROC-AUC / AP | 0.882 / 0.823 |
-| Always-pos acc / F1 | 0.479 / 0.646 |
-| Majority-neg acc | 0.521 |
+| Prevalence | {ex['positive_prevalence']:.4f} |
+| Acc ± SD | {f3(ex['spatial_cv']['spatial_cv_accuracy_mean'])} ± {f3(ex['spatial_cv']['spatial_cv_accuracy_std'])} |
+| F1 | {f3(ex['spatial_cv']['spatial_cv_f1_mean'])} |
+| Pooled ROC-AUC / AP | {f3(ex['spatial_cv']['spatial_cv_roc_auc_pooled'])} / {f3(ex['spatial_cv']['spatial_cv_pr_auc_pooled'])} |
+| Always-pos acc / F1 | {f3(ex['baselines']['always_positive_acc_mean'])} / {f3(ex['baselines']['always_positive_f1_mean'])} |
+| Majority-neg acc | {f3(ex['baselines']['majority_acc_mean'])} |
 
 **意义：** 曼哈顿内尺度放大检查，不是独立外域验证。
 
@@ -308,14 +350,23 @@
 ## 8. 复现清单（最短路径）
 
 ```text
-.venv\Scripts\python.exe -m pytest -q
-.venv\Scripts\python.exe scripts\make_figures.py
-.venv\Scripts\python.exe scripts\build_manuscript_html.py
-.venv\Scripts\python.exe scripts\build_paper_report_html.py
+.venv\\Scripts\\python.exe -m pytest -q
+.venv\\Scripts\\python.exe scripts\\make_figures.py
+.venv\\Scripts\\python.exe scripts\\build_manuscript_html.py
+.venv\\Scripts\\python.exe scripts\\build_paper_report_html.py
 ```
 
 核对：`outputs/paper_results.json` 与本文表 1/3/7 数值一致；图 6b 与 `jaccard_by_resolution.csv` 一致。
 
 ---
 
-*Generated for Option B freeze · registry 2026-09-14T18:04:59.465646+00:00 · fail_closed=True · seed=42*
+*Generated for Option B freeze · registry {d['generated_utc']} · fail_closed={d['fail_closed']} · seed={d['random_seed']}*
+"""
+
+    out = ROOT / "docs" / "paper" / "report.md"
+    out.write_text(report, encoding="utf-8")
+    print(f"wrote {out} chars={len(report)} lines={report.count(chr(10))+1}")
+
+
+if __name__ == "__main__":
+    main()
