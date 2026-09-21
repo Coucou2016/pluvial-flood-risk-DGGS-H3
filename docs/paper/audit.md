@@ -527,7 +527,7 @@ PNG+PDF 均已按新尺寸重生成到 `docs/paper/figures/`。图号/正文 fir
 | **M3** | Adaptive 用 full-fit/in-sample 分数选 refinement，仅比较 cell count | 全稿降级为 "representation-size comparison"；§3.6/§4.4/Fig.6 明确"不主张效率/hotspot retention" | `figures.py`（Fig.6 标注 "representation size only"）；`manuscript.md` §3.6/§4.4 |
 | **M4** | 未做 calibration 却写 "probability" | 全稿 "probability"→"model score"；§3.7 明示无校准 | `manuscript.md` §3.7 |
 | **M5** | ponding baseline 有 test-fold normalization 泄漏 | `baselines.py` 加 `_ponding_bounds`，min/max 只从 training fold 计算后应用于 test | `baselines.py`（`_ponding_bounds` + `rule_predict_class(**bounds)`） |
-| **M6** | shoreline distance 被用于 pluvial "hydrologic proximity"；urban flag 是 impervious 确定性复制 | 特征改名 "shoreline/tidal-water distance"；urban flag 保留但 §3.2 明示为确定性复制、无独立信息 | `manuscript.md` §3.2 |
+| **M6** | shoreline distance 被用于 pluvial "hydrologic proximity"；urban flag 是 impervious 确定性复制 | 特征改名 "shoreline/tidal-water distance"；**urban flag 已从 FEATURE_COLUMNS / 估计器输入移除并全量重训**（§3.2） | `config.py` FEATURE_COLUMNS；`manuscript.md` §3.2 |
 | **M7** | "risk" 概念偏大 | 全稿 "risk"→"susceptibility / flood-evidence screening"；标题/Abstract 同步 | `manuscript.md` 全文 |
 
 **未完全关闭项（诚实清单，均为"需新数据/新分析"，非"可文本掩盖"）**：M1（land mask）、M2（block-size 敏感性 + 空间自相关检验）、M3（真实 R11 reference + quality–cost Pareto）、C6（真实事件降雨）。这四项已按审稿意见在正文中**显式降级/声明为局限**，而非声称已解决。
@@ -994,4 +994,37 @@ Still `outputs/paper_results.json`. LM n=262 / Exp n=956 unchanged. Do **not** r
 
 ### 17.3 Human-only remaining
 
-Author names, ORCID, CRediT roles; journal cover letter; true land-fraction≥0.5 polygon mask if required by editor; nested CV (explicitly declined — hyperparameters pre-specified).
+Author names, ORCID, CRediT roles; journal cover letter; nested CV (explicitly declined — hyperparameters pre-specified in `config.py` / `estimators.py`).
+
+---
+
+## 18. Full recompute freeze (submission-v5-full-recompute)
+
+**Tag intent:** `submission-v5-full-recompute`
+
+### 18.1 Computational closures (not prose-only)
+
+| Item | Artifact | Key number |
+|------|----------|------------|
+| Urban flag removed + both pilots retrained | `models/*/deployment/feature_columns.json` | 7 features; no `land_cover_urban` |
+| LM primary spatial CV | `models/nyc_smoke/run_metadata.json` | pooled ROC-AUC **0.850**; acc **0.824±0.055**; F1 **0.861** |
+| Exp primary spatial CV | `models/nyc_expanded/run_metadata.json` | pooled ROC-AUC **0.880**; acc **0.819±0.024**; F1 **0.822**; n_pos **461** |
+| True NHD land-mask sensitivity | `outputs/land_mask_sensitivity.json` | land_frac≥0.5 → n=261, ROC **0.844** |
+| DEP area thresholds 0/1/5/10% | `outputs/polygon_area_threshold_sensitivity.json` | thr=0 ROC **0.850**; thr=0.10 ROC **0.841** |
+| Source ablation complete set | `outputs/source_ablation.json` | LM 311-only **0.853**; w/o building_density **0.839** |
+| Block / LOBO / Moran | `outputs/block_sensitivity.json` | LM LOBO ROC **0.860**; residual I **0.047** |
+| Domain-masked scale loss | `outputs/jaccard_by_resolution.csv` | R9 mean Jaccard **0.220**; R8 **0.136**; n_coarse=262 |
+| Sandy 311 window | `outputs/sandy_311_window_sensitivity.json` | 9 excluded; 1 flip; ROC **0.861** |
+| HWM quality + height_above_gnd | `outputs/hwm_validation.json` | 3 quality-filtered cells; Spearman height↔OOF **0.371** |
+| Train-fold max-F1 threshold | `outputs/operating_threshold_sensitivity.json` | LM fixed F1 **0.861** vs tuned **0.868** |
+| Extended OOF Table 3 | `outputs/oof_extended_metrics.json` | LM MCC **0.611**; bal.acc **0.790** |
+| Adaptive Option A R11 re-extract | `outputs/adaptive_r11_hotspot_retention.json` | hotspot recall **1.000**; ratio **0.574** |
+| Hard gates | `tests/test_major_revision_gates.py` | urban absent; true land-mask; manuscript↔registry |
+
+### 18.2 Numeric authority
+
+`outputs/paper_results.json` after `scripts/sync_paper_results.py` + `scripts/patch_manuscript_v5.py`. Do not invent numbers.
+
+### 18.3 Still human-only
+
+Author names, ORCID, CRediT; journal cover letter.

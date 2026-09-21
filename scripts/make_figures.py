@@ -117,6 +117,13 @@ def main() -> None:
         study_domain_parents=r9_parents,
         modelling_res=9,
     )
+    # Fail-closed: domain mask must unify R9 support with the modelling table.
+    n9 = int(ladder.loc[ladder["coarse_res"] == 9, "n_coarse"].iloc[0])
+    if n9 != 262 or not bool(ladder["study_domain_mask"].iloc[0]):
+        raise SystemExit(
+            f"domain-masked Jaccard ladder invalid: n_coarse_r9={n9}, "
+            f"study_domain_mask={ladder['study_domain_mask'].iloc[0]}"
+        )
     csv_path = OUT / "jaccard_by_resolution.csv"
     json_path = OUT / "jaccard_by_resolution.json"
     ladder.to_csv(csv_path, index=False)

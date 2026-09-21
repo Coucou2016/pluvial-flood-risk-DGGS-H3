@@ -22,7 +22,6 @@ FEATURE_RANGES: dict[str, tuple[float, float]] = {
     "building_density": (0.0, 1e5),
     "dist_stream_m": (0.0, 50_000.0),
     "rainfall_mm_h": (0.0, 500.0),
-    "land_cover_urban": (0.0, 1.0),
 }
 
 

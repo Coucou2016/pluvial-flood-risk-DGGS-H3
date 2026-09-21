@@ -3,5 +3,5 @@
   "fit_rows": 956,
   "training_h3_sha256": "233873daf9030be19c653f249550fff273b1c3309a8862148238179289fdcbb9",
   "random_seed": 42,
-  "n_feature_columns": 8
+  "n_feature_columns": 7
 }

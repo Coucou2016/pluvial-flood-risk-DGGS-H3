@@ -18,18 +18,11 @@ def test_train_metrics_reproducible_with_seed():
     cells = bbox_to_cells(10.70, 59.90, 10.80, 59.96, 9)
     df = engineer_features_for_cells(cells, rainfall_mm_h=25.0)
     df = attach_labels(df)
-    X = df[
-        [
-            "elevation_m",
-            "slope_deg",
-            "flow_accum_proxy",
-            "impervious_frac",
-            "building_density",
-            "dist_stream_m",
-            "rainfall_mm_h",
-            "land_cover_urban",
-        ]
-    ].to_numpy()
+    from pluvial_flood_risk.config import FEATURE_COLUMNS
+    from pluvial_flood_risk.features import feature_matrix
+
+    assert "land_cover_urban" not in FEATURE_COLUMNS
+    X = feature_matrix(df)
     y_class = df["flood_class"].to_numpy()
     y_risk = df["flood_risk"].to_numpy()
 

@@ -1,34 +1,51 @@
 {
-  "note": "Land-mask proxies on Option B LM (true land-fraction polygon not assembled). Primary metrics recomputed under elevation/impervious filters.",
+  "note": "True land-mask sensitivity on Option B LM using NHDPlus water polygons (NHDArea/NHDWaterbody) from hydro_streams.geojson. land_frac = 1 - (cell \u2229 water)/cell_area; centroid_on_land excludes cell centres inside water polygons. Primary spatial CV recomputed per mask.",
+  "hydro_source": "data\\raw\\nyc\\hydro_streams.geojson",
+  "n_water_frac_gt_0": 9,
+  "n_centroid_in_water": 2,
   "rows": [
     {
       "mask": "all_cells",
       "n_cells": 262,
       "n_positive": 167,
       "prevalence": 0.6374045801526718,
-      "roc_auc_pooled": 0.8479672234478411,
-      "accuracy_mean": 0.8202154301488374,
-      "f1_mean": 0.8575558607370872,
+      "mean_land_frac": 0.9955162562520177,
+      "roc_auc_pooled": 0.8502678852820673,
+      "accuracy_mean": 0.8240615839949912,
+      "f1_mean": 0.8613633699914501,
       "note": ""
     },
     {
-      "mask": "elevation_gt_0",
-      "n_cells": 214,
-      "n_positive": 164,
-      "prevalence": 0.7663551401869159,
-      "roc_auc_pooled": 0.7251219512195122,
-      "accuracy_mean": 0.7755245526674097,
-      "f1_mean": 0.851245434521984,
-      "note": ""
-    },
-    {
-      "mask": "impervious_ge_0.05_or_elev_gt_0",
-      "n_cells": 224,
+      "mask": "land_frac_ge_0.5",
+      "n_cells": 261,
       "n_positive": 167,
-      "prevalence": 0.7455357142857143,
-      "roc_auc_pooled": 0.7548587036453409,
-      "accuracy_mean": 0.7896363291900397,
-      "f1_mean": 0.8601908245782373,
+      "prevalence": 0.6398467432950191,
+      "mean_land_frac": 0.9981497161177135,
+      "roc_auc_pooled": 0.8439928653331634,
+      "accuracy_mean": 0.8199280002276673,
+      "f1_mean": 0.861049538844083,
+      "note": ""
+    },
+    {
+      "mask": "centroid_on_land",
+      "n_cells": 260,
+      "n_positive": 167,
+      "prevalence": 0.6423076923076924,
+      "mean_land_frac": 0.9993107094481637,
+      "roc_auc_pooled": 0.8452128002060396,
+      "accuracy_mean": 0.8229172714078375,
+      "f1_mean": 0.8637566426250407,
+      "note": ""
+    },
+    {
+      "mask": "land_frac_ge_0.5_and_centroid_on_land",
+      "n_cells": 260,
+      "n_positive": 167,
+      "prevalence": 0.6423076923076924,
+      "mean_land_frac": 0.9993107094481637,
+      "roc_auc_pooled": 0.8452128002060396,
+      "accuracy_mean": 0.8229172714078375,
+      "f1_mean": 0.8637566426250407,
       "note": ""
     }
   ]

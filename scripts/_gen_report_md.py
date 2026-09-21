@@ -81,7 +81,7 @@ def main() -> None:
 
 本报告是仓库 **live Lower Manhattan open-data Option B（n=262）** 的教师向过程说明：对每张表/图交代**来龙去脉、如何读、意义、可下结论、不可下结论**。
 
-在 H3 R9 上组装 **n_cells = 262**（bbox `[-74.02, 40.70, -73.97, 40.76]`）。主评价为 **spatial H3-block CV**（12 个 R7 块，5 折）：准确率 **{f3(scv['spatial_cv_accuracy_mean'])} ± {f3(scv['spatial_cv_accuracy_std'])}**，F1 **{f3(scv['spatial_cv_f1_mean'])}**；正类占比 **{lm['positive_prevalence']*100:.1f}%**；恒判正基线 accuracy **{f3(b['always_positive_mean_acc'])}**、F1 **{f3(b['always_positive_mean_f1'])}**，模型超过该基线。留出 pooled ROC-AUC **{f3(scv['spatial_cv_roc_auc_pooled'])}**、AP **{f3(scv['spatial_cv_pr_auc_pooled'])}**。扩展试点 n=956：acc **{f3(ex['spatial_cv']['spatial_cv_accuracy_mean'])} ± {f3(ex['spatial_cv']['spatial_cv_accuracy_std'])}**，F1 **{f3(ex['spatial_cv']['spatial_cv_f1_mean'])}**，pooled ROC-AUC **{f3(ex['spatial_cv']['spatial_cv_roc_auc_pooled'])}**。尺度损失（strict area budget）：R10→R9 mean soft Jaccard **0.227**，R10→R8 mean **0.136**。自适应相对均匀 R11 单元数比 **≈0.563**（145/262 父单元加密 → 7,222 vs 12,838）。FloodNet 为严格留出诊断（LM ROC-AUC {f3(fn['roc_auc'])}，23 传感器单元）。
+在 H3 R9 上组装 **n_cells = 262**（bbox `[-74.02, 40.70, -73.97, 40.76]`）。主评价为 **spatial H3-block CV**（12 个 R7 块，5 折）：准确率 **{f3(scv['spatial_cv_accuracy_mean'])} ± {f3(scv['spatial_cv_accuracy_std'])}**，F1 **{f3(scv['spatial_cv_f1_mean'])}**；正类占比 **{lm['positive_prevalence']*100:.1f}%**；恒判正基线 accuracy **{f3(b['always_positive_mean_acc'])}**、F1 **{f3(b['always_positive_mean_f1'])}**，模型超过该基线。留出 pooled ROC-AUC **{f3(scv['spatial_cv_roc_auc_pooled'])}**、AP **{f3(scv['spatial_cv_pr_auc_pooled'])}**。扩展试点 n=956：acc **{f3(ex['spatial_cv']['spatial_cv_accuracy_mean'])} ± {f3(ex['spatial_cv']['spatial_cv_accuracy_std'])}**，F1 **{f3(ex['spatial_cv']['spatial_cv_f1_mean'])}**，pooled ROC-AUC **{f3(ex['spatial_cv']['spatial_cv_roc_auc_pooled'])}**。尺度损失（strict area budget）：R10→R9 mean soft Jaccard **0.220**，R10→R8 mean **0.136**。自适应相对均匀 R11 单元数比 **≈0.574**（148/262 父单元加密 → 7,366 vs 12,838；Option A R11 重提特征 hotspot recall = 1.000）。FloodNet 为严格留出诊断（LM ROC-AUC {f3(fn['roc_auc'])}，23 传感器单元）。
 
 > **历史注记：** 修订前曾用 n=141 smoke 主表。该数字**不是**当前真相。
 
@@ -321,8 +321,8 @@ def main() -> None:
 | Acc ± SD | {f3(ex['spatial_cv']['spatial_cv_accuracy_mean'])} ± {f3(ex['spatial_cv']['spatial_cv_accuracy_std'])} |
 | F1 | {f3(ex['spatial_cv']['spatial_cv_f1_mean'])} |
 | Pooled ROC-AUC / AP | {f3(ex['spatial_cv']['spatial_cv_roc_auc_pooled'])} / {f3(ex['spatial_cv']['spatial_cv_pr_auc_pooled'])} |
-| Always-pos acc / F1 | {f3(ex['baselines']['always_positive_acc_mean'])} / {f3(ex['baselines']['always_positive_f1_mean'])} |
-| Majority-neg acc | {f3(ex['baselines']['majority_acc_mean'])} |
+| Always-pos acc / F1 | {f3(ex['baselines']['always_positive_mean_acc'])} / {f3(ex['baselines']['always_positive_mean_f1'])} |
+| Majority-neg acc | {f3(ex['baselines']['always_negative_mean_acc'])} |
 
 **意义：** 曼哈顿内尺度放大检查，不是独立外域验证。
 

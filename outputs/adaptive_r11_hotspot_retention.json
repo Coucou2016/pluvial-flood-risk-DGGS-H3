@@ -1,0 +1,32 @@
+{
+  "mode": "option_A_true_r11_reextract",
+  "fine_res": 11,
+  "n_coarse": 262,
+  "n_parents_refined": 148,
+  "n_adaptive_mixed": 7366,
+  "n_uniform_fine": 12838,
+  "n_uniform_fine_scorable": 12578,
+  "n_refined_children": 7252,
+  "n_refined_children_scorable": 7222,
+  "n_dropped_refined_nan": 30,
+  "n_dropped_uniform_nan": 260,
+  "cell_count_ratio_vs_uniform": 0.5737653840162019,
+  "n_hotspot_uniform_scorable": 1258,
+  "hotspot_recall": 1.0,
+  "hotspot_quantile": 0.9,
+  "mean_score_refined_children": 0.5508342677846496,
+  "mean_score_uniform_fine": 0.38827656812040195,
+  "base_adaptive_metrics": {
+    "coarse_res": 9,
+    "fine_res": 11,
+    "n_coarse": 262,
+    "n_parents_refined": 148,
+    "n_adaptive": 7366,
+    "score_quantile": 0.8,
+    "expand_k": 1,
+    "uncertainty_min": 0.7,
+    "n_uniform_fine": 12838.0,
+    "cell_count_ratio": 0.5737653840162019
+  },
+  "note": "True R11 feature re-extraction on refined parents' children using the post-urban-drop deployment model; cells with NaN static features (DEM edge) are dropped before scoring. Hotspot recall vs uniformly scored scorable R11."
+}

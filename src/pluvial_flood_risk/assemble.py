@@ -303,11 +303,12 @@ def assemble_feature_table(
     if sources.impervious_path and Path(sources.impervious_path).exists():
         zonal = zonal_mean_raster_to_h3(cells, sources.impervious_path)
         df = merge_raster_feature(df, zonal, "impervious_frac")
+        # Diagnostic-only (not in FEATURE_COLUMNS / estimators): deterministic copy
+        # of impervious_frac retained for audit maps, never as a model input.
         df["land_cover_urban"] = (df["impervious_frac"] > 0.45).astype(np.float64)
-        # Preserve NaN where impervious is missing (avoid casting NaN>0.45 → False).
         missing_imp = df["impervious_frac"].isna()
         df.loc[missing_imp, "land_cover_urban"] = np.nan
-        observed.update({"impervious_frac", "land_cover_urban"})
+        observed.add("impervious_frac")
 
     if sources.buildings_path and Path(sources.buildings_path).exists():
         bldg = building_density_from_vector(cells, sources.buildings_path)

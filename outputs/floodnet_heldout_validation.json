@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-09-14T18:04:14.023622+00:00",
+  "generated_utc": "2026-09-21T03:35:50.830195+00:00",
   "analysis_freeze_utc": "2026-08-30T00:00:00+00:00",
   "role": "strict_held_out_external_validation_diagnostic",
   "used_in_training_or_evaluation_labels": false,
@@ -27,10 +27,10 @@
       "n_study_cells_with_event": 17,
       "n_tidally_influenced_sensors": 0,
       "positive_prevalence_sensor_cells": 0.7391304347826086,
-      "roc_auc": 0.3431372549019608,
-      "average_precision": 0.6441028613629233,
-      "mean_score_event_cells": 0.8705787186833936,
-      "mean_score_no_event_cells": 0.8122825187692482,
+      "roc_auc": 0.3137254901960784,
+      "average_precision": 0.6318946447429419,
+      "mean_score_event_cells": 0.8879602174162011,
+      "mean_score_no_event_cells": 0.8130844716427421,
       "held_out": true,
       "used_in_training_labels": false
     },
@@ -51,10 +51,10 @@
       "n_study_cells_with_event": 40,
       "n_tidally_influenced_sensors": 0,
       "positive_prevalence_sensor_cells": 0.7017543859649122,
-      "roc_auc": 0.4676470588235294,
-      "average_precision": 0.6922393290222043,
-      "mean_score_event_cells": 0.728729818248253,
-      "mean_score_no_event_cells": 0.7503970649203147,
+      "roc_auc": 0.4632352941176471,
+      "average_precision": 0.685705170458648,
+      "mean_score_event_cells": 0.7310681901850297,
+      "mean_score_no_event_cells": 0.7613395924099392,
       "held_out": true,
       "used_in_training_labels": false
     }

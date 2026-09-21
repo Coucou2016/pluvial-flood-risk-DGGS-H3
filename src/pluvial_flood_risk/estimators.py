@@ -7,7 +7,12 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-from pluvial_flood_risk.config import RANDOM_SEED
+from pluvial_flood_risk.config import (
+    GBM_LEARNING_RATE,
+    GBM_MAX_DEPTH,
+    GBM_N_ESTIMATORS,
+    RANDOM_SEED,
+)
 
 
 def build_classifier(random_state: int = RANDOM_SEED) -> Pipeline:
@@ -17,9 +22,9 @@ def build_classifier(random_state: int = RANDOM_SEED) -> Pipeline:
             (
                 "model",
                 GradientBoostingClassifier(
-                    n_estimators=80,
-                    max_depth=4,
-                    learning_rate=0.08,
+                    n_estimators=GBM_N_ESTIMATORS,
+                    max_depth=GBM_MAX_DEPTH,
+                    learning_rate=GBM_LEARNING_RATE,
                     random_state=random_state,
                 ),
             ),
@@ -34,9 +39,9 @@ def build_regressor(random_state: int = RANDOM_SEED) -> Pipeline:
             (
                 "model",
                 GradientBoostingRegressor(
-                    n_estimators=80,
-                    max_depth=4,
-                    learning_rate=0.08,
+                    n_estimators=GBM_N_ESTIMATORS,
+                    max_depth=GBM_MAX_DEPTH,
+                    learning_rate=GBM_LEARNING_RATE,
                     random_state=random_state,
                 ),
             ),

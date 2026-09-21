@@ -16,6 +16,9 @@ DEFAULT_BBOX = (10.70, 59.90, 10.85, 59.98)  # min_lon, min_lat, max_lon, max_la
 # H3 resolution: ~0.1 km² at res 9; use 9 for city-scale demo, 8 for regional
 DEFAULT_H3_RESOLUTION = 9
 
+# Production estimator inputs. land_cover_urban is intentionally omitted: it was a
+# deterministic copy of impervious_frac (>0.45) with no independent information
+# (Major Revision construct-validity / M6).
 FEATURE_COLUMNS = [
     "elevation_m",
     "slope_deg",
@@ -24,8 +27,13 @@ FEATURE_COLUMNS = [
     "building_density",
     "dist_stream_m",
     "rainfall_mm_h",
-    "land_cover_urban",
 ]
+
+# Pre-specified GBM hyperparameters (no nested CV retuning on the production path).
+GBM_N_ESTIMATORS = 80
+GBM_MAX_DEPTH = 4
+GBM_LEARNING_RATE = 0.08
+OPERATING_THRESHOLD_DEFAULT = 0.5
 
 TARGET_COLUMN = "flood_risk"
 TARGET_CLASS_COLUMN = "flood_class"

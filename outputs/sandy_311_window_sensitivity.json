@@ -19,21 +19,21 @@
     "prevalence_sandy311_excluded": 0.6335877862595419
   },
   "spatial_cv_sandy311_excluded": {
-    "roc_auc_pooled": 0.8611947791164658,
-    "roc_auc_mean": 0.8385500283489004,
-    "pr_auc_pooled": 0.8620544449683376,
-    "accuracy_mean": 0.8281339821850366,
-    "f1_mean": 0.8673617623852184
+    "roc_auc_pooled": 0.8609751506024096,
+    "roc_auc_mean": 0.8518483047262851,
+    "pr_auc_pooled": 0.8623373286332393,
+    "accuracy_mean": 0.8395273058425111,
+    "f1_mean": 0.8769616494616495
   },
   "coastal_diagnostic_oof_vs_excluded_labels": {
     "score_col": "oof_model_score",
     "mean_score_by_group": {
-      "both": 0.8028923680634837,
-      "coastal_only": 0.4368946730359832,
-      "neither": 0.26696877707163563,
-      "pluvial_only": 0.8751833598671889
+      "both": 0.8101898408559731,
+      "coastal_only": 0.4186830070917251,
+      "neither": 0.27053532413701153,
+      "pluvial_only": 0.8823574987230289
     },
-    "pluvial_minus_coastal_mean_score": 0.43828868683120564,
+    "pluvial_minus_coastal_mean_score": 0.4636744916313038,
     "n_by_group": {
       "pluvial_only": 122,
       "neither": 66,

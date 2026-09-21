@@ -5,6 +5,5 @@
   "impervious_frac",
   "building_density",
   "dist_stream_m",
-  "rainfall_mm_h",
-  "land_cover_urban"
+  "rainfall_mm_h"
 ]

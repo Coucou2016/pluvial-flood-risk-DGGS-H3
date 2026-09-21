@@ -244,3 +244,50 @@ def test_negative_control_uses_oof_score_column():
     _skip_if_missing(path)
     payload = json.loads(path.read_text(encoding="utf-8"))
     assert payload.get("score_col") == "oof_model_score"
+
+
+def test_urban_flag_removed_from_production_features():
+    from pluvial_flood_risk.config import FEATURE_COLUMNS
+
+    assert "land_cover_urban" not in FEATURE_COLUMNS
+    for model_dir in (MODELS_SMOKE, MODELS_EXP):
+        feat_json = model_dir / "deployment" / "feature_columns.json"
+        if not feat_json.exists():
+            continue
+        cols = json.loads(feat_json.read_text(encoding="utf-8"))
+        assert "land_cover_urban" not in cols, f"urban still in {feat_json}"
+
+
+def test_land_mask_sensitivity_is_true_polygon_mask():
+    path = ROOT / "outputs" / "land_mask_sensitivity.json"
+    _skip_if_missing(path)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    note = str(payload.get("note", "")).lower()
+    assert "proxy" not in note or "true land" in note
+    assert "nhd" in note or "water polygon" in note or "land_frac" in note
+    masks = {r["mask"] for r in payload.get("rows", [])}
+    assert "land_frac_ge_0.5" in masks
+    assert "centroid_on_land" in masks
+
+
+def test_hwm_validation_artifact_exists_if_expanded():
+    if not TABLE_EXP.exists():
+        pytest.skip("expanded table missing")
+    path = ROOT / "outputs" / "hwm_validation.json"
+    _skip_if_missing(path)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert "n_hwm_cells" in payload
+    assert "mean_oof_score_all_hwm" in payload
+
+
+def test_manuscript_registry_checker_passes():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "check_ms", ROOT / "scripts" / "check_manuscript_vs_registry.py"
+    )
+    mod = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(mod)
+    rc = mod.main()
+    assert rc == 0, "manuscript↔paper_results checker failed"
