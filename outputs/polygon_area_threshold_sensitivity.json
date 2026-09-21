@@ -1,0 +1,45 @@
+{
+  "note": "Composite rebuilt with DEP area-fraction thresholds 0 / 1% / 5% / 10%.",
+  "rows": [
+    {
+      "threshold": 0.0,
+      "n_positive": 167,
+      "n_dep_positive": 74,
+      "prevalence": 0.6374045801526718,
+      "roc_auc_pooled": 0.8479672234478411,
+      "accuracy_mean": 0.8202154301488374,
+      "f1_mean": 0.8575558607370872,
+      "note": ""
+    },
+    {
+      "threshold": 0.01,
+      "n_positive": 163,
+      "n_dep_positive": 63,
+      "prevalence": 0.6221374045801527,
+      "roc_auc_pooled": 0.8192972671500279,
+      "accuracy_mean": 0.8128916588406044,
+      "f1_mean": 0.8510418985870052,
+      "note": ""
+    },
+    {
+      "threshold": 0.05,
+      "n_positive": 152,
+      "n_dep_positive": 23,
+      "prevalence": 0.5801526717557252,
+      "roc_auc_pooled": 0.8397129186602871,
+      "accuracy_mean": 0.7556233814280429,
+      "f1_mean": 0.7909613589515778,
+      "note": ""
+    },
+    {
+      "threshold": 0.1,
+      "n_positive": 145,
+      "n_dep_positive": 4,
+      "prevalence": 0.5534351145038168,
+      "roc_auc_pooled": 0.8398467432950192,
+      "accuracy_mean": 0.7406044565866985,
+      "f1_mean": 0.7518899660583969,
+      "note": ""
+    }
+  ]
+}

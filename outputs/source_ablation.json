@@ -1,5 +1,5 @@
 {
-  "note": "Source-ablation (M2): same spatial H3-block CV (k=2 parent blocks, 5 folds, GBM) refit to six target definitions to test construct validity of the composite max(dep_area_frac, complaint_presence, ida_hwm_presence) target. ROC-AUC is the headline ranking-discrimination metric; accuracy/F1 are threshold-dependent. Single-class targets are not fitted.",
+  "note": "Source-ablation (M2): same spatial H3-block CV (k=2 parent blocks, 5 folds, GBM) refit to seven target definitions to test construct validity of the composite max(dep_area_frac, complaint_presence, ida_hwm_presence) target; includes complaint_no_building_density. ROC-AUC is the headline ranking-discrimination metric; accuracy/F1 are threshold-dependent. Single-class targets are not fitted.",
   "spatial_cv_k": 2,
   "spatial_cv_folds": 5,
   "pilots": {
@@ -98,6 +98,22 @@
         "accuracy_std": 0.05142907181502639,
         "f1_mean": 0.8553651390876027,
         "note": ""
+      },
+      {
+        "target": "complaint_no_building_density",
+        "n_cells": 262,
+        "n_blocks": 12,
+        "feature_drop": "building_density",
+        "n_positive": 144,
+        "prevalence": 0.549618320610687,
+        "roc_auc_pooled": 0.8373352165725046,
+        "roc_auc_mean": 0.8207422849744186,
+        "roc_auc_std": 0.06825034831418375,
+        "pr_auc_pooled": 0.840891366818024,
+        "accuracy_mean": 0.7368337175218418,
+        "accuracy_std": 0.04614715834700835,
+        "f1_mean": 0.7430495834284565,
+        "note": ""
       }
     ],
     "manhattan_expanded": [
@@ -195,6 +211,22 @@
         "accuracy_mean": 0.817152843316005,
         "accuracy_std": 0.04444937271450539,
         "f1_mean": 0.8201391900734916,
+        "note": ""
+      },
+      {
+        "target": "complaint_no_building_density",
+        "n_cells": 956,
+        "n_blocks": 28,
+        "feature_drop": "building_density",
+        "n_positive": 373,
+        "prevalence": 0.3901673640167364,
+        "roc_auc_pooled": 0.8152962167581016,
+        "roc_auc_mean": 0.8189662671603276,
+        "roc_auc_std": 0.05439064492884692,
+        "pr_auc_pooled": 0.6459948911993174,
+        "accuracy_mean": 0.7345264471435485,
+        "accuracy_std": 0.06842736259755113,
+        "f1_mean": 0.6645642709487104,
         "note": ""
       }
     ]

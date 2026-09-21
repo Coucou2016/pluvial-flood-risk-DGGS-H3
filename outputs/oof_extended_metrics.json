@@ -1,0 +1,190 @@
+{
+  "lower_manhattan": {
+    "threshold": 0.5,
+    "threshold_note": "prespecified operating threshold for comparability (0.5)",
+    "pooled": {
+      "n": 262,
+      "roc_auc": 0.8479672234478411,
+      "average_precision": 0.8545950410046028,
+      "accuracy": 0.8206106870229007,
+      "balanced_accuracy": 0.7866687677277024,
+      "f1": 0.8660968660968661,
+      "precision": 0.8260869565217391,
+      "recall": 0.9101796407185628,
+      "specificity": 0.6631578947368421,
+      "mcc": 0.6028013282726089
+    },
+    "spatial_fold_variability": {
+      "accuracy_mean": 0.8202154301488374,
+      "accuracy_std": 0.05685822000119965,
+      "balanced_accuracy_mean": 0.751940349115684,
+      "balanced_accuracy_std": 0.08231741976264656,
+      "f1_mean": 0.8575558607370872,
+      "f1_std": 0.05123727631871405,
+      "mcc_mean": 0.5425624726498327,
+      "mcc_std": 0.1315056722599088,
+      "folds": [
+        {
+          "fold_id": 0,
+          "n": 53,
+          "accuracy": 0.7547169811320755,
+          "balanced_accuracy": 0.6642156862745098,
+          "f1": 0.8354430379746836,
+          "precision": 0.7674418604651163,
+          "recall": 0.9166666666666666,
+          "specificity": 0.4117647058823529,
+          "mcc": 0.3918195653861934,
+          "roc_auc": 0.6879084967320261
+        },
+        {
+          "fold_id": 1,
+          "n": 53,
+          "accuracy": 0.9056603773584906,
+          "balanced_accuracy": 0.6560283687943262,
+          "f1": 0.9484536082474226,
+          "precision": 0.92,
+          "recall": 0.9787234042553191,
+          "specificity": 0.3333333333333333,
+          "mcc": 0.42787064172715733,
+          "roc_auc": 0.723404255319149
+        },
+        {
+          "fold_id": 2,
+          "n": 51,
+          "accuracy": 0.7843137254901961,
+          "balanced_accuracy": 0.78027950310559,
+          "f1": 0.8070175438596491,
+          "precision": 0.7931034482758621,
+          "recall": 0.8214285714285714,
+          "specificity": 0.7391304347826086,
+          "mcc": 0.5631886954203473,
+          "roc_auc": 0.8788819875776397
+        },
+        {
+          "fold_id": 3,
+          "n": 53,
+          "accuracy": 0.8679245283018868,
+          "balanced_accuracy": 0.875,
+          "f1": 0.8771929824561403,
+          "precision": 0.78125,
+          "recall": 1.0,
+          "specificity": 0.75,
+          "mcc": 0.7654655446197431,
+          "roc_auc": 0.8985714285714286
+        },
+        {
+          "fold_id": 4,
+          "n": 52,
+          "accuracy": 0.7884615384615384,
+          "balanced_accuracy": 0.7841781874039938,
+          "f1": 0.819672131147541,
+          "precision": 0.8333333333333334,
+          "recall": 0.8064516129032258,
+          "specificity": 0.7619047619047619,
+          "mcc": 0.5644679160957224,
+          "roc_auc": 0.913978494623656
+        }
+      ]
+    }
+  },
+  "manhattan_expanded": {
+    "threshold": 0.5,
+    "threshold_note": "prespecified operating threshold for comparability (0.5)",
+    "pooled": {
+      "n": 956,
+      "roc_auc": 0.8821267603163748,
+      "average_precision": 0.8227259317526048,
+      "accuracy": 0.8232217573221757,
+      "balanced_accuracy": 0.8254108135599165,
+      "f1": 0.8263103802672148,
+      "precision": 0.7805825242718447,
+      "recall": 0.8777292576419214,
+      "specificity": 0.7730923694779116,
+      "mcc": 0.6522085344471563
+    },
+    "spatial_fold_variability": {
+      "accuracy_mean": 0.8233542690788225,
+      "accuracy_std": 0.02772852923416986,
+      "balanced_accuracy_mean": 0.8255760646613928,
+      "balanced_accuracy_std": 0.0253502340173518,
+      "f1_mean": 0.8257028376391744,
+      "f1_std": 0.027357126901920274,
+      "mcc_mean": 0.6522182866187077,
+      "mcc_std": 0.047258143992331345,
+      "folds": [
+        {
+          "fold_id": 0,
+          "n": 191,
+          "accuracy": 0.8429319371727748,
+          "balanced_accuracy": 0.8407688918263935,
+          "f1": 0.8557692307692307,
+          "precision": 0.839622641509434,
+          "recall": 0.8725490196078431,
+          "specificity": 0.8089887640449438,
+          "mcc": 0.6841047900417184,
+          "roc_auc": 0.9035029742233973
+        },
+        {
+          "fold_id": 1,
+          "n": 191,
+          "accuracy": 0.837696335078534,
+          "balanced_accuracy": 0.837609649122807,
+          "f1": 0.841025641025641,
+          "precision": 0.8282828282828283,
+          "recall": 0.8541666666666666,
+          "specificity": 0.8210526315789474,
+          "mcc": 0.675663960327556,
+          "roc_auc": 0.9117324561403509
+        },
+        {
+          "fold_id": 2,
+          "n": 191,
+          "accuracy": 0.8167539267015707,
+          "balanced_accuracy": 0.8153103750822549,
+          "f1": 0.8341232227488151,
+          "precision": 0.7719298245614035,
+          "recall": 0.9072164948453608,
+          "specificity": 0.723404255319149,
+          "mcc": 0.6427177033417343,
+          "roc_auc": 0.8549023908751918
+        },
+        {
+          "fold_id": 3,
+          "n": 190,
+          "accuracy": 0.8473684210526315,
+          "balanced_accuracy": 0.8530701754385965,
+          "f1": 0.8220858895705522,
+          "precision": 0.7701149425287356,
+          "recall": 0.881578947368421,
+          "specificity": 0.8245614035087719,
+          "mcc": 0.6943397235329262,
+          "roc_auc": 0.9083564173591875
+        },
+        {
+          "fold_id": 4,
+          "n": 193,
+          "accuracy": 0.772020725388601,
+          "balanced_accuracy": 0.7811212318369117,
+          "f1": 0.7755102040816326,
+          "precision": 0.6972477064220184,
+          "recall": 0.8735632183908046,
+          "specificity": 0.6886792452830188,
+          "mcc": 0.5642652558496036,
+          "roc_auc": 0.8285621340273259
+        }
+      ]
+    }
+  },
+  "hyperparameter_provenance": "GBM hyperparameters (n_estimators=80, max_depth=4, learning_rate=0.08, seed=42) were pre-specified without nested cross-validation tuning.",
+  "urban_flag_note": "land_cover_urban remains in FEATURE_COLUMNS as a deterministic transform of impervious_frac (>0.45) retained for interpretability; it adds no independent information.",
+  "feature_columns": [
+    "elevation_m",
+    "slope_deg",
+    "flow_accum_proxy",
+    "impervious_frac",
+    "building_density",
+    "dist_stream_m",
+    "rainfall_mm_h",
+    "land_cover_urban"
+  ]
+}

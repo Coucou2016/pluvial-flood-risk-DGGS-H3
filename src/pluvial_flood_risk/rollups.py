@@ -585,6 +585,30 @@ def write_jaccard_diagnostics(
     return table
 
 
+def filter_fine_to_study_domain(
+    df: pd.DataFrame,
+    study_domain_parents: set[str] | list[str],
+    *,
+    modelling_res: int = 9,
+    cell_col: str = "h3_index",
+) -> pd.DataFrame:
+    """Keep fine cells whose H3 parent at ``modelling_res`` is in the modelling support.
+
+    Unifies scale-loss parents(R10) with the modelling R9 set under one
+    ``study_domain_mask``, removing the bbox-induced parent surplus (e.g. 296 vs 262).
+    """
+    parents = {str(p) for p in study_domain_parents}
+    if not parents or df.empty:
+        return df.copy()
+    work = df.copy()
+    cells = work[cell_col].astype(str)
+    keep = [h3.cell_to_parent(c, modelling_res) in parents for c in cells]
+    out = work.loc[keep].copy()
+    out["study_domain_mask"] = True
+    out["study_domain_modelling_res"] = int(modelling_res)
+    return out
+
+
 def resolution_ladder_topk_diagnostics(
     df: pd.DataFrame,
     value_col: str,
@@ -593,6 +617,8 @@ def resolution_ladder_topk_diagnostics(
     cell_col: str = "h3_index",
     n_hard_boot: int = HARD_TIE_BOOTSTRAP_DEFAULT,
     random_seed: int = 42,
+    study_domain_parents: set[str] | list[str] | None = None,
+    modelling_res: int = 9,
 ) -> pd.DataFrame:
     """
     Canonical scale-loss ladder: area-weighted parent scores, then a strict
@@ -604,6 +630,10 @@ def resolution_ladder_topk_diagnostics(
     under the same area budget on area-weighted (mean) or max/p90 parent scores.
     The primary metric ``jaccard`` is the area-weighted soft Jaccard.
     Hard-set Jaccard is a seeded tie-resolution sensitivity only.
+
+    When ``study_domain_parents`` is provided, fine cells are restricted to those
+    whose parent at ``modelling_res`` lies in that set so that the R9 coarse
+    support matches the modelling table.
     """
     if df.empty:
         return pd.DataFrame()
@@ -615,6 +645,18 @@ def resolution_ladder_topk_diagnostics(
         work = work.loc[work["h3_resolution"] == native_res].copy()
     else:
         native_res = cell_resolution(str(work[cell_col].iloc[0]))
+
+    domain_applied = False
+    if study_domain_parents is not None:
+        work = filter_fine_to_study_domain(
+            work,
+            study_domain_parents,
+            modelling_res=modelling_res,
+            cell_col=cell_col,
+        )
+        domain_applied = True
+        if work.empty:
+            return pd.DataFrame()
 
     if resolutions is None:
         lo = max(0, native_res - 3)
@@ -723,10 +765,11 @@ def resolution_ladder_topk_diagnostics(
             merged = rolled.set_index("h3_index")[col].to_frame().join(
                 aw_mean.rename("fine_parent_mean"), how="inner"
             )
-            rho = spearman_rank_corr(
-                merged["fine_parent_mean"].to_numpy(),
-                merged[col].to_numpy(),
-            )
+            fine_parent_vals = merged["fine_parent_mean"].to_numpy(dtype=np.float64)
+            coarse_vals = merged[col].to_numpy(dtype=np.float64)
+            rho = spearman_rank_corr(fine_parent_vals, coarse_vals)
+            continuous_mae = float(np.mean(np.abs(fine_parent_vals - coarse_vals)))
+            continuous_rmse = float(np.sqrt(np.mean((fine_parent_vals - coarse_vals) ** 2)))
 
             n_hot_fine = int(sum(1 for w in fine_weights.values() if w > 0))
             n_hot_ref = int(sum(1 for w in w_ref_full.values() if w > 0))
@@ -740,6 +783,8 @@ def resolution_ladder_topk_diagnostics(
                     "hotspot_budget": hotspot_budget,
                     "budget_match_mode": "strict_area_budget",
                     "tie_method": "fractional_membership_area",
+                    "study_domain_mask": domain_applied,
+                    "study_domain_modelling_res": int(modelling_res) if domain_applied else None,
                     "n_fine": int(len(work)),
                     "n_coarse": int(len(rolled)),
                     "nominal_cell_k": int(max(1, round(hotspot_budget * len(work)))),
@@ -761,11 +806,19 @@ def resolution_ladder_topk_diagnostics(
                     "jaccard_hard_n_boot": hard["n_boot"],
                     "area_weighted_overlap": jac,
                     "spearman_rank_corr": rho,
+                    "continuous_mae": continuous_mae,
+                    "continuous_rmse": continuous_rmse,
                     "f1": f1,
                     "fine_parent_recall": recall,
                     "coarse_precision": precision,
                     "matched_budgets_cell_count": False,
                     "primary_metric": "area_weighted_soft_jaccard",
+                    "note": (
+                        "max aggregation Jaccard near 1.0 can be structural "
+                        "(parent collapse under max), not a preferred strategy"
+                        if agg == "max"
+                        else ""
+                    ),
                 }
             )
 

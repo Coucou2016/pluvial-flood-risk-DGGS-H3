@@ -54,6 +54,24 @@
         "n_edges": 1434,
         "n_isolated": 0,
         "note": ""
+      },
+      "morans_i_oof_residual": {
+        "morans_i": 0.046938468803446994,
+        "n_edges": 1434,
+        "n_isolated": 0,
+        "note": ""
+      },
+      "lobo_r7": {
+        "n_blocks": 12,
+        "n_folds": 12,
+        "roc_auc_pooled": 0.8581468641664041,
+        "pr_auc_pooled": 0.8483319002737215,
+        "roc_auc_mean": 0.8595819304152639,
+        "roc_auc_std": 0.1371227509173518,
+        "accuracy_mean": 0.8874327850422321,
+        "accuracy_std": 0.10610476015495857,
+        "f1_mean": 0.6570509746170176,
+        "note": ""
       }
     },
     "manhattan_expanded": {
@@ -108,6 +126,24 @@
         "morans_i": 0.43316080233496,
         "n_edges": 5470,
         "n_isolated": 0,
+        "note": ""
+      },
+      "morans_i_oof_residual": {
+        "morans_i": 0.101312991561692,
+        "n_edges": 5470,
+        "n_isolated": 0,
+        "note": ""
+      },
+      "lobo_r7": {
+        "n_blocks": 28,
+        "n_folds": 28,
+        "roc_auc_pooled": 0.8866711387032847,
+        "pr_auc_pooled": 0.8216362442640344,
+        "roc_auc_mean": 0.8164870182885687,
+        "roc_auc_std": 0.12080600133655399,
+        "accuracy_mean": 0.855680261542623,
+        "accuracy_std": 0.11957166572451679,
+        "f1_mean": 0.6667444725426559,
         "note": ""
       }
     }

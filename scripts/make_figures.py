@@ -82,12 +82,20 @@ def main() -> None:
     )
     _publish(STAGING / "source_evidence_maps.png", FIG_DIR / "source_evidence_maps.png")
 
-    # Fig 5 — multi-resolution open-label score surface (R10 / R9 mean / R8 mean)
+    # Fig 5 — multi-resolution open-label score surface (domain-masked R10)
+    import pandas as pd
+
+    r9_parents = (
+        pd.read_parquet(DATA / "processed" / "nyc_h3_cells.parquet")["h3_index"]
+        .astype(str)
+        .tolist()
+    )
     plot_multi_resolution_spatial(
         DATA / "processed" / "nyc_h3_cells_r10_labels.parquet",
         RAW / "dem.tif",
         RAW / "hydro_streams.geojson",
         STAGING / "multi_resolution_spatial.png",
+        study_domain_parents=r9_parents,
     )
     _publish(STAGING / "multi_resolution_spatial.png", FIG_DIR / "multi_resolution_spatial.png")
 
@@ -95,7 +103,6 @@ def main() -> None:
     sup_dir = FIG_DIR / "supplementary"
     sup_dir.mkdir(parents=True, exist_ok=True)
     import json
-    import pandas as pd
     from datetime import datetime, timezone
     from pluvial_flood_risk.rollups import HARD_TIE_BOOTSTRAP_PAPER
 
@@ -107,6 +114,8 @@ def main() -> None:
         hotspot_budget=0.10,
         n_hard_boot=HARD_TIE_BOOTSTRAP_PAPER,
         random_seed=42,
+        study_domain_parents=r9_parents,
+        modelling_res=9,
     )
     csv_path = OUT / "jaccard_by_resolution.csv"
     json_path = OUT / "jaccard_by_resolution.json"
@@ -125,7 +134,14 @@ def main() -> None:
             "budget_match_mode": "strict_area_budget",
             "primary_metric": "area_weighted_soft_jaccard",
             "hotspot_budget": 0.10,
+            "study_domain_mask": True,
+            "study_domain_modelling_res": 9,
             "n_fine": int(ladder["n_fine"].iloc[0]) if len(ladder) else None,
+            "n_coarse_r9": int(
+                ladder.loc[ladder["coarse_res"] == 9, "n_coarse"].iloc[0]
+            )
+            if len(ladder)
+            else None,
             "rows": json.loads(ladder.to_json(orient="records")),
         }
         registry.write_text(json.dumps(payload, indent=2), encoding="utf-8")
@@ -135,11 +151,12 @@ def main() -> None:
     )
     _publish(STAGING / "jaccard_by_resolution.png", sup_dir / "jaccard_by_resolution.png")
 
-    # Fig 6 — violins from R10 labels; Jaccard heatmap from the same CSV as Table 4
+    # Fig 6 — ECDF from domain-masked R10; Jaccard heatmap from the same CSV as Table 4
     plot_resolution_effects(
         DATA / "processed" / "nyc_h3_cells_r10_labels.parquet",
         STAGING / "resolution_effects.png",
         ladder_table=csv_path,
+        study_domain_parents=r9_parents,
     )
     _publish(STAGING / "resolution_effects.png", FIG_DIR / "resolution_effects.png")
 

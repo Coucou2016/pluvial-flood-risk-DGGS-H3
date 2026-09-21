@@ -219,13 +219,36 @@ def plot_spatial_cv_bars(
             markersize=5,
         )
 
-    # Constant-class baseline reference lines (fold-wise means).
+    # Constant-class baseline reference lines (fold-wise means) + Δ vs always-positive.
     n_test = df["n_test"].to_numpy(dtype=float)
     pos = df["n_positive_test"].to_numpy(dtype=float)
     neg = df["n_negative_test"].to_numpy(dtype=float)
-    ap_acc = float(np.mean(pos / n_test))
-    ap_f1 = float(np.mean(2 * pos / (n_test + pos)))
+    ap_acc_fold = pos / n_test
+    ap_f1_fold = 2 * pos / (n_test + pos)
+    ap_acc = float(np.mean(ap_acc_fold))
+    ap_f1 = float(np.mean(ap_f1_fold))
     an_acc = float(np.mean(neg / n_test))
+    d_acc = df["accuracy"].to_numpy(dtype=float) - ap_acc_fold
+    d_f1 = df["f1"].to_numpy(dtype=float) - ap_f1_fold
+    ax.plot(
+        x + offsets["accuracy"],
+        d_acc,
+        marker="^",
+        linestyle="",
+        color="#55A868",
+        label="ΔAccuracy vs always+",
+        markersize=5,
+    )
+    ax.plot(
+        x + offsets["f1"],
+        d_f1,
+        marker="v",
+        linestyle="",
+        color="#8172B2",
+        label="ΔF1 vs always+",
+        markersize=5,
+    )
+    ax.axhline(0.0, color="#333333", linestyle="-", linewidth=0.8, alpha=0.5)
     ax.axhline(ap_acc, color=colors["accuracy"], linestyle="--", linewidth=1.0, alpha=0.7)
     ax.axhline(ap_f1, color=colors["f1"], linestyle="--", linewidth=1.0, alpha=0.7)
     ax.axhline(an_acc, color="#888888", linestyle=":", linewidth=1.0, alpha=0.8)
@@ -317,17 +340,17 @@ def plot_workflow_schematic(
             "title": "Multi-source inputs",
             "color": "#4C72B0",
             "items": [
-                "Flood evidence\n(model-derived DEP\nstormwater; 311 reports;\nUSGS Ida HWM)",
-                "Static predictors\n(terrain, flow-acc.\nproxy, land cover,\nhydro. distance)",
-                "Rainfall condition r\n(constant synthetic;\nnot radar)",
+                "Evidence: DEP\nstormwater polygons\n(categories 1–2)",
+                "Evidence: NYC 311\nstreet-flooding\ncomplaints",
+                "Evidence: USGS Ida\nhigh-water marks",
             ],
         },
         {
             "title": "H3 assembly (R9)",
             "color": "#55A868",
             "items": [
-                "Join layers to H3 cells",
-                "Provenance tags\n(assembly · feature ·\nlabel · rainfall)",
+                "Join layers to H3 cells\n+ static predictors",
+                "Labels: evidence-\npositive / evidence-\nunrecorded (not\nverified flood)",
             ],
         },
         {
@@ -336,17 +359,16 @@ def plot_workflow_schematic(
             "items": [
                 "Gradient-boosting\nclassifier + evidence-\nscore regressor",
                 "H3-block GroupKFold\nspatial CV\n(R7 parent blocks)",
-                "Logistic, ponding &\nconstant-class\nbaselines",
+                "S_h(c)=f_θ(X_c)\nsusceptibility score\n(rainfall deferred)",
             ],
         },
         {
             "title": "Diagnostics &\noutputs",
             "color": "#8172B2",
             "items": [
-                "Positive-class model score\n(not calibrated; not PFIb)",
-                "Scale-loss Jaccard\nladder (R10 → R9 / R8)",
-                "Adaptive refinement\n(score-guided → R11)",
-                "Sandy coastal-overlap\ndiagnostic",
+                "Source ablation &\nblock-size / LOBO",
+                "Scale-loss Jaccard\n(domain-masked R10)",
+                "Sandy coastal OOF\ndiagnostic",
             ],
         },
     ]
@@ -739,11 +761,13 @@ def plot_resolution_effects(
     title: str | None = None,
     caption: str | None = None,
     ladder_table: pd.DataFrame | Path | str | None = None,
+    study_domain_parents: set[str] | list[str] | None = None,
+    modelling_res: int = 9,
 ) -> Path:
     """
     Resolution-effect diagnostics.
 
-    (a) Violin plots of the open-label score at R10, R9, and R8 (mean rollup).
+    (a) ECDF + histogram of the open-evidence score at R10, R9, and R8 (mean rollup).
     (b) Area-weighted soft Jaccard from the **canonical scale-results table**
     (Table 4 / ``outputs/jaccard_by_resolution.csv``). Jaccard is never
     recomputed in this function. ``quantile`` and ``budget`` are ignored for
@@ -753,7 +777,10 @@ def plot_resolution_effects(
     require_matplotlib()
     import matplotlib.pyplot as plt
     import numpy as np
-    from pluvial_flood_risk.rollups import canonical_ladder_heatmap
+    from pluvial_flood_risk.rollups import (
+        canonical_ladder_heatmap,
+        filter_fine_to_study_domain,
+    )
 
     if ladder_table is None:
         raise ValueError(
@@ -766,6 +793,10 @@ def plot_resolution_effects(
         df = r10_labels_path[["h3_index", "flood_risk"]].copy()
     else:
         df = pd.read_parquet(r10_labels_path)[["h3_index", "flood_risk"]].copy()
+    if study_domain_parents is not None:
+        df = filter_fine_to_study_domain(
+            df, study_domain_parents, modelling_res=modelling_res
+        )
     if df.empty:
         raise ValueError("R10 label table is empty.")
     s10 = df.set_index("h3_index")["flood_risk"]
@@ -786,22 +817,34 @@ def plot_resolution_effects(
 
     fig, (ax_v, ax_h) = plt.subplots(1, 2, figsize=(7.48, 2.96))  # 190 mm double-column width
 
-    # --- panel (a): score distribution across resolutions ---
+    # --- panel (a): ECDF for 0/1-heavy evidence scores (not violin) ---
     data = [s10.values, s9.values, s8.values]
-    vp = ax_v.violinplot(data, positions=[0, 1, 2], showmeans=True, showextrema=True, widths=0.7)
-    for i, body in enumerate(vp["bodies"]):
-        body.set_facecolor(["#4C72B0", "#55A868", "#DD8452"][i])
-        body.set_alpha(0.6)
-    rng = np.random.default_rng(20260819)
-    for i, (vals, color) in enumerate(zip(data, ["#4C72B0", "#55A868", "#DD8452"])):
-        jitter = rng.uniform(-0.22, 0.22, size=len(vals))
-        ax_v.scatter(i + jitter, vals, s=9, color=color, alpha=0.35, linewidths=0, zorder=5)
-    ax_v.set_xticks([0, 1, 2])
-    ax_v.set_xticklabels([f"R10 (n={len(s10)})", f"R9 (n={len(s9)})", f"R8 (n={len(s8)})"])
-    ax_v.set_ylabel("Open-label score")
+    colors = ["#4C72B0", "#55A868", "#DD8452"]
+    labels = [f"R10 (n={len(s10)})", f"R9 (n={len(s9)})", f"R8 (n={len(s8)})"]
+    for vals, color, lab in zip(data, colors, labels):
+        xs = np.sort(np.asarray(vals, dtype=float))
+        ys = np.arange(1, len(xs) + 1) / max(len(xs), 1)
+        ax_v.step(xs, ys, where="post", color=color, linewidth=1.8, label=lab)
+    # Light histogram behind ECDF (right axis) for mass at 0/1
+    ax_h2 = ax_v.twinx()
+    for vals, color in zip(data, colors):
+        ax_h2.hist(
+            vals,
+            bins=np.linspace(0, 1, 21),
+            density=True,
+            color=color,
+            alpha=0.15,
+            histtype="stepfilled",
+        )
+    ax_h2.set_ylabel("Density")
+    ax_h2.set_ylim(0, None)
+    ax_v.set_xlabel("Open-evidence score")
+    ax_v.set_ylabel("ECDF")
+    ax_v.set_xlim(0.0, 1.0)
     ax_v.set_ylim(0.0, 1.05)
-    ax_v.grid(True, axis="y", alpha=0.3)
-    ax_v.set_title("Score distribution by resolution (mean rollup)")
+    ax_v.legend(loc="lower right", fontsize=8, frameon=False)
+    ax_v.grid(True, axis="both", alpha=0.3)
+    ax_v.set_title("Score ECDF / histogram by resolution")
     ax_v.text(0.02, 0.97, "(a)", transform=ax_v.transAxes, fontsize=12, fontweight="bold", ha="left", va="top")
 
     # --- panel (b): canonical Table 4 heatmap (no independent Jaccard) ---
@@ -839,25 +882,28 @@ def plot_multi_resolution_spatial(
     out_path: Path | str,
     title: str | None = None,
     caption: str | None = None,
+    study_domain_parents: set[str] | list[str] | None = None,
+    modelling_res: int = 9,
 ) -> Path:
-    """Figure 4 — multi-resolution open-label score surface (R10 / R9 / R8).
+    """Multi-resolution open-evidence score surface (R10 / R9 / R8).
 
-    Three panels on the same label-assembly footprint: (a) R10 open-label
-    flood-risk score (n = 991), (b) mean rollup to R9 (n = 160), and (c) mean
-    rollup to R8 (n = 31). All panels share one 0-1 viridis colour scale so the
-    smoothing that accompanies coarsening is visible directly. The aggregation
-    is the same mean rollup used by the resolution-effect diagnostics; no new
-    statistics are introduced here.
+    When ``study_domain_parents`` is set, R10 cells are filtered so R9 parents
+    match the modelling support (Option B: n_coarse R9 = 262).
     """
     require_matplotlib()
     import matplotlib.pyplot as plt
     from matplotlib.cm import ScalarMappable
     from matplotlib.colors import Normalize
+    from pluvial_flood_risk.rollups import filter_fine_to_study_domain
 
     if isinstance(r10_labels_path, pd.DataFrame):
         df = r10_labels_path[["h3_index", "flood_risk"]].copy()
     else:
         df = pd.read_parquet(r10_labels_path)[["h3_index", "flood_risk"]].copy()
+    if study_domain_parents is not None:
+        df = filter_fine_to_study_domain(
+            df, study_domain_parents, modelling_res=modelling_res
+        )
     if df.empty:
         raise ValueError("R10 label table is empty.")
     s10 = df.set_index("h3_index")["flood_risk"]

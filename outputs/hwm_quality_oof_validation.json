@@ -1,0 +1,13 @@
+{
+  "note": "Quality-filtered OOF score validation on expanded-pilot HWM cells (Excellent/Good in ida_hwm_quality). Not a full CV refit.",
+  "n_hwm_cells": 6,
+  "n_quality_filtered": 3,
+  "mean_oof_score_all_hwm": 0.6783130374037575,
+  "mean_oof_score_quality_filtered": 0.8682805076313035,
+  "fraction_oof_ge_0.5_quality_filtered": 1.0,
+  "quality_values": {
+    "Fair: +/- 0.20 ft": 3,
+    "Good: +/- 0.10 ft": 2,
+    "Excellent: +/- 0.05 ft; Fair: +/- 0.20 ft; Poor: +/- 0.40 ft; Good: +/- 0.10 ft; Fair: +/- 0.20 ft": 1
+  }
+}

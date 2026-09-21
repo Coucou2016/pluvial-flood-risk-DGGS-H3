@@ -1,0 +1,44 @@
+{
+  "note": "311 complaints with created_date in the Sandy landfall window [2012-10-27, 2012-11-05] are excluded before rebuilding the composite max(dep, complaint, hwm) target. Coastal diagnostic still uses OOF model scores from the primary (unmodified) CV, never the target score.",
+  "pilot": "lower_manhattan",
+  "n_cells": 262,
+  "311_meta": {
+    "n_311_features_total": 510,
+    "n_311_excluded_sandy_window": 9,
+    "n_311_kept_in_study_cells": 493,
+    "window": [
+      "2012-10-27T00:00:00",
+      "2012-11-05T23:59:59"
+    ]
+  },
+  "label_shift": {
+    "n_positive_baseline": 167,
+    "n_positive_sandy311_excluded": 166,
+    "n_cells_flipped": 1,
+    "prevalence_baseline": 0.6374045801526718,
+    "prevalence_sandy311_excluded": 0.6335877862595419
+  },
+  "spatial_cv_sandy311_excluded": {
+    "roc_auc_pooled": 0.8611947791164658,
+    "roc_auc_mean": 0.8385500283489004,
+    "pr_auc_pooled": 0.8620544449683376,
+    "accuracy_mean": 0.8281339821850366,
+    "f1_mean": 0.8673617623852184
+  },
+  "coastal_diagnostic_oof_vs_excluded_labels": {
+    "score_col": "oof_model_score",
+    "mean_score_by_group": {
+      "both": 0.8028923680634837,
+      "coastal_only": 0.4368946730359832,
+      "neither": 0.26696877707163563,
+      "pluvial_only": 0.8751833598671889
+    },
+    "pluvial_minus_coastal_mean_score": 0.43828868683120564,
+    "n_by_group": {
+      "pluvial_only": 122,
+      "neither": 66,
+      "both": 44,
+      "coastal_only": 30
+    }
+  }
+}

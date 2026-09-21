@@ -4,7 +4,7 @@
 The composite target ``flood_risk = max(dep_area_frac, complaint_presence,
 ida_hwm_presence)`` mixes three heterogeneous sources. To test construct
 validity we re-run the *same* spatial H3-block cross-validation (GBM, k=2 parent
-blocks, 5 folds) against six target definitions and report discrimination
+blocks, 5 folds) against seven target definitions and report discrimination
 (ROC-AUC / average precision) and thresholded accuracy/F1 plus prevalence:
 
 - ``dep_only``                 DEP stormwater polygon area fraction (categories 1-2)
@@ -13,6 +13,7 @@ blocks, 5 folds) against six target definitions and report discrimination
 - ``complaint_hwm``            311 OR HWM presence (observational evidence)
 - ``composite``                the current max() target (baseline)
 - ``composite_no_diststream``  composite target, with dist_stream_m dropped from X
+- ``complaint_no_building_density``  311-only target, building_density dropped from X
 
 The headline question is whether the observed ranking ability is dominated by a
 single source (notably DEP, whose H&H model outputs share drivers with the
@@ -106,6 +107,11 @@ def target_variants(df: pd.DataFrame) -> dict[str, tuple[np.ndarray, np.ndarray,
             df["flood_class"].to_numpy(dtype=int),
             df["flood_risk"].to_numpy(dtype=float),
             "dist_stream_m",
+        ),
+        "complaint_no_building_density": (
+            complaint_pos,
+            complaint_pos.astype(float),
+            "building_density",
         ),
     }
 
@@ -206,8 +212,9 @@ def main() -> None:
     payload = {
         "note": (
             "Source-ablation (M2): same spatial H3-block CV (k=2 parent blocks, 5 folds, "
-            "GBM) refit to six target definitions to test construct validity of the "
-            "composite max(dep_area_frac, complaint_presence, ida_hwm_presence) target. "
+            "GBM) refit to seven target definitions to test construct validity of the "
+            "composite max(dep_area_frac, complaint_presence, ida_hwm_presence) target; "
+            "includes complaint_no_building_density. "
             "ROC-AUC is the headline ranking-discrimination metric; accuracy/F1 are "
             "threshold-dependent. Single-class targets are not fitted."
         ),

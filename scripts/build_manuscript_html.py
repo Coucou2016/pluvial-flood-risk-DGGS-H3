@@ -30,11 +30,11 @@ FIG = PAPER / "figures"
 #  text ends with the anchor. Entries sharing one paragraph must be listed in
 #  reverse anchor order so the earlier-anchored figure ends up rendered first.
 FIGURES = [
-    ("workflow_schematic.png", "summarised in Fig. 1.", 1),
+    ("workflow_schematic.png", "The workflow is summarised in Fig. 1.", 1),
     ("source_evidence_maps.png", "the composite score is the maximum over the source-specific layers.", 3),
     ("spatial_maps.png", "predictive performance is assessed separately from the out-of-fold metrics reported in Section 4.2.", 2),
-    ("spatial_cv_folds.png", "Table 3 summarises these numbers together with the expanded-pilot results.", 4),
-    ("resolution_effects.png", "Table 4 lists the full ladder.", 6),
+    ("spatial_cv_folds.png", "Table 3 separates pooled OOF ranking/threshold metrics from spatial-fold variability.", 4),
+    ("resolution_effects.png", "R10→R9 mean 0.220; R10→R8 mean 0.136).", 6),
     ("multi_resolution_spatial.png", "providing a spatial view of the smoothing that accompanies coarsening.", 5),
 ]
 

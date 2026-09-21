@@ -967,3 +967,31 @@ FloodNet is no longer described as “data unavailable”. Further denser FloodN
 3. Citywide evaluation  
 4. Optional DEP official geospatial replace  
 5. Remote `git push` / DOI (not performed this pass)
+
+---
+
+## 17. Construct-validity revision freeze (2026-09-21)
+
+**Tag intent:** `submission-v4-construct-validity`
+
+### 17.1 What changed this round
+
+| Item | Evidence |
+|------|----------|
+| Label semantics | Manuscript reframes binary labels as **evidence-positive / evidence-unrecorded** |
+| Source ablation + 311−building_density | `outputs/source_ablation.json` (LM 311-only AUC 0.846; w/o building_density 0.837; both >0.5) |
+| LOBO + residual Moran | `outputs/block_sensitivity.json` (LM LOBO pooled AUC 0.858; residual I 0.047) |
+| Domain-masked scale loss | `outputs/jaccard_by_resolution.csv` (n_fine=1788, n_coarse R9=262; mean Jaccard R9=0.220 / R8=0.136) |
+| Sandy 311 window | `outputs/sandy_311_window_sensitivity.json` (9 complaints excluded; 1 cell flip; OOF still used) |
+| S_h(c) not rainfall main claim | Manuscript §3.7 / §4.5 |
+| Adaptive demoted | Supplement cell-count experiment only |
+| Extended OOF metrics | `outputs/oof_extended_metrics.json` (MCC/bal.acc/prec/rec/spec) |
+| Hard gates | `tests/test_major_revision_gates.py` (DEP cats, source cols, native_overlay, domain mask, OOF score col) |
+
+### 17.2 Numeric authority
+
+Still `outputs/paper_results.json`. LM n=262 / Exp n=956 unchanged. Do **not** revert to n=141.
+
+### 17.3 Human-only remaining
+
+Author names, ORCID, CRediT roles; journal cover letter; true land-fraction≥0.5 polygon mask if required by editor; nested CV (explicitly declined — hyperparameters pre-specified).
