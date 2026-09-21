@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-09-21T03:55:29.537475+00:00",
+  "generated_utc": "2026-09-21T03:58:55.685822+00:00",
   "bbox_choice": "Option_B_lower_manhattan_262",
   "fail_closed": true,
   "data_manifest": "data/raw/data_manifest.json",
@@ -137,7 +137,7 @@
   "scale_loss": {
     "source_csv": "outputs/jaccard_by_resolution.csv",
     "source_json": "outputs/jaccard_by_resolution.json",
-    "generated_utc": "2026-09-21T03:55:29.537475+00:00",
+    "generated_utc": "2026-09-21T03:58:55.685822+00:00",
     "budget_match_mode": "strict_area_budget",
     "primary_metric": "area_weighted_soft_jaccard",
     "hotspot_budget": 0.1,
@@ -957,8 +957,8 @@
     "shapely": "2.1.2",
     "lock_file": "requirements.lock.txt"
   },
-  "git_commit": "74f3746fb59222a7f63ca3d72324fc8064c31685",
-  "run_id": "20260921T035529Z",
+  "git_commit": "5d3b2ea04c4c5341011291d2b4654c9cf2fc4194",
+  "run_id": "20260921T035855Z",
   "config_hash": "3c125cd7debb4dad",
   "sandy_311_window_sensitivity": {
     "note": "311 complaints with created_date in the Sandy landfall window [2012-10-27, 2012-11-05] are excluded before rebuilding the composite max(dep, complaint, hwm) target. Coastal diagnostic still uses OOF model scores from the primary (unmodified) CV, never the target score.",
@@ -1576,5 +1576,7 @@
       "cell_count_ratio": 0.5737653840162019
     },
     "note": "True R11 feature re-extraction on refined parents' children using the post-urban-drop deployment model; cells with NaN static features (DEM edge) are dropped before scoring. Hotspot recall vs uniformly scored scorable R11."
-  }
+  },
+  "freeze_tag": "submission-v5-full-recompute",
+  "stamp_commit": "cad956f9592b6632bf189ac604da51cda1fece08"
 }
