@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-09-21T02:51:33.767437+00:00",
+  "generated_utc": "2026-09-21T02:54:03.904913+00:00",
   "bbox_choice": "Option_B_lower_manhattan_262",
   "fail_closed": true,
   "data_manifest": "data/raw/data_manifest.json",
@@ -136,7 +136,7 @@
   "scale_loss": {
     "source_csv": "outputs/jaccard_by_resolution.csv",
     "source_json": "outputs/jaccard_by_resolution.json",
-    "generated_utc": "2026-09-21T02:51:33.767437+00:00",
+    "generated_utc": "2026-09-21T02:54:03.904913+00:00",
     "budget_match_mode": "strict_area_budget",
     "primary_metric": "area_weighted_soft_jaccard",
     "hotspot_budget": 0.1,
@@ -968,8 +968,8 @@
     "shapely": "2.1.2",
     "lock_file": "requirements.lock.txt"
   },
-  "git_commit": "2a972c9a3f7c4bdb4eece7fdcad77823611f1cca",
-  "run_id": "20260921T025133Z",
+  "git_commit": "b496707c24121a2252b5abc5a4bb195ca70659e6",
+  "run_id": "20260921T025404Z",
   "config_hash": "3c125cd7debb4dad",
   "sandy_311_window_sensitivity": {
     "note": "311 complaints with created_date in the Sandy landfall window [2012-10-27, 2012-11-05] are excluded before rebuilding the composite max(dep, complaint, hwm) target. Coastal diagnostic still uses OOF model scores from the primary (unmodified) CV, never the target score.",
