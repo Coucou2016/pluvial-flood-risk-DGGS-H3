@@ -2,8 +2,9 @@
 
 **主 HTML（自包含 Base64 图 + 内联 CSS，无 CDN）：** `docs/paper/report.html`（根目录 `report.html` 为逐字副本）  
 **PDF：** `docs/paper/report.pdf`（Chrome headless；HTML 为规范源）  
-**手稿对照：** `docs/paper/manuscript.md`（用户主线；2026-09-15 成熟化）  
+**手稿对照：** `docs/paper/manuscript.md`（submission-v5-1 写作/审计重写；数字仍锁 registry）  
 **数值基线：** 仅来自 `outputs/paper_results.json` 与 live CSV；缺则标 **待补充**  
+**冻结标签：** `submission-v5-full-recompute`（计算）+ `submission-v5-1-prose-audit`（散文/审计）  
 **GitHub：** https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3  
 **框架说明：** `docs/paper/framework_note.md`
 
@@ -16,13 +17,14 @@
 | Pluvial flood（城市内涝 / 雨洪） | 短时强降雨超过排水与入渗能力导致的地表积水；不同于潮汐/风暴潮主导的 coastal inundation |
 | H3（Uber Hexagonal DGGS） | 六边形离散全球网格索引，支持父子分辨率嵌套 |
 | Open evidence（开放证据） | 异构公开源：DEP 雨洪多边形（**模型导出** category 1–2）、官方 311 `76ig-c548`（2010–2014 Street Flooding (SJ)）、USGS Ida HWM（**观测**）；不是 PFIb |
-| PFI_h(c,r) | 降雨条件 r 下单元 c 的正类 **model score**（未校准）；非特征重要性，也非 Svellingen 的 PFIb 聚合 |
+| S_h(c) | 静态特征上的正类 **susceptibility score**（未校准）；降雨条件版记为 S_h(c,r)，当前未主张 |
 | Spatial H3-block CV | 按粗分辨率 H3 父块 GroupKFold，整块留出 |
-| Jaccard ladder | 细网格热点与粗网格热点的集合相似度（主指标 = area-weighted soft Jaccard，strict area budget） |
-| Adaptive H3 | 用 deployment 全拟合分数筛选父单元并加密到 R11；仅计单元数，不宣称运行效率 |
+| Jaccard ladder | 细网格热点与粗网格热点的集合相似度（主指标 = area-weighted soft Jaccard，strict area budget；domain-masked） |
+| Adaptive H3 | 用 deployment 全拟合分数筛选父单元并加密到 R11；主主张为单元数，Option A 另报 R11 重提特征 hotspot recall |
 | LM Option B | 论文 bbox 上开放数据试点 **n=262**；遗留 smoke 141 仅 QA |
 | FloodNet held-out | 传感器事件严格留出诊断；**永不入训练标签** |
 | Fail-closed | 缺层/NaN 直接中止，禁止静默填合成特征 |
+| Nested CV | **未做**；GBM 超参预指定（80/depth4/lr0.08/seed42），见 Methods 与 audit |
 
 ---
 
@@ -30,11 +32,11 @@
 
 本报告是仓库 **live Lower Manhattan open-data Option B（n=262）** 的教师向过程说明：对每张表/图交代**来龙去脉、如何读、意义、可下结论、不可下结论**。
 
-在 H3 R9 上组装 **n_cells = 262**（bbox `[-74.02, 40.70, -73.97, 40.76]`）。主评价为 **spatial H3-block CV**（12 个 R7 块，5 折）：准确率 **0.824 ± 0.055**，F1 **0.861**；正类占比 **63.7%**；恒判正基线 accuracy **0.637**、F1 **0.769**，模型超过该基线。留出 pooled ROC-AUC **0.850**、AP **0.851**。扩展试点 n=956：acc **0.819 ± 0.024**，F1 **0.822**，pooled ROC-AUC **0.880**。尺度损失（strict area budget）：R10→R9 mean soft Jaccard **0.220**，R10→R8 mean **0.136**。自适应相对均匀 R11 单元数比 **≈0.574**（148/262 父单元加密 → 7,366 vs 12,838；Option A R11 重提特征 hotspot recall = 1.000）。FloodNet 为严格留出诊断（LM ROC-AUC 0.314，23 传感器单元）。
+在 H3 R9 上组装 **n_cells = 262**（bbox `[-74.02, 40.70, -73.97, 40.76]`）。主评价为 **spatial H3-block CV**（12 个 R7 块，5 折）：准确率 **0.824 ± 0.055**，F1 **0.861**；正类占比 **63.7%**；恒判正基线 accuracy **0.637**、F1 **0.769**，模型超过该基线。留出 pooled ROC-AUC **0.850**、AP **0.851**。扩展试点 n=956：acc **0.819 ± 0.024**，F1 **0.822**，pooled ROC-AUC **0.880**。尺度损失（strict area budget + study_domain_mask）：R10→R9 mean soft Jaccard **0.220**，R10→R8 mean **0.136**（n_fine=1788，n_coarse R9=262）。自适应相对均匀 R11 单元数比 **≈0.574**（148/262 父单元加密 → 7,366 vs 12,838；Option A R11 重提特征 hotspot recall = 1.0）。FloodNet 为严格留出诊断（LM ROC-AUC 0.314，23 传感器单元）。
 
 > **历史注记：** 修订前曾用 n=141 smoke 主表。该数字**不是**当前真相。
 
-**诚实缺口（待补充）：** (1) 观测事件降雨仍阻塞，合成常数情景下 within-cell PFI_h 极差=0；(2) LM ≠ citywide；(3) 作者姓名/ORCID/CRediT；(4) DEP 官方 geospatial 导出若可机读下载后替换镜像。
+**诚实缺口（待补充）：** (1) 观测事件降雨仍阻塞，合成常数情景下 within-cell S_h(c,r) 极差=0；(2) LM ≠ citywide；(3) 作者姓名/ORCID/CRediT；(4) DEP 官方 geospatial 导出若可机读下载后替换镜像；(5) 更强行政陆地多边形（当前 NHD 水域代理仅剔除 1–2 格）。
 
 ---
 
@@ -49,14 +51,21 @@
 | 文献 | 对本稿的作用 |
 |------|-------------|
 | Svellingen et al. 2026 IJDRR | 模仿章节骨架；**禁止**抄其 Jaccard 0.14 / 98% 效率 / PFIb |
-| Li et al. 2022 IJGI 六边形多尺度洪水 | 支持 DGGS 多分辨率织物角色 |
+| Li et al. 2022 IJGI 六边形多尺度洪水 | 支持 DGGS 多分辨率角色 |
 | Bersabe & Jun 2025 Seoul pluvial ML | 开放因子 ML 地图对照；通常缺 H3-block CV + 自适应 + 降雨诚实边界 |
 | Spatial CV / h3sdm_spatial_cv 等 | 支持父块留出评价 |
 | Agonafir et al. NYC 311 | 众包标签偏差文献 |
 
 ### 2.3 创新主张（贡献是协议，不是工具栈）
 
-见 `docs/paper/framework_note.md`：开放异构标签保持区分、H3-block 空间 CV、面积预算 soft Jaccard、deployment 分数驱动自适应、`PFI_h(c,r)` 定义（当前降雨响应平坦）。
+见 `docs/paper/framework_note.md`：开放异构标签保持区分、H3-block 空间 CV、domain-masked 面积预算 soft Jaccard、deployment 分数驱动自适应、`S_h(c)` / 延后的 `S_h(c,r)`（当前降雨响应平坦）。
+
+### 2.4 本轮写作修订（v5.1）做了什么
+
+- 手稿 Methods 扩写：证据组装、空间 CV、domain-masked scale-loss、源消融、OOF Sandy、S_h(c)、fail-closed；去掉实验室路径。  
+- 数字纠偏：Sandy Table 6 对齐 `negative_control`；自适应 7,366；n_fine=1788。  
+- Limitations 诚实写清：NHD land-mask 已做但非行政陆地；nested CV 明确不做。  
+- 禁止编造作者/ORCID/CRediT。
 
 ---
 
@@ -85,22 +94,23 @@
 | 用途 | 分辨率 |
 |------|--------|
 | 训练/评价 | R9 |
-| Jaccard 细网格 | R10（n_fine=1857） |
+| Jaccard 细网格 | R10（n_fine=1788，domain-masked） |
 | Jaccard 上卷 | R9 / R8 |
 | 自适应加密 | 选中父单元 → R11 |
 | 空间块 | 主协议 R7（k=2）；敏感性 R8/R6 |
 
 ### 3.4 模型与评价
 
-- GBM 分类器 + 证据分回归器（80 trees, depth 4, lr 0.08, seed 42）。  
+- GBM 分类器 + 证据分回归器（80 trees, depth 4, lr 0.08, seed 42；**预指定，无 nested CV**）。  
 - 主指标：H3-block GroupKFold；常量类基线必须同报。  
 - 评价后 **deployment_full** 全量重拟合仅用于图 2(c) 与自适应筛选。  
-- 组装 **fail-closed**。
+- 组装 **fail-closed**。  
+- 源消融 / LOBO / Moran / NHD land-mask / Sandy 311 窗口 / DEP 面积阈值：均写入 registry。
 
-### 3.5 PFI_h(c,r)
+### 3.5 S_h(c) 与延后的 S_h(c,r)
 
 \[
-\mathrm{PFI}_h(c,r)=\widehat{P}(Y_c=1\mid X_c,r)
+S_h(c)=f_\theta(X_c),\qquad S_h(c,r)=f_\theta(X_c,r)\ \text{(deferred)}
 \]
 当前 r 恒定 → 情景表 within-cell range = 0 → **不宣称降雨条件判别力**。
 
@@ -148,9 +158,9 @@
 | evaluation_fit_rows / deployment_fit_rows | 209 / 262 |
 
 **来龙去脉：** 训练脚本按 R7 父块 GroupKFold 留出；折均写入 metadata/registry；常量基线按同一折表聚合。这是报告与手稿优先引用的主表。  
-**如何读：** 先看正类占比（63.7%），再看恒判正基线（0.637 / 0.769），最后才看模型（0.820 / 0.858）。ROC-AUC/AP 是阈值无关排序指标。  
+**如何读：** 先看正类占比（63.7%），再看恒判正基线（0.637 / 0.769），最后才看模型（0.824 / 0.861）。ROC-AUC/AP 是阈值无关排序指标；Table 3 Panel A 还报 MCC/bal.acc 等（registry `oof_extended_metrics`）。  
 **意义：** 在类别失衡试点上，离开平凡基线谈 accuracy/F1 没有意义。  
-**结论（允许）：** Option B 上模型超过恒判正；存在中等排序判别。  
+**结论（允许）：** Option B 上模型超过恒判正；存在中等排序判别（pooled ROC-AUC 0.850）。  
 **结论（禁止）：** 全市技能；用随机划分替换空间 CV；把 R² 当成物理水深拟合。
 
 ### 表 2 · 逐折明细
@@ -170,8 +180,8 @@
 
 #### 图 2 · `docs/paper/figures/spatial_maps.png`
 
-**来源：** `nyc_h3_cells.parquet` + `spatial_cv_oof_predictions.csv` + `pfi_h_scenarios.parquet` + DEM/水系底图。  
-**来龙去脉：** 三面板同 262 格支撑：(a) 开放证据分；(b) 留出 OOF 分；(c) deployment 全拟合 PFI_h（合成 Ida-like）。  
+**来源：** `nyc_h3_cells.parquet` + `spatial_cv_oof_predictions.csv` + deployment 全拟合分数 + DEM/水系底图。  
+**来龙去脉：** 三面板同 262 格支撑：(a) 开放证据分；(b) 留出 OOF 分；(c) deployment 全拟合 S_h(c)（入样，非验证）。  
 **如何读：** 同色标 0–1；(a) 双峰；(b)(c) 更平滑；(c) **不是**验证结果。  
 **意义：** “先直观后统计”的结果入口。  
 **结论（允许）：** 视觉检视；与表 1 叙事一致。  
@@ -206,7 +216,7 @@
 | R9 | p90 | 0.573 | 0.036 [0.000, 0.116] | 0.729 | 0.729 |
 
 **来龙去脉：** 在原生 R10 证据上按 10% 面积预算定义热点，再上卷到 R9/R8；图 6b 与本表同 CSV，禁止图中重算。  
-**如何读：** 主看 mean 聚合：R9=0.227，R8=0.136；max/p90 更高是因为极值保留，不是“更正确”。  
+**如何读：** 主看 mean 聚合：R9=0.220，R8=0.136；max/p90 更高是因为极值保留，不是“更正确”。  
 **意义：** 粗化会抹掉细热点——这是表示代价，不是软件 bug。  
 **结论（允许）：** 开放证据下存在实质性尺度损失。  
 **结论（禁止）：** “复现了 Svellingen 的 0.14”。
@@ -230,16 +240,16 @@
 | Representation | Cell count |
 |---|---|
 | Fixed R9 | 262 |
-| Adaptive R9/R11 | 7222 |
+| Adaptive R9/R11 | 7366 |
 | Uniform R11 | 12838 |
 
-筛选：分数 ≥0.8 分位或不确定区间，再扩一环；**deployment_full** 入样分数。
+筛选：分数 ≥0.8 分位或不确定区间，再扩一环；**deployment_full** 入样分数。Option A：R11 重提特征后 scorable children 上 hotspot recall = 1.0。
 
-**来龙去脉：** 自适应只改表示密度，不改 R9 模型。  
-**如何读：** 7,222 / 12,838 ≈ 56.3%。  
-**意义：** 表示压缩可行；未测 runtime/热点保留。  
-**结论（允许）：** 单元数减少。  
-**结论（禁止）：** 全市算力节省、热点无损失。
+**来龙去脉：** 自适应主叙事是表示密度；Option A 另做真 R11 重提特征诊断（DEM 边 NaN 丢弃后评分）。  
+**如何读：** 7,366 / 12,838 ≈ 0.574（148/262 父单元加密）。  
+**意义：** 表示压缩可行；runtime 未测。  
+**结论（允许）：** 单元数减少；Option A 显示 refined 子单元可覆盖均匀细网格热点（recall=1.000）。  
+**结论（禁止）：** 全市算力节省；把 cell-count 实验写成预报技能提升。
 
 #### 补充图 S1 · `docs/paper/figures/supplementary/jaccard_by_resolution.png`
 
@@ -284,6 +294,34 @@
 
 **意义：** 曼哈顿内尺度放大检查，不是独立外域验证。
 
+### 表 8 · 源消融（pooled ROC-AUC；同空间 CV）
+
+| Target | LM ROC | Exp ROC |
+|--------|--------|---------|
+| DEP-only | 0.801 | 0.811 |
+| 311-only | 0.853 | 0.843 |
+| Composite | 0.850 | 0.880 |
+| 311 w/o building_density | 0.839 | 0.816 |
+
+**来龙去脉：** 同一 GroupKFold 协议，换目标定义；回答“会不会只是复读 DEP 模型图”。  
+**结论（允许）：** 311-only 仍 >0.5；减轻单源伪象担忧。  
+**结论（禁止）：** 证明标签语义完全有效。
+
+### 表 9 · NHD 陆地掩膜敏感性（LM Option B）
+
+| Mask | n_cells | Pooled ROC-AUC | Acc | F1 |
+|------|---------|----------------|-----|-----|
+| all_cells | 262 | 0.850 | 0.824 | 0.861 |
+| land_frac ≥ 0.5 | 261 | 0.844 | 0.820 | 0.861 |
+| centroid_on_land | 260 | 0.845 | 0.823 | 0.864 |
+
+**来龙去脉：** 用本机 hydrography 中 NHDArea/NHDWaterbody 多边形算 land_frac；**不是** NYC 行政陆地多边形。  
+**意义：** 矩形 bbox 含少量水域格；剔除后 ROC 几乎不动。  
+**结论（允许）：** 主表不被 1–2 个水域格主导。  
+**结论（禁止）：** “已完成严格陆地足迹建模”。更强 land mask 仍待行政多边形。
+
+扩展 OOF 阈值指标（LM pooled）：MCC 0.611，balanced accuracy 0.790，specificity 0.663。
+
 ---
 
 ## 6. 讨论要点（教师向）
@@ -291,17 +329,21 @@
 1. **超过平凡基线**改变了“有没有学到东西”的读法，但仍是亚城市试点。  
 2. **尺度损失**与 **自适应单元压缩**回答的是表示问题，不是预报问题。  
 3. **源消融**显示 311-only 也能排序，减轻“只会复读 DEP 模型图”的担忧，但不能证明标签语义完全有效。  
-4. **降雨响应平坦**是当前数据事实，不是写作疏漏。
+4. **降雨响应平坦**是当前数据事实，不是写作疏漏。  
+5. **Nested CV 未做**：超参预指定写进 Methods；小样本上再套一层调参成本高且易泄漏，audit 已诚实记录。  
+6. **NHD land-mask** 只剔除 1–2 格：说明当前 bbox 水域污染有限，也说明还缺行政陆地多边形。
 
 ---
 
 ## 7. 局限与待补充
 
-1. 作者姓名 / 单位 / ORCID / CRediT：**待补充**  
-2. 观测事件降雨与非零 PFI_h(r) 响应：**待补充**  
+1. 作者姓名 / 单位 / ORCID / CRediT：**待补充**（禁止编造）  
+2. 观测事件降雨与非零 S_h(c,r) 响应：**待补充**  
 3. Citywide 评价：**未做**  
 4. DEP 官方 geospatial 机读替换镜像：**可选待补充**  
-5. 更密 FloodNet / 深度阈值：**科学扩展，非 P0 工程尾巴**
+5. 更强行政陆地多边形（替换 NHD 水域代理）：**未做；手稿 Limitations + 本表 9 已写清**  
+6. Nested hyperparameter search：**明确不做**（预指定超参）  
+7. 更密 FloodNet / 深度缓冲：**科学扩展，非 P0 工程尾巴**
 
 ---
 
@@ -314,8 +356,8 @@
 .venv\Scripts\python.exe scripts\build_paper_report_html.py
 ```
 
-核对：`outputs/paper_results.json` 与本文表 1/3/7 数值一致；图 6b 与 `jaccard_by_resolution.csv` 一致。
+核对：`outputs/paper_results.json` 与本文表 1/3/7 数值一致；图 6b 与 `jaccard_by_resolution.csv` 一致；手稿 Table 6 与 `negative_control` 一致。
 
 ---
 
-*Generated for Option B freeze · registry 2026-09-21T03:55:29.537475+00:00 · fail_closed=True · seed=42*
+*Generated for Option B freeze · registry 2026-09-21T03:58:55.685822+00:00 · fail_closed=True · seed=42 · freeze_tag=submission-v5-full-recompute*

@@ -1,6 +1,6 @@
 # 审查文档（Audit）：数据真实性、准确性与完整性证据
 
-> **⚠ 当前权威数字（2026-09-14 Major Revision P0 pass）：** 以 `outputs/paper_results.json`、`outputs/jaccard_by_resolution.csv`、以及重训后的 `models/nyc_smoke/` + `models/nyc_expanded/` 为准。LM Option B：n=262、正类 63.7%、acc 0.820±0.057、F1 0.858、pooled ROC-AUC 0.848；扩展：n=956、正类 47.9%、acc 0.823±0.028、F1 0.826、pooled ROC-AUC 0.882。尺度损失主指标为 area-weighted soft Jaccard（R10→R9 mean 0.227；R10→R8 mean 0.136）。311 源为官方 SODA `76ig-c548`。下文历史对账段落中若出现 0.809/0.846/0.883/n=141-as-current 等旧值，一律视为快照，不以之为现行主表。
+> **⚠ 当前权威数字（submission-v5 / 2026-09-21 post-urban-drop recompute；散文冻结 submission-v5-1-prose-audit）：** 以 `outputs/paper_results.json`、`outputs/jaccard_by_resolution.csv`、以及重训后的 `models/nyc_smoke/` + `models/nyc_expanded/` 为准。LM Option B：n=262、正类 63.7%、acc 0.824±0.055、F1 0.861、pooled ROC-AUC **0.850**；扩展：n=956、正类 48.2%、acc 0.819±0.024、F1 0.822、pooled ROC-AUC **0.880**。尺度损失主指标为 area-weighted soft Jaccard（domain-masked R10→R9 mean **0.220**；R10→R8 mean **0.136**；n_fine=1788）。311 源为官方 SODA `76ig-c548`。下文历史对账段落中若出现 0.848/0.820/0.227/n=141-as-current 等旧值，一律视为快照，不以之为现行主表。详见 **§18–§19**。
 
 **用途：** 本文档用于证明手稿 `manuscript.md` 与研究报告 `report.md` 中的所有数字，均为**本仓库自身代码在本机数据上运行所得**，而非从参考文献（尤其 Svellingen et al. 2026 IJDRR 及其 PFIb / Jaccard 0.14 数字）或任何第三方论文中抄录；并证明结果**可逐条复算、可对账、无“做一半臆断一半”**。
 
@@ -1028,3 +1028,69 @@ Author names, ORCID, CRediT roles; journal cover letter; nested CV (explicitly d
 ### 18.3 Still human-only
 
 Author names, ORCID, CRediT; journal cover letter.
+
+
+## 19. Prose + audit pass (submission-v5-1-prose-audit)
+
+**Tag intent:** `submission-v5-1-prose-audit`  
+**Numeric authority unchanged:** `outputs/paper_results.json` after `submission-v5-full-recompute` (urban flag dropped; LM pooled ROC-AUC **0.850**, Exp **0.880**; n=262/956). This pass is **writing / Methods clarity / number-sync / audit honesty**, not a model retrain.
+
+### 19.1 Writing / logic changes (manuscript)
+
+| Change | Evidence |
+|--------|----------|
+| Humanized Abstract / Intro / Discussion; removed stacked AI abstractions | `docs/paper/manuscript.md` vs backup `docs/paper/backups/*_pre_v51_prose.md` |
+| Methods expanded into pipeline roles: evidence assembly, features, spatial CV, domain-masked scale-loss, source ablation, OOF Sandy, S_h(c), fail-closed | manuscript §§3.1–3.9 |
+| Nested CV: **explicitly not run**; hyperparameters pre-specified | manuscript §3.4 + §5.4; code `config.py` / `estimators.py` |
+| NHD land-mask sensitivity reported honestly (not “not assembled”) | manuscript §5.4; `outputs/land_mask_sensitivity.json` / registry |
+| Style reference: IJDRR skeleton of Svellingen et al. **without copying PFIb / Jaccard 0.14 / efficiency claims** | Comparison only in §5.2 |
+| Authors / ORCID / CRediT | still **[待补充]** — not invented |
+
+### 19.2 Number corrections synced to live registry
+
+| Quantity | Was (stale in prior draft) | Now (registry) |
+|----------|----------------------------|----------------|
+| Sandy Table 6 both / coastal-only / pluvial-only / neither | 45 / 29 / 122 / 66 | **44 / 30 / 121 / 67** |
+| Sandy mean OOF coastal / pluvial / both / neither | 0.425 / 0.882 / 0.798 / 0.271 | **0.406 / 0.886 / 0.760 / 0.280** |
+| Pluvial−coastal OOF gap | 0.458 | **0.480** |
+| High-score pluvial fraction | 84.9% | **83.0%** |
+| Adaptive mixed cell count (Table 5 / S2) | mixed 7222 vs 7366 | **7,366** (ratio 0.574) |
+| Domain-masked n_fine | older 1857 in report Methods | **1788** |
+| LM / Exp headline ROC | — | **0.850 / 0.880** (unchanged from v5 recompute) |
+
+Cross-check commands:
+
+`	ext
+python -c "import json; d=json.load(open('outputs/paper_results.json',encoding='utf-8')); print(d['lower_manhattan']['spatial_cv']['spatial_cv_roc_auc_pooled'], d['manhattan_expanded']['spatial_cv']['spatial_cv_roc_auc_pooled']); print(d['negative_control']['n_both'], d['negative_control']['n_coastal_only'])"
+`
+
+### 19.3 Authenticity / completeness evidence for v5 recompute artefacts
+
+| Claim | Artifact |
+|-------|----------|
+| Own pipeline numbers only | `outputs/paper_results.json` + live CSVs under `models/nyc_smoke/`, `models/nyc_expanded/`, `outputs/*.csv/json` |
+| Not PFIb / not Svellingen Jaccard | Soft Jaccard from `outputs/jaccard_by_resolution.csv` (R10→R8 mean **0.136**); §5.2 states non-reproduction |
+| Urban flag removed | `feature_columns` length 7; `urban_flag_removed: true` |
+| Domain-masked scale loss | `study_domain_mask: true`; n_coarse R9=262; n_fine=1788 |
+| Source ablation | `outputs/source_ablation.json` (LM 311-only 0.853; w/o building_density 0.839) |
+| OOF Sandy diagnostic | `negative_control.score_col = oof_model_score` |
+| Fail-closed | `fail_closed: true` in registry + Methods |
+| Land-mask NHD limitation | `land_mask_sensitivity` note + manuscript Limitations |
+| Nested CV declined | Methods sentence + this section |
+
+### 19.4 Deliverables rebuilt this pass
+
+| Path | Role |
+|------|------|
+| `docs/paper/manuscript.md` / `.html` / `.pdf` | Paper |
+| `docs/paper/report.md` / `.html` / `.pdf` | Teacher-facing research report |
+| `report.md` / `report.html` / `report.pdf` (repo root) | Copies of report deliverables |
+| `docs/paper/audit.md` | This authenticity ledger |
+
+### 19.5 Still human-only (unchanged)
+
+1. Real author names, affiliations, ORCID, CRediT  
+2. Observed event rainfall / non-flat `S_h(c,r)`  
+3. Citywide evaluation  
+4. Administrative land polygon replacing NHD water proxy  
+5. Optional nested CV (explicitly declined for this submission freeze)
