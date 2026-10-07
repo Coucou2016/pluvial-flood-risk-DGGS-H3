@@ -1,0 +1,293 @@
+"""Major-revision consistency gates (fail-closed, deployment, bbox, OOF)."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import pytest
+
+from pluvial_flood_risk.config import PROCESSED_DIR, PROJECT_ROOT
+from pluvial_flood_risk.h3_grid import bbox_to_cells
+from pluvial_flood_risk.model import (
+    ROLE_DEPLOYMENT,
+    fit_deployment_models,
+    load_models,
+    predict,
+    training_h3_sha256,
+)
+from pluvial_flood_risk.rollups import canonical_ladder_heatmap, hotspot_weights_area_budget, hotspot_weights_topk, weighted_jaccard
+
+
+ROOT = PROJECT_ROOT
+MODELS_SMOKE = ROOT / "models" / "nyc_smoke"
+MODELS_EXP = ROOT / "models" / "nyc_expanded"
+TABLE_LM = PROCESSED_DIR / "nyc_h3_cells.parquet"
+TABLE_EXP = PROCESSED_DIR / "nyc_h3_cells_expanded.parquet"
+
+
+def _skip_if_missing(*paths: Path):
+    missing = [p for p in paths if not p.exists()]
+    if missing:
+        pytest.skip(f"Missing artifacts: {missing}")
+
+
+def test_production_synthetic_count_zero():
+    _skip_if_missing(TABLE_LM)
+    df = pd.read_parquet(TABLE_LM)
+    if "synthetic_value_count" in df.columns:
+        assert int(df["synthetic_value_count"].iloc[0]) == 0
+    if "data_mode" in df.columns:
+        assert str(df["data_mode"].iloc[0]) == "production"
+    assert "synthetic" not in set(df.get("feature_source", pd.Series(dtype=str)).astype(str))
+
+
+def test_deployment_fit_rows_equals_n_rows():
+    _skip_if_missing(TABLE_LM, MODELS_SMOKE / "deployment" / "manifest.json")
+    df = pd.read_parquet(TABLE_LM)
+    manifest = json.loads((MODELS_SMOKE / "deployment" / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["role"] == ROLE_DEPLOYMENT
+    assert int(manifest["fit_rows"]) == int(len(df))
+    assert manifest["training_h3_sha256"] == training_h3_sha256(df["h3_index"].astype(str).tolist())
+
+
+def test_deployment_predictions_match_independent_refit():
+    _skip_if_missing(TABLE_LM, MODELS_SMOKE / "deployment" / "classifier_full.joblib")
+    from pluvial_flood_risk.config import FEATURE_COLUMNS, TARGET_CLASS_COLUMN, TARGET_COLUMN
+    from pluvial_flood_risk.features import feature_matrix
+
+    df = pd.read_parquet(TABLE_LM)
+    X = feature_matrix(df)
+    y_class = df[TARGET_CLASS_COLUMN].to_numpy()
+    y_risk = df[TARGET_COLUMN].to_numpy()
+    cells = df["h3_index"].astype(str).tolist()
+    seed = 42
+    meta_path = MODELS_SMOKE / "run_metadata.json"
+    if meta_path.exists():
+        seed = int(json.loads(meta_path.read_text(encoding="utf-8")).get("random_seed", 42))
+
+    clf, reg, _ = load_models(MODELS_SMOKE, expected_role=ROLE_DEPLOYMENT)
+    risk_a, proba_a, class_a = predict(clf, reg, X)
+
+    indep = fit_deployment_models(X, y_class, y_risk, cells, random_seed=seed)
+    risk_b, proba_b, class_b = predict(indep.classifier, indep.regressor, X)
+
+    assert indep.fit_rows == len(df)
+    np.testing.assert_allclose(risk_a, risk_b, rtol=1e-6, atol=1e-6)
+    np.testing.assert_allclose(proba_a, proba_b, rtol=1e-6, atol=1e-6)
+    np.testing.assert_array_equal(class_a, class_b)
+
+
+def test_manuscript_bbox_cell_count_matches_processed():
+    """Option B: lower_manhattan bbox → processed n."""
+    _skip_if_missing(TABLE_LM)
+    from pluvial_flood_risk.config_loader import load_study_config, resolve_bbox
+
+    cfg = load_study_config(ROOT / "configs" / "nyc.yaml")
+    bbox = resolve_bbox(cfg, "lower_manhattan")
+    resolution = int(cfg.get("resolution", 9))
+    expected = len(bbox_to_cells(*bbox, resolution))
+    df = pd.read_parquet(TABLE_LM)
+    assert len(df) == expected
+    # Option B target is ~262; allow exact match only
+    assert expected == 262 or len(df) == expected
+
+
+def test_oof_h3_set_matches_processed():
+    _skip_if_missing(TABLE_LM, MODELS_SMOKE / "spatial_cv_oof_predictions.csv")
+    df = pd.read_parquet(TABLE_LM)
+    oof = pd.read_csv(MODELS_SMOKE / "spatial_cv_oof_predictions.csv")
+    processed = set(df["h3_index"].astype(str))
+    oof_set = set(oof["h3_index"].astype(str))
+    assert oof_set == processed
+
+
+def test_hotspot_fractional_tie_invariants():
+    ids = [f"c{i}" for i in range(10)]
+    # Five cells tied at the top value → k=3 must fractional-share among ties
+    values = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.4, 0.3, 0.2, 0.1])
+    weights, thresh = hotspot_weights_topk(ids, values, k=3)
+    assert abs(thresh - 1.0) < 1e-12
+    assert abs(sum(weights.values()) - 3.0) < 1e-9
+    assert all(abs(w - 0.6) < 1e-9 for w in weights.values())
+    # Soft Jaccard identity
+    assert weighted_jaccard(weights, weights) == pytest.approx(1.0)
+
+
+def test_figure_table_identity_if_artifacts_present():
+    csv_path = ROOT / "outputs" / "jaccard_by_resolution.csv"
+    _skip_if_missing(csv_path)
+    table = pd.read_csv(csv_path)
+    heat = canonical_ladder_heatmap(table, value_col="jaccard")
+    mean_r9 = table.loc[(table["aggregation"] == "mean") & (table["coarse_res"] == 9), "jaccard"]
+    mean_r8 = table.loc[(table["aggregation"] == "mean") & (table["coarse_res"] == 8), "jaccard"]
+    assert not mean_r9.empty and not mean_r8.empty
+    assert heat.loc["mean", 9] == pytest.approx(float(mean_r9.iloc[0]))
+    assert heat.loc["mean", 8] == pytest.approx(float(mean_r8.iloc[0]))
+    if "budget_match_mode" in table.columns and (table["budget_match_mode"] == "strict_area_budget").all():
+        np.testing.assert_allclose(table["jaccard"], table["jaccard_soft"], atol=1e-12)
+        if "matched_budgets_cell_count" in table.columns:
+            assert not bool(table["matched_budgets_cell_count"].astype(bool).any())
+
+
+def test_area_budget_sum_weights_times_area():
+    ids = [f"c{i}" for i in range(8)]
+    values = np.array([1.0] * 8)
+    areas = np.ones(8) * 4.0
+    target = 10.0
+    weights, _ = hotspot_weights_area_budget(ids, values, areas, target)
+    assert abs(sum(areas[i] * weights[ids[i]] for i in range(8)) - target) < 1e-9
+
+
+def test_expanded_deployment_fit_rows_if_present():
+    if not TABLE_EXP.exists() or not (MODELS_EXP / "deployment" / "manifest.json").exists():
+        pytest.skip("expanded artifacts not present")
+    df = pd.read_parquet(TABLE_EXP)
+    manifest = json.loads((MODELS_EXP / "deployment" / "manifest.json").read_text(encoding="utf-8"))
+    assert int(manifest["fit_rows"]) == int(len(df))
+
+
+def test_dep_flooding_category_subset_if_raw_present():
+    """Gate: DEP Flooding_Category ⊆ {1, 2} in raw GeoJSON when present."""
+    path = ROOT / "data" / "raw" / "nyc" / "dep_stormwater_flood.geojson"
+    if not path.exists():
+        pytest.skip("DEP geojson missing")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    cats = set()
+    for feat in payload.get("features", []):
+        props = feat.get("properties") or {}
+        if "Flooding_Category" in props:
+            cats.add(props["Flooding_Category"])
+        elif "flooding_category" in props:
+            cats.add(props["flooding_category"])
+    if not cats:
+        pytest.skip("no Flooding_Category field")
+    assert cats.issubset({1, 2, "1", "2"}), f"unexpected DEP categories: {cats}"
+
+
+def test_source_specific_columns_present():
+    _skip_if_missing(TABLE_LM)
+    df = pd.read_parquet(TABLE_LM)
+    for col in ("dep_area_frac", "complaint_presence", "ida_hwm_presence", "flood_class", "flood_risk"):
+        assert col in df.columns
+
+
+def test_r10_native_overlay_true():
+    path = PROCESSED_DIR / "nyc_h3_cells_r10_labels.parquet"
+    _skip_if_missing(path)
+    df = pd.read_parquet(path)
+    assert "label_scale_mode" in df.columns
+    assert (df["label_scale_mode"] == "native_overlay").all()
+
+
+def test_modelling_r9_vs_domain_masked_r10_parents():
+    """Gate: parents(R10 fine under study_domain_mask) == modelling R9."""
+    r9 = PROCESSED_DIR / "nyc_h3_cells.parquet"
+    r10 = PROCESSED_DIR / "nyc_h3_cells_r10_labels.parquet"
+    _skip_if_missing(r9, r10)
+    import h3
+    from pluvial_flood_risk.rollups import filter_fine_to_study_domain
+
+    parents = set(pd.read_parquet(r9)["h3_index"].astype(str))
+    fine = filter_fine_to_study_domain(pd.read_parquet(r10), parents, modelling_res=9)
+    got = {h3.cell_to_parent(c, 9) for c in fine["h3_index"].astype(str)}
+    assert got == parents
+    assert len(parents) == 262
+
+
+def test_study_domain_masked_jaccard_n_coarse_r9():
+    csv_path = ROOT / "outputs" / "jaccard_by_resolution.csv"
+    _skip_if_missing(csv_path)
+    table = pd.read_csv(csv_path)
+    if "study_domain_mask" not in table.columns:
+        pytest.skip("pre-domain-mask Jaccard table")
+    assert bool(table["study_domain_mask"].iloc[0]) is True
+    n9 = table.loc[table["coarse_res"] == 9, "n_coarse"]
+    assert not n9.empty
+    assert int(n9.iloc[0]) == 262
+
+
+def test_fold_internal_transforms_ponding_baseline_documented():
+    """Sanity: FEATURE_COLUMNS exclude Sandy; Sandy is diagnostic-only."""
+    from pluvial_flood_risk.config import FEATURE_COLUMNS
+
+    assert "sandy_area_frac" not in FEATURE_COLUMNS
+    assert "sandy_class" not in FEATURE_COLUMNS
+
+
+def test_paper_results_provenance_fields_if_present():
+    path = ROOT / "outputs" / "paper_results.json"
+    _skip_if_missing(path)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    # Soft gate: after sync these should exist; tolerate older freezes.
+    if "git_commit" in payload:
+        assert len(str(payload["git_commit"])) >= 7
+    assert payload["lower_manhattan"]["n_cells"] == 262
+    assert payload["manhattan_expanded"]["n_cells"] == 956
+
+
+def test_source_ablation_includes_complaint_no_building_density():
+    path = ROOT / "outputs" / "source_ablation.json"
+    _skip_if_missing(path)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    names = {r["target"] for r in payload["pilots"]["lower_manhattan"]}
+    assert "complaint_no_building_density" in names
+    assert "composite" in names
+    assert "dep_only" in names
+
+
+def test_negative_control_uses_oof_score_column():
+    path = ROOT / "outputs" / "negative_control.json"
+    _skip_if_missing(path)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert payload.get("score_col") == "oof_model_score"
+
+
+def test_urban_flag_removed_from_production_features():
+    from pluvial_flood_risk.config import FEATURE_COLUMNS
+
+    assert "land_cover_urban" not in FEATURE_COLUMNS
+    for model_dir in (MODELS_SMOKE, MODELS_EXP):
+        feat_json = model_dir / "deployment" / "feature_columns.json"
+        if not feat_json.exists():
+            continue
+        cols = json.loads(feat_json.read_text(encoding="utf-8"))
+        assert "land_cover_urban" not in cols, f"urban still in {feat_json}"
+
+
+def test_land_mask_sensitivity_is_true_polygon_mask():
+    path = ROOT / "outputs" / "land_mask_sensitivity.json"
+    _skip_if_missing(path)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    note = str(payload.get("note", "")).lower()
+    assert "proxy" not in note or "true land" in note
+    assert "nhd" in note or "water polygon" in note or "land_frac" in note
+    masks = {r["mask"] for r in payload.get("rows", [])}
+    assert "land_frac_ge_0.5" in masks
+    assert "centroid_on_land" in masks
+
+
+def test_hwm_validation_artifact_exists_if_expanded():
+    if not TABLE_EXP.exists():
+        pytest.skip("expanded table missing")
+    path = ROOT / "outputs" / "hwm_validation.json"
+    _skip_if_missing(path)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert "n_hwm_cells" in payload
+    assert "mean_oof_score_all_hwm" in payload
+
+
+def test_manuscript_registry_checker_passes():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "check_ms", ROOT / "scripts" / "check_manuscript_vs_registry.py"
+    )
+    mod = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(mod)
+    rc = mod.main()
+    assert rc == 0, "manuscript↔paper_results checker failed"

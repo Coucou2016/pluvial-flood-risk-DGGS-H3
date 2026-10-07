@@ -1,0 +1,45 @@
+{
+  "created_utc": "2026-09-21T03:18:23.624742+00:00",
+  "random_seed": 42,
+  "data_provenance": "open_public_evidence",
+  "h3_version": "4.4.2",
+  "sklearn_version": "1.8.0",
+  "framework": "pluvial-flood-risk-dggs-h3",
+  "framework_version": "0.1.0",
+  "n_cells": 262,
+  "metrics": {
+    "random_split_val_accuracy": 0.8113207547169812,
+    "random_split_val_r2": 0.3076367729206769,
+    "val_accuracy": 0.8113207547169812,
+    "val_r2": 0.3076367729206769,
+    "evaluation_fit_rows": 209,
+    "random_seed": 42,
+    "spatial_cv_n_folds": 5.0,
+    "spatial_cv_n_blocks": 12.0,
+    "spatial_cv_accuracy_mean": 0.8240615839949912,
+    "spatial_cv_accuracy_std": 0.05520659447974526,
+    "spatial_cv_r2_mean": 0.16690455185854486,
+    "spatial_cv_r2_std": 0.318945388948315,
+    "spatial_cv_f1_mean": 0.8613633699914501,
+    "spatial_cv_mae_mean": 0.280375043764373,
+    "spatial_cv_roc_auc_mean": 0.8342814926135574,
+    "spatial_cv_roc_auc_std": 0.08936730882197093,
+    "spatial_cv_pr_auc_mean": 0.8755281195217457,
+    "spatial_cv_pr_auc_std": 0.07608684467423514,
+    "spatial_cv_roc_auc_pooled": 0.8502678852820673,
+    "spatial_cv_pr_auc_pooled": 0.8505963197248279,
+    "spatial_cv_fold_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_smoke\\spatial_cv_folds.csv",
+    "spatial_cv_oof_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_smoke\\spatial_cv_oof_predictions.csv"
+  },
+  "spatial_cv_k": 2,
+  "spatial_cv_folds": 5,
+  "evaluation": {
+    "role": "evaluation_split",
+    "fit_rows": 209
+  },
+  "deployment": {
+    "role": "deployment_full",
+    "fit_rows": 262,
+    "training_h3_sha256": "6197a4fea1c473497439c65338934df0a18d2f9f246943e12490a42d78ea389b"
+  }
+}

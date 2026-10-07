@@ -1,0 +1,7 @@
+<!DOCTYPE html>
+<html><body>
+<script>
+window.parent.postMessage({ __bridgeTest: true, ts: Date.now() }, "*");
+document.body.textContent = "test page posted";
+</script>
+</body></html>

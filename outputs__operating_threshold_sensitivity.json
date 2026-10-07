@@ -1,0 +1,172 @@
+{
+  "lower_manhattan": {
+    "pilot": "lower_manhattan",
+    "note": "Operating threshold selected by maximising F1 on the training fold only, then applied to the held-out fold. Never tuned on test.",
+    "fixed_0.5": {
+      "accuracy_mean": 0.8240615839949912,
+      "accuracy_std": 0.05520659447974526,
+      "f1_mean": 0.8613633699914501,
+      "f1_std": 0.04893630236792049,
+      "folds": [
+        {
+          "fold_id": 0,
+          "threshold": 0.5,
+          "accuracy": 0.7547169811320755,
+          "f1": 0.8354430379746836
+        },
+        {
+          "fold_id": 1,
+          "threshold": 0.5,
+          "accuracy": 0.9056603773584906,
+          "f1": 0.9484536082474226
+        },
+        {
+          "fold_id": 2,
+          "threshold": 0.5,
+          "accuracy": 0.7843137254901961,
+          "f1": 0.8070175438596491
+        },
+        {
+          "fold_id": 3,
+          "threshold": 0.5,
+          "accuracy": 0.8679245283018868,
+          "f1": 0.8771929824561403
+        },
+        {
+          "fold_id": 4,
+          "threshold": 0.5,
+          "accuracy": 0.8076923076923077,
+          "f1": 0.8387096774193549
+        }
+      ],
+      "pooled_accuracy": 0.8244274809160306,
+      "pooled_f1": 0.8693181818181818
+    },
+    "train_fold_max_f1": {
+      "accuracy_mean": 0.8316813227468055,
+      "accuracy_std": 0.0498557806510141,
+      "f1_mean": 0.8679613983412138,
+      "f1_std": 0.04629908004260686,
+      "folds": [
+        {
+          "fold_id": 0,
+          "threshold_selected_on_train": 0.25,
+          "accuracy": 0.7735849056603774,
+          "f1": 0.85
+        },
+        {
+          "fold_id": 1,
+          "threshold_selected_on_train": 0.35,
+          "accuracy": 0.9056603773584906,
+          "f1": 0.9484536082474226
+        },
+        {
+          "fold_id": 2,
+          "threshold_selected_on_train": 0.49999999999999994,
+          "accuracy": 0.7843137254901961,
+          "f1": 0.8070175438596491
+        },
+        {
+          "fold_id": 3,
+          "threshold_selected_on_train": 0.39999999999999997,
+          "accuracy": 0.8679245283018868,
+          "f1": 0.8771929824561403
+        },
+        {
+          "fold_id": 4,
+          "threshold_selected_on_train": 0.44999999999999996,
+          "accuracy": 0.8269230769230769,
+          "f1": 0.8571428571428571
+        }
+      ],
+      "pooled_accuracy": 0.8320610687022901,
+      "pooled_f1": 0.8757062146892656,
+      "mean_selected_threshold": 0.38999999999999996
+    }
+  },
+  "manhattan_expanded": {
+    "pilot": "manhattan_expanded",
+    "note": "Operating threshold selected by maximising F1 on the training fold only, then applied to the held-out fold. Never tuned on test.",
+    "fixed_0.5": {
+      "accuracy_mean": 0.8191492539231321,
+      "accuracy_std": 0.02364405303390376,
+      "f1_mean": 0.822321839243153,
+      "f1_std": 0.027931780952306178,
+      "folds": [
+        {
+          "fold_id": 0,
+          "threshold": 0.5,
+          "accuracy": 0.8324607329842932,
+          "f1": 0.8476190476190476
+        },
+        {
+          "fold_id": 1,
+          "threshold": 0.5,
+          "accuracy": 0.8324607329842932,
+          "f1": 0.84
+        },
+        {
+          "fold_id": 2,
+          "threshold": 0.5,
+          "accuracy": 0.8272251308900523,
+          "f1": 0.8436018957345972
+        },
+        {
+          "fold_id": 3,
+          "threshold": 0.5,
+          "accuracy": 0.8315789473684211,
+          "f1": 0.8048780487804879
+        },
+        {
+          "fold_id": 4,
+          "threshold": 0.5,
+          "accuracy": 0.772020725388601,
+          "f1": 0.7755102040816326
+        }
+      ],
+      "pooled_accuracy": 0.8190376569037657,
+      "pooled_f1": 0.8236493374108053
+    },
+    "train_fold_max_f1": {
+      "accuracy_mean": 0.7878384687541494,
+      "accuracy_std": 0.03768552419716849,
+      "f1_mean": 0.7787548691518634,
+      "f1_std": 0.04754066121295225,
+      "folds": [
+        {
+          "fold_id": 0,
+          "threshold_selected_on_train": 0.5690668338981737,
+          "accuracy": 0.8167539267015707,
+          "f1": 0.8275862068965517
+        },
+        {
+          "fold_id": 1,
+          "threshold_selected_on_train": 0.6095758416419845,
+          "accuracy": 0.8010471204188482,
+          "f1": 0.7978723404255319
+        },
+        {
+          "fold_id": 2,
+          "threshold_selected_on_train": 0.5886737930427799,
+          "accuracy": 0.7905759162303665,
+          "f1": 0.801980198019802
+        },
+        {
+          "fold_id": 3,
+          "threshold_selected_on_train": 0.5611038249285696,
+          "accuracy": 0.8157894736842105,
+          "f1": 0.7770700636942676
+        },
+        {
+          "fold_id": 4,
+          "threshold_selected_on_train": 0.6243201844404758,
+          "accuracy": 0.7150259067357513,
+          "f1": 0.6892655367231638
+        }
+      ],
+      "pooled_accuracy": 0.7876569037656904,
+      "pooled_f1": 0.7810140237324703,
+      "mean_selected_threshold": 0.5905480955903968
+    }
+  }
+}

@@ -1,0 +1,597 @@
+{
+  "generated_utc": "2026-09-13T15:34:11.194682+00:00",
+  "repository": {
+    "root": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3",
+    "head": "1be9288db06e0611f2785c5381837cb48a50478e",
+    "head_commit_time": "2026-08-24T14:22:59+08:00",
+    "dirty": true,
+    "dirty_path_count": 90,
+    "status": [
+      "M README.md",
+      " M configs/nyc.yaml",
+      " M data/raw/DATA_SOURCES.md",
+      " M docs/paper/audit.md",
+      " M docs/paper/figures/multi_resolution_spatial.pdf",
+      " M docs/paper/figures/multi_resolution_spatial.png",
+      " M docs/paper/figures/resolution_effects.pdf",
+      " M docs/paper/figures/resolution_effects.png",
+      " M docs/paper/figures/source_evidence_maps.pdf",
+      " M docs/paper/figures/source_evidence_maps.png",
+      " M docs/paper/figures/spatial_cv_folds.pdf",
+      " M docs/paper/figures/spatial_cv_folds.png",
+      " M docs/paper/figures/spatial_maps.pdf",
+      " M docs/paper/figures/spatial_maps.png",
+      " M docs/paper/figures/supplementary/adaptive_ablation.pdf",
+      " M docs/paper/figures/supplementary/adaptive_ablation.png",
+      " M docs/paper/figures/supplementary/jaccard_by_resolution.pdf",
+      " M docs/paper/figures/supplementary/jaccard_by_resolution.png",
+      " M docs/paper/figures/workflow_schematic.pdf",
+      " M docs/paper/figures/workflow_schematic.png",
+      " M docs/paper/manuscript.html",
+      " M docs/paper/manuscript.md",
+      " M docs/paper/manuscript.pdf",
+      " M docs/paper/report.html",
+      " M docs/paper/report.md",
+      " M docs/paper/report.pdf",
+      " M models/nyc_expanded/run_metadata.json",
+      " M models/nyc_expanded/spatial_cv_folds.csv",
+      " M models/nyc_expanded/spatial_cv_oof_predictions.csv",
+      " M models/nyc_smoke/run_metadata.json",
+      " M models/nyc_smoke/spatial_cv_folds.csv",
+      " M models/nyc_smoke/spatial_cv_oof_predictions.csv",
+      " M outputs/adaptive_vs_fixed_ablation.csv",
+      " M outputs/classification_baselines.csv",
+      " M outputs/classification_baselines.json",
+      " M outputs/classification_baselines_expanded.csv",
+      " M outputs/classification_baselines_expanded.json",
+      " M outputs/expanded_primary_table.json",
+      " M outputs/jaccard_by_resolution.csv",
+      " M outputs/jaccard_by_resolution.png",
+      " M outputs/negative_control.json",
+      " M outputs/pfi_h_scenarios.csv",
+      " M outputs/spatial_cv_folds_nyc_expanded.csv",
+      " M outputs/spatial_cv_folds_nyc_smoke.csv",
+      " M pyproject.toml",
+      " M report.html",
+      " M requirements.txt",
+      " M scripts/build_manuscript_html.py",
+      " M scripts/build_nyc_h3.py",
+      " M scripts/build_paper_report_html.py",
+      " M scripts/compute_classification_baselines.py",
+      " M scripts/make_figures.py",
+      " M scripts/run_expanded_study.py",
+      " M src/pluvial_flood_risk/assemble.py",
+      " M src/pluvial_flood_risk/cli.py",
+      " M src/pluvial_flood_risk/crs_warp.py",
+      " M src/pluvial_flood_risk/download_nyc.py",
+      " M src/pluvial_flood_risk/estimators.py",
+      " M src/pluvial_flood_risk/features.py",
+      " M src/pluvial_flood_risk/figures.py",
+      " M src/pluvial_flood_risk/labels.py",
+      " M src/pluvial_flood_risk/metadata.py",
+      " M src/pluvial_flood_risk/model.py",
+      " M src/pluvial_flood_risk/pipeline.py",
+      " M src/pluvial_flood_risk/rollups.py",
+      " M tests/test_assemble.py",
+      " M tests/test_bbox_profiles_and_floodnet.py",
+      " M tests/test_nyc_adaptive_pfi.py",
+      " M tests/test_scenarios.py",
+      "?? models/nyc_expanded/deployment/",
+      "?? models/nyc_expanded/evaluation/",
+      "?? models/nyc_expanded/run_manifest.json",
+      "?? models/nyc_smoke/deployment/",
+      "?? models/nyc_smoke/evaluation/",
+      "?? models/nyc_smoke/run_manifest.json",
+      "?? outputs/block_sensitivity.csv",
+      "?? outputs/block_sensitivity.json",
+      "?? outputs/hotspot_budget_sensitivity.csv",
+      "?? outputs/hotspot_budget_sensitivity.json",
+      "?? outputs/paper_results.json",
+      "?? outputs/slr_sensitivity.csv",
+      "?? outputs/slr_sensitivity.json",
+      "?? outputs/source_ablation.csv",
+      "?? outputs/source_ablation.json",
+      "?? scripts/run_block_sensitivity.py",
+      "?? scripts/run_hotspot_budget_sensitivity.py",
+      "?? scripts/run_slr_sensitivity.py",
+      "?? scripts/run_source_ablation.py",
+      "?? tests/test_major_revision_gates.py",
+      "?? \"\\345\\256\\241\\346\\237\\245\\350\\276\\223\\345\\207\\272/\""
+    ]
+  },
+  "raw_manifest": {
+    "path": "data/raw/data_manifest.json",
+    "sha256": "5a21cde50aed4992a4d1865afd26183018b145b399c4b35fb241f028b2ca160c",
+    "all_sizes_match": true,
+    "all_hashes_match": true,
+    "checks": [
+      {
+        "layer": "dep_stormwater_flood",
+        "path": "data\\raw\\nyc\\dep_stormwater_flood.geojson",
+        "exists": true,
+        "size_matches": true,
+        "sha256_matches": true,
+        "official_identity_verified": false,
+        "mirror_status": "public_mirror",
+        "manifest_retrieved_utc": "2026-08-30T16:29:52.444742+00:00"
+      },
+      {
+        "layer": "dep_stormwater_flood_2050slr",
+        "path": "data\\raw\\nyc\\dep_stormwater_flood_2050slr.geojson",
+        "exists": true,
+        "size_matches": true,
+        "sha256_matches": true,
+        "official_identity_verified": false,
+        "mirror_status": "public_mirror",
+        "manifest_retrieved_utc": "2026-08-30T16:29:52.444742+00:00"
+      },
+      {
+        "layer": "flooding_311",
+        "path": "data\\raw\\nyc\\flooding_311.geojson",
+        "exists": true,
+        "size_matches": true,
+        "sha256_matches": true,
+        "official_identity_verified": false,
+        "mirror_status": "public_mirror",
+        "manifest_retrieved_utc": "2026-08-30T16:29:52.444742+00:00"
+      },
+      {
+        "layer": "usgs_ida_hwm",
+        "path": "data\\raw\\nyc\\usgs_ida_hwm.geojson",
+        "exists": true,
+        "size_matches": true,
+        "sha256_matches": true,
+        "official_identity_verified": true,
+        "mirror_status": "official",
+        "manifest_retrieved_utc": "2026-08-30T16:29:52.444742+00:00"
+      },
+      {
+        "layer": "dem",
+        "path": "data\\raw\\nyc\\dem.tif",
+        "exists": true,
+        "size_matches": true,
+        "sha256_matches": true,
+        "official_identity_verified": true,
+        "mirror_status": "official",
+        "manifest_retrieved_utc": "2026-08-30T16:29:52.444742+00:00"
+      },
+      {
+        "layer": "building_footprints",
+        "path": "data\\raw\\nyc\\building_footprints.geojson",
+        "exists": true,
+        "size_matches": true,
+        "sha256_matches": true,
+        "official_identity_verified": true,
+        "mirror_status": "official_nyc_maphub",
+        "manifest_retrieved_utc": "2026-08-30T16:29:52.444742+00:00"
+      },
+      {
+        "layer": "impervious",
+        "path": "data\\raw\\nyc\\impervious.tif",
+        "exists": true,
+        "size_matches": true,
+        "sha256_matches": true,
+        "official_identity_verified": true,
+        "mirror_status": "official_service",
+        "manifest_retrieved_utc": "2026-08-30T16:29:52.444742+00:00"
+      },
+      {
+        "layer": "hydro_streams",
+        "path": "data\\raw\\nyc\\hydro_streams.geojson",
+        "exists": true,
+        "size_matches": true,
+        "sha256_matches": true,
+        "official_identity_verified": true,
+        "mirror_status": "official",
+        "manifest_retrieved_utc": "2026-08-30T16:29:52.444742+00:00"
+      },
+      {
+        "layer": "fema_sandy",
+        "path": "data\\raw\\nyc\\fema_sandy.geojson",
+        "exists": true,
+        "size_matches": true,
+        "sha256_matches": true,
+        "official_identity_verified": false,
+        "mirror_status": "public_mirror",
+        "manifest_retrieved_utc": "2026-08-30T16:29:52.444742+00:00"
+      },
+      {
+        "layer": "event_rainfall",
+        "path": "data\\raw\\nyc\\event_rainfall.tif",
+        "exists": true,
+        "size_matches": true,
+        "sha256_matches": true,
+        "official_identity_verified": false,
+        "mirror_status": "synthetic_constant_hook",
+        "manifest_retrieved_utc": "2026-08-30T16:29:52.444742+00:00"
+      }
+    ],
+    "expanded_paths_covered": false
+  },
+  "processed": {
+    "lower_manhattan": {
+      "path": "data\\processed\\nyc_h3_cells.parquet",
+      "sha256": "e44af31a7c07d12253f1733d90214ccbe13f57d82fd4ca0746d220c5370366d2",
+      "rows": 262,
+      "columns": [
+        "h3_index",
+        "elevation_m",
+        "impervious_frac",
+        "land_cover_urban",
+        "slope_deg",
+        "flow_accum_proxy",
+        "building_density",
+        "dist_stream_m",
+        "rainfall_mm_h",
+        "lon",
+        "lat",
+        "h3_resolution",
+        "feature_source",
+        "assembly_mode",
+        "observed_feature_cols",
+        "rainfall_source",
+        "data_mode",
+        "synthetic_value_count",
+        "null_value_count",
+        "flood_area_frac",
+        "flood_point_count",
+        "dep_area_frac",
+        "dep_nuisance_frac",
+        "dep_deep_frac",
+        "complaint_count",
+        "complaint_presence",
+        "ida_hwm_count",
+        "ida_hwm_presence",
+        "ida_hwm_quality",
+        "evidence_sources",
+        "observed_risk",
+        "flood_risk",
+        "flood_class",
+        "label_source",
+        "sandy_area_frac",
+        "sandy_class"
+      ],
+      "h3_unique": 262,
+      "h3_resolution_counts": {
+        "9": 262
+      },
+      "duplicate_h3": 0,
+      "null_counts": {},
+      "assembly_mode_counts": {
+        "opendata": 262
+      },
+      "data_mode_counts": {
+        "production": 262
+      },
+      "feature_source_counts": {
+        "observed": 262
+      },
+      "rainfall_source_counts": {
+        "event_raster": 262
+      },
+      "rainfall_unique": [
+        75.0
+      ],
+      "rainfall_variance": 0.0,
+      "positive_cells": 165,
+      "positive_prevalence": 0.6297709923664122,
+      "composite_formula_max_abs_error": 0.0,
+      "class_formula_mismatch_count": 0,
+      "source_positive_cells": {
+        "dep": 74,
+        "complaint": 141,
+        "ida_hwm": 0
+      }
+    },
+    "expanded": {
+      "path": "data\\processed\\nyc_h3_cells_expanded.parquet",
+      "sha256": "efbc39c4d1ec997117d7891c40ebe6dc2dee6fc3f7f0f66b42472072f2b9fe78",
+      "rows": 956,
+      "columns": [
+        "h3_index",
+        "elevation_m",
+        "impervious_frac",
+        "land_cover_urban",
+        "slope_deg",
+        "flow_accum_proxy",
+        "building_density",
+        "dist_stream_m",
+        "rainfall_mm_h",
+        "lon",
+        "lat",
+        "h3_resolution",
+        "feature_source",
+        "assembly_mode",
+        "observed_feature_cols",
+        "rainfall_source",
+        "data_mode",
+        "synthetic_value_count",
+        "null_value_count",
+        "flood_area_frac",
+        "flood_point_count",
+        "dep_area_frac",
+        "dep_nuisance_frac",
+        "dep_deep_frac",
+        "complaint_count",
+        "complaint_presence",
+        "ida_hwm_count",
+        "ida_hwm_presence",
+        "ida_hwm_quality",
+        "evidence_sources",
+        "observed_risk",
+        "flood_risk",
+        "flood_class",
+        "label_source",
+        "sandy_area_frac",
+        "sandy_class"
+      ],
+      "h3_unique": 956,
+      "h3_resolution_counts": {
+        "9": 956
+      },
+      "duplicate_h3": 0,
+      "null_counts": {},
+      "assembly_mode_counts": {
+        "opendata": 956
+      },
+      "data_mode_counts": {
+        "production": 956
+      },
+      "feature_source_counts": {
+        "observed": 956
+      },
+      "rainfall_source_counts": {
+        "event_raster": 956
+      },
+      "rainfall_unique": [
+        75.0
+      ],
+      "rainfall_variance": 0.0,
+      "positive_cells": 454,
+      "positive_prevalence": 0.47489539748953974,
+      "composite_formula_max_abs_error": 0.0,
+      "class_formula_mismatch_count": 0,
+      "source_positive_cells": {
+        "dep": 231,
+        "complaint": 367,
+        "ida_hwm": 6
+      }
+    },
+    "r10_labels": {
+      "path": "data\\processed\\nyc_h3_cells_r10_labels.parquet",
+      "sha256": "15de88b6ec1ab916935ac44368bc7814a7c89cd86928214466e3a938ad75cc3a",
+      "rows": 1857,
+      "columns": [
+        "h3_index",
+        "lon",
+        "lat",
+        "h3_resolution",
+        "assembly_mode",
+        "feature_source",
+        "flood_area_frac",
+        "flood_point_count",
+        "dep_area_frac",
+        "dep_nuisance_frac",
+        "dep_deep_frac",
+        "complaint_count",
+        "complaint_presence",
+        "ida_hwm_count",
+        "ida_hwm_presence",
+        "ida_hwm_quality",
+        "evidence_sources",
+        "observed_risk",
+        "flood_risk",
+        "flood_class",
+        "label_source",
+        "label_scale_mode"
+      ],
+      "h3_unique": 1857,
+      "h3_resolution_counts": {
+        "10": 1857
+      },
+      "duplicate_h3": 0,
+      "null_counts": {},
+      "assembly_mode_counts": {
+        "opendata": 1857
+      },
+      "feature_source_counts": {
+        "labels_only_diagnostics": 1857
+      },
+      "positive_cells": 414,
+      "positive_prevalence": 0.22294022617124395,
+      "composite_formula_max_abs_error": 0.0,
+      "class_formula_mismatch_count": 0,
+      "source_positive_cells": {
+        "dep": 209,
+        "complaint": 262,
+        "ida_hwm": 0
+      }
+    }
+  },
+  "oof": {
+    "lower_manhattan": {
+      "table_path": "data\\processed\\nyc_h3_cells.parquet",
+      "oof_path": "models\\nyc_smoke\\spatial_cv_oof_predictions.csv",
+      "oof_sha256": "f106a4875b01cf33f934659e9293b99d84188c8c3c2ceff37390976ac3080a02",
+      "folds_sha256": "34fc287d544f1c16ad30ed7e888ecc24665634b713124706b48cd083f4e53698",
+      "rows": 262,
+      "h3_unique": 262,
+      "h3_set_matches_table": true,
+      "accuracy_pooled": 0.8091603053435115,
+      "f1_pooled": 0.8554913294797688,
+      "roc_auc_pooled": 0.8466729147141517,
+      "average_precision_pooled": 0.8513863417246026,
+      "positive_prevalence": 0.6297709923664122,
+      "fold_rows": 5,
+      "fold_accuracy_mean": 0.8088946754318563,
+      "fold_accuracy_std_ddof0": 0.04577872228039803,
+      "fold_f1_mean": 0.8463444285079316,
+      "fold_r2_mean": 0.2274972164537286,
+      "fold_r2_std_ddof0": 0.1960188271701314,
+      "fold_mae_mean": 0.2698179841480984,
+      "fold_mae_std_ddof0": 0.015434311048641394
+    },
+    "expanded": {
+      "table_path": "data\\processed\\nyc_h3_cells_expanded.parquet",
+      "oof_path": "models\\nyc_expanded\\spatial_cv_oof_predictions.csv",
+      "oof_sha256": "bfb7cea464e3fc1f35a76a7affdc314d7e7d57f510eb6f49cf9fc6a80fbd421a",
+      "folds_sha256": "9bae3cba74acb598f2cbd45690114d79c11c2ccaa9fc3f219d68f28b1ebc440e",
+      "rows": 956,
+      "h3_unique": 956,
+      "h3_set_matches_table": true,
+      "accuracy_pooled": 0.8211297071129707,
+      "f1_pooled": 0.8209424083769633,
+      "roc_auc_pooled": 0.8833981255594364,
+      "average_precision_pooled": 0.8121272838030822,
+      "positive_prevalence": 0.47489539748953974,
+      "fold_rows": 5,
+      "fold_accuracy_mean": 0.821259856909724,
+      "fold_accuracy_std_ddof0": 0.032772438982148,
+      "fold_f1_mean": 0.8191196339766484,
+      "fold_r2_mean": 0.33585404684868553,
+      "fold_r2_std_ddof0": 0.14608426163314087,
+      "fold_mae_mean": 0.2849739981451463,
+      "fold_mae_std_ddof0": 0.03575729663464358
+    }
+  },
+  "deployment": {
+    "lower_manhattan": {
+      "manifest": {
+        "role": "deployment_full",
+        "fit_rows": 262,
+        "training_h3_sha256": "6197a4fea1c473497439c65338934df0a18d2f9f246943e12490a42d78ea389b",
+        "random_seed": 42,
+        "n_feature_columns": 8
+      },
+      "manifest_sha256": "53cca25294854c5c2329d3e27137bea16ca234431df0ad3d94d8ffc25c214af6",
+      "classifier_sha256": "23e4ecc0f2b3c8b785cabfd0482808b9b1e9ea969e469a1e4738a1260a2d2327",
+      "fit_rows_matches": true,
+      "h3_hash_matches": true,
+      "independent_refit_prediction_max_abs_error": 0.0,
+      "manifest_has_config_hash": false,
+      "manifest_has_feature_value_hash": false,
+      "manifest_has_raw_input_hashes": false
+    },
+    "expanded": {
+      "manifest": {
+        "role": "deployment_full",
+        "fit_rows": 956,
+        "training_h3_sha256": "233873daf9030be19c653f249550fff273b1c3309a8862148238179289fdcbb9",
+        "random_seed": 42,
+        "n_feature_columns": 8
+      },
+      "manifest_sha256": "44e517e17cee74322eab2273026c7c8c0a1c3114b96726231682966909e504a6",
+      "classifier_sha256": "a69bc6d0b13335978c12931b9f68ddec133ea5361c6aea956b0d7777a7cf4b8a",
+      "fit_rows_matches": true,
+      "h3_hash_matches": true,
+      "independent_refit_prediction_max_abs_error": 0.0,
+      "manifest_has_config_hash": false,
+      "manifest_has_feature_value_hash": false,
+      "manifest_has_raw_input_hashes": false
+    }
+  },
+  "hotspot": {
+    "r10_rows": 1857,
+    "r10_score_one_count": 262,
+    "r10_score_zero_count": 1444,
+    "table_rows": [
+      {
+        "coarse_res": 8,
+        "aggregation": "mean",
+        "jaccard": 0.10526315789473684,
+        "jaccard_soft": 0.11120543293718166,
+        "k_fine": 186,
+        "k_coarse": 4,
+        "n_hotspot_fine": 262,
+        "n_hotspot_fine_parents": 38,
+        "n_hotspot_coarse": 4,
+        "fine_hotspot_area_m2": 2812805.2452515224,
+        "target_parent_area_m2": 2812805.2452515224
+      },
+      {
+        "coarse_res": 8,
+        "aggregation": "max",
+        "jaccard": 1.0,
+        "jaccard_soft": 0.9465648854961832,
+        "k_fine": 186,
+        "k_coarse": 38,
+        "n_hotspot_fine": 262,
+        "n_hotspot_fine_parents": 38,
+        "n_hotspot_coarse": 38,
+        "fine_hotspot_area_m2": 2812805.2452515224,
+        "target_parent_area_m2": 2812805.2452515224
+      },
+      {
+        "coarse_res": 8,
+        "aggregation": "p90",
+        "jaccard": 0.5263157894736842,
+        "jaccard_soft": 0.5560271646859083,
+        "k_fine": 186,
+        "k_coarse": 20,
+        "n_hotspot_fine": 262,
+        "n_hotspot_fine_parents": 38,
+        "n_hotspot_coarse": 20,
+        "fine_hotspot_area_m2": 2812805.2452515224,
+        "target_parent_area_m2": 2812805.2452515224
+      },
+      {
+        "coarse_res": 9,
+        "aggregation": "mean",
+        "jaccard": 0.2158273381294964,
+        "jaccard_soft": 0.24909678646130443,
+        "k_fine": 186,
+        "k_coarse": 30,
+        "n_hotspot_fine": 262,
+        "n_hotspot_fine_parents": 139,
+        "n_hotspot_coarse": 30,
+        "fine_hotspot_area_m2": 2812805.2452515224,
+        "target_parent_area_m2": 2812805.2452515224
+      },
+      {
+        "coarse_res": 9,
+        "aggregation": "max",
+        "jaccard": 1.0,
+        "jaccard_soft": 0.8664396726893294,
+        "k_fine": 186,
+        "k_coarse": 139,
+        "n_hotspot_fine": 262,
+        "n_hotspot_fine_parents": 139,
+        "n_hotspot_coarse": 139,
+        "fine_hotspot_area_m2": 2812805.2452515224,
+        "target_parent_area_m2": 2812805.2452515224
+      },
+      {
+        "coarse_res": 9,
+        "aggregation": "p90",
+        "jaccard": 0.539568345323741,
+        "jaccard_soft": 0.622741966153261,
+        "k_fine": 186,
+        "k_coarse": 75,
+        "n_hotspot_fine": 262,
+        "n_hotspot_fine_parents": 139,
+        "n_hotspot_coarse": 75,
+        "fine_hotspot_area_m2": 2812805.2452515224,
+        "target_parent_area_m2": 2812805.2452515224
+      }
+    ],
+    "figure_pairwise_hard_jaccard_current_code": {
+      "R10_R9": 0.2158273381294964,
+      "R10_R8": 0.13157894736842105,
+      "R9_R8": 0.29411764705882354
+    },
+    "parent_support_area_check": {
+      "8": {
+        "hard_parent_support_cells": 38,
+        "hard_parent_support_area_m2": 28157013.4507453,
+        "implemented_target_area_m2": 2812805.2452515224,
+        "implemented_target_to_support_area_ratio": 0.09989714463758474
+      },
+      "9": {
+        "hard_parent_support_cells": 139,
+        "hard_parent_support_area_m2": 14714136.659427395,
+        "implemented_target_area_m2": 2812805.2452515224,
+        "implemented_target_to_support_area_ratio": 0.19116345799665718
+      }
+    }
+  }
+}

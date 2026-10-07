@@ -1,0 +1,17 @@
+# Flat review repository — intentionally permissive.
+#
+# This repo is a flat, review-only snapshot (see FLAT_LAYOUT_EXPLAINED.md), so
+# almost nothing is ignored: raw evidence GeoJSON, processed tables, fitted
+# models and the Chinese audit pack are all committed on purpose so a reviewer
+# or AI agent can read the whole project from one directory listing.
+#
+# Only local scratch produced by the restore helpers and OS/editor junk are
+# ignored.
+
+# Output of RESTORE_STRUCTURE.ps1 / RESTORE_STRUCTURE.py
+_restored/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.swp

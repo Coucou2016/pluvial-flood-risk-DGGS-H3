@@ -1,0 +1,373 @@
+修订后论文、代码、数据与图片深入审稿及真实性审查报告
+审查对象：E:\Projects\20260522-pluvial-flood-risk-DGGS-H3
+审查日期：2026-09-14（Asia/Shanghai）｜审查结论：Major Revision，当前版本暂不建议直接投稿
+项目
+当前审查快照
+Git 基线
+HEAD 1be9288db06e0611f2785c5381837cb48a50478e；工作区有 90 个变更/未跟踪路径
+论文
+docs/paper/manuscript.md 与 24 页 manuscript.pdf；6 幅主图及补充图
+核心样本
+Lower Manhattan：262 个 R9 单元；扩展试点：956 个 R9 单元；原生 R10 标签：1857 个单元
+代码验证
+pytest：63 passed、3 failed、1 skipped；compileall 通过；git diff --check 未通过
+独立复核
+两张处理表从原始文件重建后均与现有 parquet 字节级一致；OOF 指标独立重算一致；deployment 模型独立重拟合预测差异为 0
+执行摘要
+这次修订比早期版本明显扎实：论文已经区分空间交叉验证模型与全样本部署模型，开放证据的三个来源被保留为独立列，生产装配改为缺数据即失败，两套主处理表可以从现有原始文件完整重建，核心 OOF 指标也能由逐单元预测独立复算。就现有证据看，没有发现把参考论文的结果表、数值或正文直接当成本研究结果使用的证据。
+但目前还不能作“已完全证明所有数据和结果均真实、原创、可投稿复现”的绝对保证。阻断投稿的主要问题不是模型分数本身，而是尺度损失诊断的实现与论文叙述不一致、311 来源链和筛选规则不合格、扩展区原始数据未进入中央清单、工作区和软件测试未冻结，以及论文仍错误声称 FloodNet 尚不可用。以上问题会让审稿人对核心贡献、标签有效性和结果可追溯性产生合理怀疑。
+建议结论：Major Revision。先完成本报告 P0 项并重新生成全部表图和论文，再进入投稿前终审。若只改文字、不重新计算尺度诊断和 311 标签，不能视为问题解决。
+1　审查范围、方法与证据口径
+本次审查覆盖论文正文与 PDF 版式、代码路径、配置、原始/处理后数据、模型与 OOF 预测、表格与图片、来源清单、测试，以及仓库中的参考论文材料。采取了四类独立核查：静态逐文件审查；从原始文件重新装配处理表；从 OOF 逐行预测重算指标；用相同配置独立重拟合部署模型并比较预测。审查生成的机器可读证据保存在“审查输出/修订后深入审稿/current_revision_evidence.json”。
+证据分级定义：A＝可由哈希、逐行计算或独立重建直接验证；B＝代码和文档相互支持，但来源身份、运行环境或外部过程仍缺一环；C＝仅有文字声明或间接迹象，不能作真实性保证。这里的“自己的结果”是指作者使用公开输入数据、按自己声明的方法计算出的派生结果；它不等于作者拥有或亲自采集了原始公开数据。
+审查维度
+等级
+判断
+核心指标可复算
+A
+两套 OOF 表覆盖全部单元且无重复；accuracy、F1、ROC-AUC、AP、R²、MAE均可独立复算
+处理表可重建
+A
+Lower 与 expanded parquet 的重建 SHA-256 分别与现有文件完全相同
+部署模型可重拟合
+A
+独立重拟合后对训练表预测最大绝对差为 0
+Lower 原始输入完整性
+A/B
+中央清单中 10 个文件大小和 SHA-256 均匹配；但 DEP/311/Sandy 部分身份仍是公共镜像
+扩展区来源链
+C
+可从当前文件重建，但中央 data_manifest 未覆盖 data/raw/nyc_expanded
+尺度损失结论
+C
+表、图、文字与算法预算定义不一致；当前 headline 不可保留
+正文原创性迹象
+B
+科学正文与仓库参考论文未发现连续 8–20 词完全重合；但文本比对不能证明思想独立或授权完备
+投稿级冻结
+C
+工作区大量未提交，依赖未完整锁定，测试未全绿，运行清单缺关键哈希
+2　已经得到支持的结果与真实性证据
+2.1　处理数据与标签逻辑
+Lower Manhattan 处理表为 262 个唯一 R9 单元；扩展表为 956 个唯一 R9 单元；均无空值、无重复 H3、assembly_mode=opendata、data_mode=production、feature_source=observed。
+两张表中 flood_evidence_score / flood_risk 均逐行等于 max(dep_area_frac, complaint_presence, ida_hwm_presence)，最大绝对误差为 0；flood_class 与阈值规则不一致的单元数为 0。
+Lower 原始清单所列文件的大小和 SHA-256 全部匹配；Lower 重建文件 SHA-256 为 e44af31a…，与现有处理表完全一致。扩展重建文件 SHA-256 为 efbc39c4…，也与现有处理表完全一致。
+输入降雨在两张表中均只有 75.0 mm/h 一个值，方差为 0。因此当前结果能够支持“静态易涝/证据筛查”，不能支持经验上的降雨响应函数或多情景风险曲线。
+2.2　模型评价与部署
+范围
+n / 正类
+空间 CV（折均值）
+逐行 OOF（pooled）
+证据分回归
+Lower
+262 / 165
+Acc 0.8089±0.0458；F1 0.8463
+ROC-AUC 0.8467；AP 0.8514；pooled F1 0.8555
+R² 0.2275±0.1960；MAE 0.2698±0.0154
+Expanded
+956 / 454
+Acc 0.8213±0.0328；F1 0.8191
+ROC-AUC 0.8834；AP 0.8121；pooled F1 0.8209
+R² 0.3359±0.1461；MAE 0.2850±0.0358
+这组数值可由当前 OOF 表独立重算，且 OOF 的 H3 集合与处理表一一对应。论文中的主要 accuracy/F1/ROC-AUC/AP 数值基本有真实计算支撑；扩展区 R² 和 MAE 的正文数值例外，见 P0-06。
+deployment_full 模型分别使用 262 和 956 个全样本单元拟合；模型清单的训练行数和 H3 ID 哈希与输入一致。按当前代码和依赖重新拟合后，训练表预测与保存模型的最大绝对差为 0。这支持“地图来自本仓库全量重拟合模型”，但现有 manifest 尚不能证明使用的是哪一份特征值、原始输入和配置。
+2.3　参考论文与结果独立性核查
+仓库根目录存在参考论文 PDF/Markdown、补充材料压缩包及提取参考图的脚本；gen_w8_inject.py 还会把 reference_paper.md 上传给 AI。这些文件没有被发现进入科学数据装配、模型训练、评价或制图的数据依赖图；模型输入只指向本地 NYC/USGS/NLCD/NHD 等公开数据。对当前科学正文与参考论文正文进行连续 8、10、12、15、20 词完全匹配扫描，未发现正文重合；检测到的重合局限于参考文献和通用利益冲突措辞。
+该结果是“未发现直接复制正文/结果”的正面证据，不是法律意义上的原创性证明。参考论文及其图片仍应移入 literature/third_party，记录来源、许可、用途和未进入计算流程的声明；对 AI 辅助写作保留提示词、输出、人工核验和修改记录。
+3　P0：投稿前必须解决的阻断性问题
+P0-01　尺度损失 Jaccard 的预算定义、表、图和正文相互冲突
+发现与证据。rollups.py:397–420 以 k=round(0.10×1857)=186 生成分数边界的 fractional weights，但 262 个 R10 单元都在最高分 1 上并列，因此所谓 hard hotspot 实际包含 262 个单元而不是 186 个。代码把这些权重按父单元相加后截断到 1，并直接令 target_parent_area=fine_hot_area=2.813 km²；这不是细热点父单元支撑面积。实际 hard parent support 在 R9 为 139 个父单元、约 14.714 km²，在 R8 为 38 个父单元、约 28.157 km²。随后 coarse_k 又通过“先按面积累计、再把并列项全部加入、再按 cell count 做一次 top-k”得到，预算含义再次变化。最大值聚合 hard Jaccard=1.0 主要是并列与 presence 保留的定义结果。与此同时，Figure 6 使用 figures.py:708–737 的另一套“各分辨率独立 exact top-k + H3 索引破并列”方法。当前图上矩阵实际为 R10–R9 0.216、R10–R8 0.132、R9–R8 0.294；正文 4.3 写 0.180/0.111，图注写 0.105/0.111，Table 4 写 hard 0.105/soft 0.111。
+为什么重要。尺度损失是论文的核心贡献之一。当前协议不能支持“projected-parent-area matched”或“Figure 6 reproduces Table 4”，会被审稿人视为定义漂移和结果选择。
+具体修改。推荐把细热点定义为面积加权的 fractional membership。对每个粗父单元 p 定义 w_ref(p)=Σ_i∈p a_i w_i / Σ_i∈p a_i；粗尺度按分数排序，允许边界单元/并列组分数化，使选中粗面积严格等于目标预算。主指标用 area-weighted soft Jaccard：Σ a_p min(w_ref,w_coarse)/Σ a_p max(w_ref,w_coarse)。hard Jaccard 只作为敏感性：对并列单元做固定种子的重复随机分配（建议 1000 次），报告中位数和 95% 区间。Figure 6 必须直接读取 Table 4 的同一张长表，或调用同一个公共函数；删掉 figures.py 内独立的热点选择实现。若不愿重构，应暂时删除 Jaccard headline，仅保留“均值聚合压缩分布”的描述性结果。
+验收标准。新增测试必须同时断言：Σw_fine=k；细/粗面积预算误差小于预设容差；图矩阵数值逐项等于 CSV；正文 claim registry 与 CSV 一致；并列情况下 hard 支撑规模不得被表述为 k。重新生成 Table 4、Figures 5–6、Figure S1、README、report.md、audit.md 后，全仓库搜索不得残留 0.180、0.132、过时 0.111 或“exact top-k/H3 tie-break”冲突措辞。
+当前 Figure 6。矩阵显示 0.216 / 0.132 / 0.294，与正文、图注和 Table 4 的方法及数值不一致。
+P0-02　311 来源不是可审计的官方原始记录，回退查询也不等价
+发现与证据。当前 _311_CANDIDATES 优先使用 arcgis_streetfloodtime，其次使用 GitHub CDN，最后才请求 NYC SODA。Lower 文件含 488 条、扩展文件含 1134 条，字段中出现 WPCP、COMB_OR_SE、Outfall、Interceptor 等二次加工属性，ArcGIS owner 为 jeichen_GIS；它更像公开研究/教学派生层，而非官方 NYC 311 原始导出。中央清单也明确 official_identity_verified=false。SODA 回退则仍指向现已表示 2020–present 的 erm2-nwe9，而论文使用的是 2010–2014；其过滤条件还把所有 complaint_type LIKE '%Sewer%' 纳入，仅设 limit=5000，没有日期条件、排序、分页和 unique_key 去重。
+为什么重要。311 是标签正类的主要来源（Lower 141/165 个 composite 正类含 311；扩展 367/454）。来源或筛选规则稍有变化就会显著改变标签、模型和地图。当前只能称“公开派生 311 图层”，不能称“按可复现官方规则提取的 NYC 311 街道积水记录”。
+具体修改。首选重做：对 2010–2014 使用 NYC Open Data 历史数据集 76ig-c548，而不是 erm2-nwe9；先验写死 agency、complaint_type、descriptor、created_date、bbox 规则，按 unique_key 排序并用 $offset 分页直到空页，去重后冻结完整 URL/查询 JSON、响应元数据、提取日期、行数和 SHA-256。把官方数据设为第一候选，镜像只能作为经过逐行核验的缓存。若保留现有镜像，正文必须改名为“public derived street-flooding complaint layer (2010–2014 snapshot)”，给出创建者、生成脚本/许可和与官方记录的抽样或全量核验。
+验收标准。给定冻结查询，从空目录运行两次得到相同行数、unique_key 集合和哈希；无 5000 行截断；所有记录满足日期/空间/类别条件；生成纳入/排除流程表；重新装配后，所有主表、消融、地图和模型均重新计算。
+P0-03　真实性链条尚未形成不可变的 run bundle
+发现与证据。中央 data/raw/data_manifest.json 的 10 个 Lower 文件哈希均匹配，但不覆盖 data/raw/nyc_expanded。清单字段 retrieved_utc=2026-08-30，实际 DOWNLOAD_MANIFEST 显示 Lower/expanded 下载发生在 8 月 15/17 日，当前字段更像“清单生成时间”。deployment manifest 只有 role、fit_rows、H3 ID 哈希、seed 和特征数，没有配置哈希、特征值/处理表哈希、原始输入哈希和模型文件哈希。工作区审查时有 90 个变更/未跟踪路径，当前结果不对应一个干净 commit/tag。requirements.txt 除 h3 外多为下限，无法锁定 Python 3.13.12、scikit-learn 1.8.0、pandas 3.0.3、NumPy 2.4.6 等实际环境。
+为什么重要。现有证据足以说明“当前本机文件能够重建”，却不足以让第三方确定“论文 PDF 对应的唯一代码、数据和环境”。这正是数据真实与可追溯性的最后一公里。
+具体修改。为每次正式运行建立 runs/<run_id>/：保存 git commit、dirty flag、完整命令、stdout/stderr、配置副本及哈希、所有 raw manifest 及哈希、processed parquet 哈希、特征名/顺序、target 定义、每折 train/test H3 哈希、OOF 哈希、模型哈希、表图哈希、Python 和依赖锁文件。Lower 与 expanded 各自建立原始清单；把 retrieved_utc 拆为 source_retrieved_utc 与 manifest_generated_utc。停止在 models 根目录保留角色不明的重复模型，或至少用 role.json 强制加载。最终从干净 commit 一键生成论文所用结果并打 tag。
+验收标准。一个全新目录或容器中，仅凭仓库、锁文件和公开下载步骤可生成相同输入哈希、处理表哈希、OOF 指标与图表；run_manifest 能从每个论文数字追溯到数据、代码、配置和模型；git status 干净；提交 DOI/Zenodo release 与论文 Data/Code availability 一致。
+P0-04　当前测试套件未通过，软件不能宣称完整
+发现与证据。实际运行 pytest -q 得到 63 passed、3 failed、1 skipped。失败为 tests/test_negative_control.py::test_negative_control_separates_coastal_and_pluvial、test_assemble_label_scale_table_fast、test_attach_coastal_overlay_does_not_change_labels。生产代码已改为 fallback_synthetic=False 的 fail-closed 行为，而这三个测试仍构造缺 DEM/slope/flow/impervious 等文件的局部 fixture 且未显式允许合成回退，因此抛出 AssemblyError。compileall 通过；git diff --check 因 docs/paper/report.md 多处行尾空白失败。
+为什么重要。这是一个可解释的测试回归，不等同于科学结果错误；但测试红灯意味着当前提交不能作为“完整可运行代码”交付，也掩盖了未来真正的回归。
+具体修改。测试只验证几何/标签行为时，显式传 fallback_synthetic=True 并在测试名/注释中标明 fixture-only；另加生产路径测试，断言缺任一必需观测层时必定失败。对三个失败测试逐个修复，不要放宽生产默认。清除行尾空白，并在 CI 中固定执行 pytest、compileall、git diff --check 及最小端到端 smoke。
+验收标准。干净环境中 pytest 全绿且无 xfail 掩盖；生产 fail-closed 测试存在；git diff --check 无输出；CI 记录保存到正式 run bundle。
+P0-05　FloodNet“尚无可用数据”的陈述已过时
+发现与证据。代码仍把 https://api.floodnet.nyc/status 当 placeholder probe，正文多处写“no usable FloodNet observations”或“when a suitable sensor layer becomes available”。截至本次审查，NYC Open Data 已公开 FloodNet: Street Flooding Events Measured by FloodNet Sensors（aq7i-eu5q），2026-03-03 对外发布，当前含经过 FloodNet 团队质控的传感器洪水事件，并有独立的传感器位置元数据。
+为什么重要。这不是一般性的未来工作措辞错误，而是可核验的事实过时。对一篇强调开放数据与外部验证的论文，忽略已经存在的官方观测数据会削弱可信度。
+具体修改。优先把 FloodNet 作为严格独立验证，不参与训练标签：按传感器位置映射 H3，按事件时间/最大水深定义预注册的验证结局，并区分 tidally influenced 传感器；报告传感器数、事件数、覆盖范围、阈值敏感性和按传感器聚类的不确定区间。若时间不足，至少改为“dataset became public after the original pipeline was designed and is not yet integrated”，写明数据截止日与排除理由，不能再说数据尚不存在。
+验收标准。正文、代码注释和 DATA_SOURCES 同步；官方 dataset ID、版本/更新时间、下载查询和哈希进入 manifest；若完成验证，FloodNet 保持完全 held-out，任何阈值调节都在训练数据或预注册规则上完成。
+P0-06　扩展区回归指标和旧审计文档混有过时数字
+发现与证据。扩展区当前 OOF 正确值为 R² 0.335854±0.146084、MAE 0.284974±0.035757。manuscript.md §4.7 仍写 0.333±0.144、0.286±0.036；Table 3 和局限部分写 0.336，但 Table 8 仍写 0.333。report.md 与 audit.md 还保留大量 n=141、7 blocks、旧 Jaccard 0.180/0.111、旧 Moran's I 等历史段落；report.md 甚至一边写 tie-aware，一边仍写 exact top-k/H3 tie-break。
+为什么重要。这些不是四舍五入差异，而是不同运行快照混用。审稿人看到同一结果有多个版本，会直接怀疑表图是否手工拼接。
+具体修改。建立唯一 outputs/paper_results.json 作为 claim registry，由脚本生成正文表格、图注和报告摘要。历史结果移入带日期与 commit 的 archive，不在现行 report/audit 中混排。将 §4.7 和 Table 8 改为 R² 0.336±0.146、MAE 0.285±0.036；Jaccard 在 P0-01 重算前不要机械替换。
+验收标准。一个自动检查脚本扫描 manuscript/report/audit/README，确保每个注册 claim 只取当前 run_id；不允许现行文件中出现 n=141/7 blocks 等过期 headline；所有数值源文件均有哈希和生成脚本。
+4　P1：主要科学与方法学修改
+编号
+问题
+具体修改方案
+最低验收
+P1-01
+“任何正交叠”阈值 1e−9 对细碎相交敏感
+预注册面积阈值敏感性（1e−9、1e−4、1e−3、0.01、0.05、0.10），每个阈值重跑 CV；把主阈值改为有物理/制图分辨率依据的规则，或把 binary 仅作次要结果
+报告正类数、ROC-AUC/AP/F1 及空间图变化；解释阈值选择
+P1-02
+标签不是同一潜变量，点 presence 一次即饱和为 1
+把 composite 明确定义为 screening evidence；主分析增加来源分层/多任务或分级证据；HWM 质量和 311 计数不要无差别压成 1
+每源目标、组合规则、敏感性和不确定性均可复算
+P1-03
+矩形 bbox 包含大量水域/岸外 H3，可能放大海岸特征
+建立 Manhattan land footprint + 合理缓冲；计算 land_fraction，主分析排除低陆地占比单元；做 rectangular vs land-only 消融
+地图画出陆地边界；报告样本/正类/指标变化
+P1-04
+R7 GroupKFold 无空间缓冲，超参数也未嵌套调优
+按残差空间相关范围设 buffer；小范围补 leave-one-R7-block-out；若调参，用 nested spatial CV；在 R7 block 层 bootstrap 95% CI
+训练/测试最小距离可核查；不在测试折选择阈值或超参
+P1-05
+pooled OOF 分数来自 5 个不同模型，跨折刻度未必可比
+fold-mean/macro 作为主评价，pooled 作为补充；或仅在 nested CV 内做校准；增加 balanced accuracy、MCC、Brier、校准曲线
+主表明确 aggregation 口径；报告 CI，不把 SD 当 CI
+P1-06
+311 为 2010–2014，DEP/地表特征和 HWM 年代不同
+列出每层时间范围与版本；做时间一致子集或按来源分别建模；禁止把静态 union 解释成单事件风险
+Methods 有时间对齐表；Limitations 量化而非泛称
+P1-07
+Sandy 不是严格 negative control
+改名 coastal-confounding diagnostic。Sandy 与低高程/近岸特征本就共享成因，不应期望完全分离；增加 land-only、去坐标/去 shoreline、空间置换对照
+不再用“negative control passed”措辞
+P1-08
+来源消融的因果措辞过强
+将“neither artefact nor carried by coastal position”改为“reduces but does not eliminate concern”；对 composite vs single-source AUC 差异做空间块 bootstrap
+无显著性/CI 时不称 fusion benefit
+P1-09
+adaptive 结果只证明算术单元数减少
+用 OOF 分数做选择诊断；同预算比较 random、risk-only、uncertainty-only、spatial stratified；测 retained evidence、hotspot recall、runtime、memory
+没有准确率/时间证据前仅作 proof-of-concept 补充材料
+P1-10
+常数 75 mm/h 却使用 PFI_h(c,r) 函数记号
+当前稿把模型记为静态 susceptibility/evidence score S_h(c)；移除或降级 r。只有接入变化的实测事件降雨并验证响应后再恢复 PFI_h(c,r)
+固定 c 改变 r 时模型输出确实改变，且验证数据覆盖这些 r
+P1-11
+flow accumulation 未做填洼/水文校正，基线称 HAND/TWI-like
+把基线改名 transparent ponding heuristic；Methods 写明 D8 lowest-neighbour proxy、无 depression filling；HAND/TWI 只作为近似灵感，不作实际变量名
+术语与代码一致；补充对真实水文派生物的敏感性或删除 HAND
+P1-12
+land_cover_urban 由 imperviousness 确定性复制
+主模型只保留一个，或在消融中证明冗余不影响；报告相关性和特征构造
+特征表不再把二者描述为独立观测源
+4.1　标签阈值的实际敏感性
+当前 binary target 用 flood_evidence_score ≥ 1e−9。仅改变面积阈值（点 presence 仍为正）就会产生以下正类数变化，说明“任意几何擦边即正类”并非完全无关紧要：
+范围
+1e−9
+1e−4
+1e−3
+0.01
+0.05
+0.10
+Lower（n=262）
+165
+164
+163
+161
+150
+142
+Expanded（n=956）
+454
+451
+443
+426
+393
+373
+建议把这张敏感性从“只数正类”升级为完整重跑，并将阈值选择与 DEP 图层最小有效制图面积、栅格分辨率或业务定义相联系。否则 classification 的实质只是“能否预测任意证据交叠”，不是“能否预测具有实际影响的积水”。
+4.2　HWM 行数、地点数与 H3 支撑边界
+本地 USGS 文件有 159 个不同 hwm_id、156 个唯一坐标；官方页面描述为 83 个 locations。这两者不一定矛盾，因为一个 location 可包含多个 mark，但论文和清单必须明确“159 marks at 83 locations”，并说明是否按 location 去重。简单坐标 bbox 过滤在扩展矩形内得到 13 个 mark，而 H3 处理表合计 14 个 mark、落在 6 个 cell；这很可能来自“H3 单元与 bbox 相交/中心纳入”支撑差异。应把空间纳入规则画清楚，并用单元边界而非仅坐标矩形解释计数。
+5　代码、数据工程与测试的详细审稿意见
+模块/位置
+评价
+问题
+修改
+assemble.py:254–399
+正面
+生产缺层即失败，显著减少“做一半臆断一半”风险；但 fixture 测试未适配
+保持生产默认；在测试中显式区分 synthetic fixture
+model.py:130–205
+部分合格
+evaluation/deployment 角色已分开；manifest 仅哈希 H3 ID，不哈希特征值、配置和原始输入
+扩展 DeploymentResult 与 manifest；保存 model/config/table/raw hashes
+model.py:155–185
+需清理
+为了兼容把 evaluation 模型同时复制到根目录，容易被旧加载器误用
+迁移完成后删除根副本，加载时强制 expected_role
+spatial_cv.py
+方向正确
+GroupKFold 防止同一 R7 组跨折，但相邻块仍紧贴；阈值/超参未 nested
+实现 buffer 和 nested split；保存每折 H3 列表/哈希
+rollups.py:397–505
+阻断
+fractional tie、父权重、面积预算和 hard set 混为一体
+按 P0-01 重写并拆分纯函数；加不变量测试
+figures.py:708–801
+阻断
+Figure 6 自己实现另一套 hotspot 协议，注释仍称 H3-index tie-break
+只能消费 canonical diagnostics table；禁止图函数重算科学指标
+download_nyc.py:94–110, 852–892
+阻断
+镜像优先；历史年份 API ID 错；Sewer 过滤过宽；无分页
+官方 76ig-c548 优先；预注册过滤；排序分页去重
+download_nyc.py:118–119
+过时
+FloodNet status placeholder 代替官方开放数据
+接入 aq7i-eu5q 与 sensor metadata
+baselines.py:15–188
+基本可用
+训练折 bounds 避免泄漏是正确的；HAND/TWI 名称过度
+改名 heuristic；记录公式、阈值和训练折 bounds
+requirements.txt
+不足
+除 h3 外是最低版本，不能复现当前环境
+增加 uv.lock/conda-lock 或 fully pinned requirements；记录 OS/Python
+docs/paper/report.md, audit.md
+不合格
+现行真相与历史快照长期追加，内部互相矛盾
+每次 run 生成只读报告；历史按 commit 归档
+5.1　建议新增的自动化闸门
+test_raw_manifest_complete_for_each_profile：Lower/expanded 使用到的每个原始文件都必须在对应 manifest 中，且哈希匹配。
+test_rebuild_processed_tables：从冻结 raw/config 重建 parquet，并对列、H3 顺序和值做严格比较；浮点容差必须预先说明。
+test_oof_exact_coverage：每个样本恰好一个 OOF 预测；train/test H3 无交集；同一 R7 组不跨折。
+test_no_train_test_buffer_overlap：加入 buffer 后，验证任一 test cell 的缓冲邻域不在 train。
+test_figure_table_identity：Figure 6 的矩阵 JSON 与 Table 4 CSV 逐项相同，图函数不自行计算指标。
+test_claim_registry：正文表格/图注中的注册数字与 outputs/paper_results.json 同源。
+test_production_has_no_synthetic_values：正式 run 的 synthetic_value_count=0，且 rainfall_source 的 synthetic hook 被单独标识，不能冒充实测。
+test_model_manifest_complete：要求 git/config/raw/processed/fold/model/figure hashes 全部存在。
+6　图片数据逻辑与视觉审查
+图
+数据逻辑
+视觉问题
+具体修改
+Fig. 1 Workflow
+总体流程合理，但没有直观分开 fold-specific evaluation 与 deployment_full
+图中“not PFIb”过于防御性
+画成评价支路/部署支路；把对参考论文的否定移到图注；标出标签三源及 Sandy 仅诊断
+Fig. 2 Spatial maps
+B 是 5 个折模型拼接的 OOF，C 是全样本部署模型，逻辑不同
+矩形网格包含水域，容易被看成研究覆盖；B/C 差别小但含义未醒目标注
+叠加 land/bbox 边界与 R7 block；标题写“OOF from fold-specific models”和“full-data descriptive fit”；统一色标
+Fig. 3 Source evidence
+三源独立列是优点；Lower HWM 为零
+DEP 最大约 0.164 却用 0–1 色标，几乎全黑；HWM 无点仍画蓝色 0 网格和彩条；composite 被 point presence=1 饱和
+DEP 用 0–0.17 或稳健分位色标并标最大值；HWM 面板用灰色/斜线“no observations”；增加来源重叠计数
+Fig. 4 CV folds
+fold 指标与表可对上
+折内正类、n、SD/CI 的信息拥挤；读者易把 SD 当 CI
+主图只保留 accuracy/F1 与明确的 SD；AUC/AP/校准移至表或补图；在地图上画 block
+Fig. 5 Multi-resolution
+原生 R10 后 mean 上卷的方向正确
+父单元伸出 bbox；水域/陆域不清；共同 0–1 色标适合看压缩但不适合细部
+画分析 footprint 与 land mask；图注解释 parent support 扩展；补充同分位/局部放大而不替代共同色标
+Fig. 6 Resolution effects
+当前与 Table 4 不同源，是核心错误
+热图视觉清楚，但显示的数字与图注不一致
+完成 P0-01 后只从 canonical CSV 绘图；在图生成测试中读取并比较矩阵
+Fig. S1 Jaccard ladder
+数值目前与 Table 4 同源，但协议本身不成立
+可读性尚可
+算法修复后重画；主图给 CI/敏感性，max=1.0 加注“operator-induced”
+Fig. S2 Adaptive
+7222 与 12838 主要是网格数量算术，不是实测效率
+柱图容易暗示性能/速度提升
+标题改“cell-count accounting”；加入真实 runtime/memory/retention 后再谈 efficiency
+当前来源证据图。DEP 色标被 0–1 范围压扁，Lower HWM 零观测应使用“无数据”语义，而不是看似有连续零值观测。
+6.1　PDF 版式逐页检查
+24 页均已渲染检查。第一页保留了内部制作头“Self-contained manuscript · figures embedded (Base64) · generated …”，不应出现在投稿稿件。
+PDF metadata title 出现乱码字符“Manuscript �� Spatially…”，需要在生成脚本设置正确 Unicode 元数据。
+Table 1 跨第 3–4 页未重复表头；Table 3 跨第 12–13 页；Table 4 标题在第 14 页而表体在第 15 页。Word/LaTeX 中应设置表头重复、标题与表体同页、禁止关键行拆分。
+若干图偏小且页面留白过多（例如约第 10 页）；优先使用矢量 PDF/SVG，按单栏/双栏目标宽度输出，而不是把大图缩进正文。
+作者、单位、通讯作者、ORCID 和 CRediT 仍是占位内容；未补齐前不能作为投稿版。
+正文已嵌图，又在末尾单列完整 Figure captions，形成重复。按目标期刊模板选择一种结构。
+7　论文论述与结论边界
+7.1　当前可以保留的结论
+在两个已定义的曼哈顿试点范围内，空间分块 OOF 排序指标高于随机/流行率参照；这是一项范围内判别结果，不是纽约全市泛化。
+模型地图可由当前 deployment_full 模型生成，且全样本重拟合过程在当前环境下可重复。地图必须明确是描述性全拟合输出，不是验证预测。
+公开异构证据可在 H3 上保留来源并进行审计；标签代表“曾有证据”，不是洪水深度、概率或事件风险。
+均值上卷会压缩证据分布。关于热点 Jaccard 的具体强度，必须等 P0-01 修复后再写。
+7.2　当前必须删除或降级的结论
+删除“projected-parent-area matched 10% budgets 已消除 tie artefacts”的表述；当前实现没有做到。
+删除“Figure 6 reproduces Table 4”及 0.180/0.111；当前图实值与表不同。
+删除“discrimination is neither an artefact of DEP nor carried by coastal position alone”这类排除性因果措辞；改为“消融降低了该担忧，但没有消除共同空间偏差”。
+删除“FloodNet 尚无可用数据/待未来可用”；改为当前数据已公开但本研究未接入，或完成外部验证。
+避免把 75 mm/h 称为 Ida-like 条件；它只是合成常数栅格。当前 PFI_h(c,r) 应降级为 S_h(c)。
+不再把原始公开数据说成“自己的数据”。应说：public third-party inputs + author-derived labels/features/models/results。
+8　可直接替换进论文的英文方法文字
+以下文字保持现稿的克制、方法先行写法，但把可证实边界说得更清楚。尖括号内容须由作者在重新计算后填入，不能照抄占位符。
+8.1　Data provenance and 311 extraction
+All source datasets are third-party public inputs; the cell-level features, labels, fitted models, predictions, diagnostics, tables, and figures are author-derived outputs. For each study profile, the archived run bundle records the official landing page, the exact download query, retrieval time, license, file size, and SHA-256 checksum. Historical 311 service requests for 2010–2014 were queried from NYC Open Data dataset 76ig-c548 using the prespecified agency, complaint-type, descriptor, date, and spatial filters reported in Supplementary Table <X>. Results were ordered by unique_key, retrieved with complete pagination, and deduplicated by unique_key before spatial assignment. No third-party derived complaint layer was used as an unverified substitute for the official extract.
+8.2　Evidence target
+The outcome is a screening measure of heterogeneous flood evidence rather than a calibrated flood probability or depth. DEP polygons contribute projected intersection-area fractions, whereas 311 complaints and USGS high-water marks contribute source-specific point summaries. The source columns are retained separately, and the composite is evaluated together with source-specific and threshold-sensitivity analyses. Because the sources differ in observation process, time period, and forcing, the composite is not interpreted as a single-event ground truth or a severity scale.
+8.3　Spatial validation
+Predictive performance was evaluated exclusively from out-of-fold predictions. H3 R9 cells were assigned to R7 spatial groups, and all descendants of a group were kept in the same fold. A buffer of <K rings / distance> around each held-out group was excluded from training, with the buffer selected before model evaluation from the residual spatial-dependence analysis. Hyperparameter and decision-threshold selection, where used, were nested within the training portion of each outer spatial fold. We report fold-wise estimates and block-bootstrap 95% confidence intervals; pooled out-of-fold metrics are secondary because scores originate from different fitted fold models.
+8.4　Scale diagnostic（修复后才能使用）
+Fine-resolution hotspot membership was defined on native R10 evidence scores using a fixed area budget and fractional allocation within boundary ties. For a coarse parent p, the reference membership was the area-weighted fraction of its fine-cell area assigned to the hotspot, w_ref(p)=Σ_i∈p a_i w_i / Σ_i∈p a_i. Coarse hotspots were selected under the same area budget, allowing fractional membership of the final cell or tied group. The primary overlap metric was area-weighted soft Jaccard, Σ_p a_p min(w_ref,w_coarse) / Σ_p a_p max(w_ref,w_coarse). Hard-set Jaccard was treated as a sensitivity and summarized over <1000> seeded random resolutions of tied ranks. All values shown in Table <X> and Figure <Y> were read from the same archived diagnostics table.
+8.5　Reproducibility and model roles
+Model evaluation and descriptive mapping used separate fitted objects. Fold-specific models produced the out-of-fold predictions used for every performance estimate. After evaluation was complete, deployment models were refitted on all cells and used only for descriptive maps and adaptive-grid screening. Each run manifest records the Git commit and dirty status, command line, configuration and input hashes, processed-table hash, feature order, fold membership hashes, software environment, model hashes, and figure/table hashes. The archived run identifier for this manuscript is <RUN_ID>.
+8.6　建议替换的结果结论段
+Within the two evaluated Manhattan pilot extents, spatially blocked out-of-fold predictions showed moderate ranking discrimination relative to prevalence-based references. These estimates do not establish citywide transferability, event-specific inundation probability, or hydrodynamic validity. Source-specific analyses and removal of the shoreline-distance predictor reduced, but did not eliminate, concern that shared spatial structure or reporting processes drive the observed discrimination. The current rainfall input is constant and therefore supports only a static susceptibility/evidence-screening interpretation. External validation with the now-public FloodNet event and sensor-location data is required before claims about observed event performance are made.
+9　按顺序执行的具体修订路线图
+阶段 0：冻结当前证据（半天）
+把当前 HEAD、dirty diff、原始/处理/OOF/模型/图表哈希复制到只读 audit snapshot；不要用新运行覆盖。
+把参考论文移到 literature/third_party 并建立来源/许可/用途清单；保存 AI 辅助记录。
+阶段 1：重建正式数据来源链（1–3 天）
+用官方 76ig-c548 重新提取 2010–2014 311；修复分页、去重和筛选；优先使用官方 DEP 数据页/服务。
+为 Lower 和 expanded 分别生成完整 raw manifest；澄清 159 HWM marks / 83 locations 及 H3 支撑边界。
+加入 land footprint / land_fraction，决定主样本并冻结配置。
+阶段 2：修复核心统计协议（2–4 天）
+按面积加权 fractional parent membership 重写尺度诊断；把 hard set 变为并列随机化敏感性。
+增加 buffered/nested spatial CV、block bootstrap CI、阈值敏感性、land-only 和来源消融。
+把 FloodNet 作为严格 held-out 外部验证；若不做，明确数据截止与排除原因。
+阶段 3：从零重跑与自动生成（1–2 天）
+清空一个明确的临时输出目录，从 raw/config 一键生成 processed、folds、OOF、models、tables、figures。
+生成唯一 paper_results.json；Table 1–8、Fig. 1–6、补图、README 和稿件数值全部从该文件/同源表读取。
+生成完整 run_manifest、锁定依赖，并让所有测试、静态检查和重建检查全绿。
+阶段 4：论文重写与版式（1–2 天）
+按第 8 节替换 Methods/Results/Discussion；收缩因果与泛化措辞；修正 FloodNet、R²/MAE、HWM、Jaccard。
+重画所有图，统一支撑、色标、land mask、评价/部署标签；修复表格分页、PDF 元数据、作者和 CRediT。
+逐句检查 Data/Code availability 与实际发布仓库/DOI 一致。
+阶段 5：投稿闸门（半天）
+从干净 release tag 在新环境复跑；比较所有哈希与注册数字。
+由一名未参与代码编写者按审查清单复核 10 个随机 H3 单元的原始几何→标签→预测→图中色值。
+提交前只保留一套现行审计文档；历史文件归档，不与现行 truth 混放。
+10　投稿前硬性验收清单
+☐ 01. P0-01 尺度协议重写完成；Table 4/Fig. 6/Fig. S1 数值单一来源且自动一致。
+☐ 02. 311 使用官方历史数据集 76ig-c548，查询、分页、去重、日期与类别规则完整归档；或明确降级为非官方派生层并完成验证。
+☐ 03. Lower/expanded 全部 raw 输入都有来源、许可、实际检索时间、大小和 SHA-256；manifest 与处理表绑定。
+☐ 04. pytest、compileall、git diff --check、端到端复跑、claim registry 检查全部通过。
+☐ 05. 所有当前论文输出来自同一干净 commit/tag 和 run_id；requirements/lock 能重建实际环境。
+☐ 06. 扩展区 R²/MAE、block 数、样本数和所有图注无旧快照残留。
+☐ 07. FloodNet 表述更新；最好完成严格 held-out 传感器事件验证。
+☐ 08. 地图排除/标注水域，明确 OOF 与 deployment；HWM 无观测面板不再用连续零值色带。
+☐ 09. 作者、单位、ORCID、CRediT、数据与代码 DOI、许可、AI disclosure 全部真实填写。
+☐ 10. AI declaration 写明实际工具/服务名称、用途、范围和人工核验；若 AI 参与代码/分析/数据可视化，在 Methods 中可复现地说明。
+☐ 11. 参考论文和图像不进入训练/制图 DAG；第三方材料有许可记录；抽查正文/图像无未标注复用。
+☐ 12. 独立复核人员签署随机单元核验表，并保存到 release audit bundle。
+11　最终审稿意见（可直接作为内部决定）
+本稿已经具备一篇可复现空间风险方法论文的基本框架，且当前主分类指标、处理表和部署模型获得了较强的仓库内复核支持。没有发现直接挪用参考论文正文数值或把参考论文数据送入模型的证据。特别值得肯定的是：来源列分开保留、生产装配 fail-closed、OOF 与部署角色分离、两套处理表可从原始文件字节级重建。
+然而，尺度损失诊断目前存在实质性算法/语义错误，Figure 6 与 Table 4 不同源；311 这一主要标签来源的官方身份、年份 API、过滤和分页均未闭环；完整 run provenance 和绿色测试也尚未达到投稿标准。因此当前结论应为 Major Revision，而不是 Accept/Minor Revision。完成 P0-01 至 P0-06 并从干净 run 重新生成后，稿件才适合进入外审。
+真实性结论必须保持限定：现有证据支持“核心派生结果由当前仓库代码与本地公开输入计算得到”，但在扩展清单、311 官方提取、不可变运行包和全绿测试补齐前，不能宣称已经形成端到端、第三方可独立复现的真实性证明。
+资料来源与审查依据
+[1] Elsevier. Generative AI policies for journals（含作者披露、代码/数据可视化和图像规则；2026 年版本）. https://www.elsevier.com/about/policies-and-standards/generative-ai-policies-for-journals
+[2] NYC Open Data. 311 Service Requests from 2010 to 2019, dataset 76ig-c548. https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-2019/76ig-c548
+[3] NYC Open Data. 311 Service Requests from 2020 to Present, dataset erm2-nwe9. https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2020-to-Present/erm2-nwe9
+[4] NYC Open Data. NYC Stormwater Flood Maps, dataset 9i7c-xyvv. https://data.cityofnewyork.us/Environment/NYC-Stormwater-Flood-Maps/9i7c-xyvv/about_data
+[5] U.S. Geological Survey. Hurricane Ida high-water marks in New York City; DOI 10.5066/P9OMBJPQ. https://www.usgs.gov/data/high-water-marks-five-boroughs-new-york-city-flash-flooding-caused-remnants-hurricane-ida
+[6] H3 documentation. Introduction（层级逻辑包含与近似几何包含）. https://h3geo.org/docs/
+[7] H3 documentation. Cell area statistics（面积随位置变化）. https://h3geo.org/docs/core-library/restable/
+[8] scikit-learn. Model-selection API / GroupKFold. https://scikit-learn.org/stable/api/sklearn.model_selection.html
+[9] Roberts et al. (2017). Cross-validation strategies for structured data. Ecography 40:913–929. https://doi.org/10.1111/ecog.02881
+[10] NYC Open Data. FloodNet: Street Flooding Events Measured by FloodNet Sensors, aq7i-eu5q. https://data.cityofnewyork.us/Environment/FloodNet-Street-Flooding-Events-Measured-by-FloodN/aq7i-eu5q
+[11] 本仓库机器可读复核证据. E:\Projects\20260522-pluvial-flood-risk-DGGS-H3\审查输出\修订后深入审稿\current_revision_evidence.json
+附录 A　可复核命令
+.\.venv\Scripts\python.exe -m pytest -q.\.venv\Scripts\python.exe -m compileall src scripts testsgit diff --check.\.venv\Scripts\python.exe 审查输出\修订后深入审稿\evidence_audit.py
+说明：本报告是对指定本地快照的技术审查，不替代作者对原始数据许可、研究伦理、作者贡献和投稿声明承担的最终责任。报告中任何建议文字都需作者结合重新运行后的真实结果审核后再写入论文。

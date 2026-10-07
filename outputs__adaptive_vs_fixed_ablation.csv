@@ -1,0 +1,2 @@
+ablation,n_fixed_coarse,n_adaptive_mixed,cell_count_ratio_vs_fixed,adaptive_n_uniform_fine,adaptive_cell_count_ratio,adaptive_hotspot_recall,adaptive_n_hotspot_uniform,note
+adaptive_vs_fixed_h3,262,7366,28.114503816793892,12838.0,0.5737653840162019,1.0,1258.0,True R11 feature re-extraction on refined parents' children using the post-urban-drop deployment model; cells with NaN static features (DEM edge) are dropped before scoring. Hotspot recall vs uniformly scored scorable R11.

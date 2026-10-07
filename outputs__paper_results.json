@@ -1,0 +1,1582 @@
+{
+  "generated_utc": "2026-09-21T03:58:55.685822+00:00",
+  "bbox_choice": "Option_B_lower_manhattan_262",
+  "fail_closed": true,
+  "data_manifest": "data/raw/data_manifest.json",
+  "random_seed": 42,
+  "311_source": {
+    "dataset_id": "76ig-c548",
+    "official_identity_verified": true,
+    "descriptor": "Street Flooding (SJ)",
+    "date_window": [
+      "2010-01-01T00:00:00",
+      "2015-01-01T00:00:00"
+    ],
+    "n_features_lower_manhattan": 510
+  },
+  "floodnet": {
+    "generated_utc": "2026-09-21T03:35:50.830195+00:00",
+    "analysis_freeze_utc": "2026-08-30T00:00:00+00:00",
+    "role": "strict_held_out_external_validation_diagnostic",
+    "used_in_training_or_evaluation_labels": false,
+    "events_dataset_id": "aq7i-eu5q",
+    "events_landing_page": "https://data.cityofnewyork.us/Environment/FloodNet-Street-Flooding-Events-Measured-by-FloodN/aq7i-eu5q",
+    "sensors_dataset_id": "kb2e-tjy3",
+    "sensors_landing_page": "https://data.cityofnewyork.us/Environment/FloodNet-Sensor-Deployment-Metadata/kb2e-tjy3",
+    "published": "2026-03-03",
+    "outcome_definition": "Study R9 cell is positive if it contains \u22651 FloodNet sensor with \u22651 QC street-flooding event in aq7i-eu5q; scores are spatial-CV OOF probabilities from the composite open-evidence model (FloodNet excluded).",
+    "pilots": [
+      {
+        "pilot": "lower_manhattan",
+        "bbox": [
+          -74.02,
+          40.7,
+          -73.97,
+          40.76
+        ],
+        "resolution": 9,
+        "score_column": "y_proba",
+        "n_sensors_in_bbox": 26,
+        "n_sensors_with_events": 19,
+        "n_sensors_in_study_table": 26,
+        "n_study_cells_with_sensor": 23,
+        "n_study_cells_with_event": 17,
+        "n_tidally_influenced_sensors": 0,
+        "positive_prevalence_sensor_cells": 0.7391304347826086,
+        "roc_auc": 0.3137254901960784,
+        "average_precision": 0.6318946447429419,
+        "mean_score_event_cells": 0.8879602174162011,
+        "mean_score_no_event_cells": 0.8130844716427421,
+        "held_out": true,
+        "used_in_training_labels": false
+      },
+      {
+        "pilot": "manhattan_expanded",
+        "bbox": [
+          -74.03,
+          40.68,
+          -73.94,
+          40.8
+        ],
+        "resolution": 9,
+        "score_column": "y_proba",
+        "n_sensors_in_bbox": 69,
+        "n_sensors_with_events": 45,
+        "n_sensors_in_study_table": 68,
+        "n_study_cells_with_sensor": 57,
+        "n_study_cells_with_event": 40,
+        "n_tidally_influenced_sensors": 0,
+        "positive_prevalence_sensor_cells": 0.7017543859649122,
+        "roc_auc": 0.4632352941176471,
+        "average_precision": 0.685705170458648,
+        "mean_score_event_cells": 0.7310681901850297,
+        "mean_score_no_event_cells": 0.7613395924099392,
+        "held_out": true,
+        "used_in_training_labels": false
+      }
+    ]
+  },
+  "lower_manhattan": {
+    "n_cells": 262,
+    "n_positive": 167,
+    "positive_prevalence": 0.6374045801526718,
+    "bbox": [
+      -74.02,
+      40.7,
+      -73.97,
+      40.76
+    ],
+    "spatial_cv": {
+      "random_split_val_accuracy": 0.8113207547169812,
+      "random_split_val_r2": 0.3076367729206769,
+      "val_accuracy": 0.8113207547169812,
+      "val_r2": 0.3076367729206769,
+      "evaluation_fit_rows": 209,
+      "random_seed": 42,
+      "spatial_cv_n_folds": 5.0,
+      "spatial_cv_n_blocks": 12.0,
+      "spatial_cv_accuracy_mean": 0.8240615839949912,
+      "spatial_cv_accuracy_std": 0.05520659447974526,
+      "spatial_cv_r2_mean": 0.16690455185854486,
+      "spatial_cv_r2_std": 0.318945388948315,
+      "spatial_cv_f1_mean": 0.8613633699914501,
+      "spatial_cv_mae_mean": 0.280375043764373,
+      "spatial_cv_roc_auc_mean": 0.8342814926135574,
+      "spatial_cv_roc_auc_std": 0.08936730882197093,
+      "spatial_cv_pr_auc_mean": 0.8755281195217457,
+      "spatial_cv_pr_auc_std": 0.07608684467423514,
+      "spatial_cv_roc_auc_pooled": 0.8502678852820673,
+      "spatial_cv_pr_auc_pooled": 0.8505963197248279,
+      "spatial_cv_fold_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_smoke\\spatial_cv_folds.csv",
+      "spatial_cv_oof_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_smoke\\spatial_cv_oof_predictions.csv",
+      "spatial_cv_f1_std": 0.04893630236792049
+    },
+    "deployment": {
+      "role": "deployment_full",
+      "fit_rows": 262,
+      "training_h3_sha256": "6197a4fea1c473497439c65338934df0a18d2f9f246943e12490a42d78ea389b"
+    },
+    "evaluation": {
+      "role": "evaluation_split",
+      "fit_rows": 209
+    },
+    "baselines": {
+      "source_fold_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_smoke\\spatial_cv_folds.csv",
+      "note": "Trivial baselines for the Lower Manhattan Option B fold table (n_test pooled=262). Positive prevalence 0.6374.",
+      "overall_positive_prevalence": 0.6374045801526718,
+      "model_mean_acc": 0.8240615839949912,
+      "model_mean_f1": 0.8613633699914501,
+      "always_positive_mean_acc": 0.6365818606107175,
+      "always_positive_mean_f1": 0.7691726232742969,
+      "always_negative_mean_acc": 0.3634181393892826,
+      "always_negative_mean_f1": 0.0,
+      "model_beats_majority_acc": true,
+      "model_beats_majority_f1": true
+    }
+  },
+  "scale_loss": {
+    "source_csv": "outputs/jaccard_by_resolution.csv",
+    "source_json": "outputs/jaccard_by_resolution.json",
+    "generated_utc": "2026-09-21T03:58:55.685822+00:00",
+    "budget_match_mode": "strict_area_budget",
+    "primary_metric": "area_weighted_soft_jaccard",
+    "hotspot_budget": 0.1,
+    "study_domain_mask": true,
+    "n_fine": 1788,
+    "n_coarse_r9": 262,
+    "rows": [
+      {
+        "fine_res": 10,
+        "coarse_res": 8,
+        "aggregation": "mean",
+        "hotspot_budget": 0.1,
+        "budget_match_mode": "strict_area_budget",
+        "tie_method": "fractional_membership_area",
+        "study_domain_mask": true,
+        "study_domain_modelling_res": 9,
+        "n_fine": 1788,
+        "n_coarse": 48,
+        "nominal_cell_k": 179,
+        "fine_hotspot_area_m2": 2703759.994743376,
+        "coarse_hotspot_area_m2": 2703759.994743376,
+        "target_area_m2": 2703759.994743376,
+        "area_budget_rel_err_fine": 1.722273013e-16,
+        "area_budget_rel_err_coarse": 0.0,
+        "n_hotspot_fine": 275,
+        "n_hotspot_fine_parents": 38,
+        "n_hotspot_coarse": 4,
+        "fine_hotspot_threshold": 1.0,
+        "coarse_hotspot_threshold": 0.3061174448,
+        "jaccard": 0.1363670769,
+        "jaccard_soft": 0.1363670769,
+        "jaccard_hard_median": 0.0,
+        "jaccard_hard_ci_low": 0.0,
+        "jaccard_hard_ci_high": 0.0,
+        "jaccard_hard_n_boot": 1000,
+        "area_weighted_overlap": 0.1363670769,
+        "spearman_rank_corr": 1.0,
+        "continuous_mae": 0.0,
+        "continuous_rmse": 0.0,
+        "f1": 0.2400053287,
+        "fine_parent_recall": 0.2400053287,
+        "coarse_precision": 0.2400053287,
+        "matched_budgets_cell_count": false,
+        "primary_metric": "area_weighted_soft_jaccard",
+        "note": null
+      },
+      {
+        "fine_res": 10,
+        "coarse_res": 8,
+        "aggregation": "max",
+        "hotspot_budget": 0.1,
+        "budget_match_mode": "strict_area_budget",
+        "tie_method": "fractional_membership_area",
+        "study_domain_mask": true,
+        "study_domain_modelling_res": 9,
+        "n_fine": 1788,
+        "n_coarse": 48,
+        "nominal_cell_k": 179,
+        "fine_hotspot_area_m2": 2703759.994743376,
+        "coarse_hotspot_area_m2": 2703759.994743376,
+        "target_area_m2": 2703759.994743376,
+        "area_budget_rel_err_fine": 1.722273013e-16,
+        "area_budget_rel_err_coarse": 0.0,
+        "n_hotspot_fine": 275,
+        "n_hotspot_fine_parents": 38,
+        "n_hotspot_coarse": 38,
+        "fine_hotspot_threshold": 1.0,
+        "coarse_hotspot_threshold": 1.0,
+        "jaccard": 0.5787045629,
+        "jaccard_soft": 0.5787045629,
+        "jaccard_hard_median": 0.0,
+        "jaccard_hard_ci_low": 0.0,
+        "jaccard_hard_ci_high": 0.0,
+        "jaccard_hard_n_boot": 1000,
+        "area_weighted_overlap": 0.5787045629,
+        "spearman_rank_corr": 0.7067387839,
+        "continuous_mae": 0.6557122718,
+        "continuous_rmse": 0.742481553,
+        "f1": 0.7331385194,
+        "fine_parent_recall": 0.7331385194,
+        "coarse_precision": 0.7331385194,
+        "matched_budgets_cell_count": false,
+        "primary_metric": "area_weighted_soft_jaccard",
+        "note": "max aggregation Jaccard near 1.0 can be structural (parent collapse under max), not a preferred strategy"
+      },
+      {
+        "fine_res": 10,
+        "coarse_res": 8,
+        "aggregation": "p90",
+        "hotspot_budget": 0.1,
+        "budget_match_mode": "strict_area_budget",
+        "tie_method": "fractional_membership_area",
+        "study_domain_mask": true,
+        "study_domain_modelling_res": 9,
+        "n_fine": 1788,
+        "n_coarse": 48,
+        "nominal_cell_k": 179,
+        "fine_hotspot_area_m2": 2703759.994743376,
+        "coarse_hotspot_area_m2": 2703759.994743376,
+        "target_area_m2": 2703759.994743376,
+        "area_budget_rel_err_fine": 1.722273013e-16,
+        "area_budget_rel_err_coarse": 0.0,
+        "n_hotspot_fine": 275,
+        "n_hotspot_fine_parents": 38,
+        "n_hotspot_coarse": 23,
+        "fine_hotspot_threshold": 1.0,
+        "coarse_hotspot_threshold": 1.0,
+        "jaccard": 0.6819199989,
+        "jaccard_soft": 0.6819199989,
+        "jaccard_hard_median": 0.0,
+        "jaccard_hard_ci_low": 0.0,
+        "jaccard_hard_ci_high": 0.0,
+        "jaccard_hard_n_boot": 1000,
+        "area_weighted_overlap": 0.6819199989,
+        "spearman_rank_corr": 0.9100026104,
+        "continuous_mae": 0.397657498,
+        "continuous_rmse": 0.539174737,
+        "f1": 0.8108827998,
+        "fine_parent_recall": 0.8108827998,
+        "coarse_precision": 0.8108827998,
+        "matched_budgets_cell_count": false,
+        "primary_metric": "area_weighted_soft_jaccard",
+        "note": null
+      },
+      {
+        "fine_res": 10,
+        "coarse_res": 9,
+        "aggregation": "mean",
+        "hotspot_budget": 0.1,
+        "budget_match_mode": "strict_area_budget",
+        "tie_method": "fractional_membership_area",
+        "study_domain_mask": true,
+        "study_domain_modelling_res": 9,
+        "n_fine": 1788,
+        "n_coarse": 262,
+        "nominal_cell_k": 179,
+        "fine_hotspot_area_m2": 2703759.994743376,
+        "coarse_hotspot_area_m2": 2703759.994743376,
+        "target_area_m2": 2703759.994743376,
+        "area_budget_rel_err_fine": 1.722273013e-16,
+        "area_budget_rel_err_coarse": 0.0,
+        "n_hotspot_fine": 275,
+        "n_hotspot_fine_parents": 140,
+        "n_hotspot_coarse": 26,
+        "fine_hotspot_threshold": 1.0,
+        "coarse_hotspot_threshold": 0.4285725858,
+        "jaccard": 0.2195136765,
+        "jaccard_soft": 0.2195136765,
+        "jaccard_hard_median": 0.1538461538,
+        "jaccard_hard_ci_low": 0.0384615385,
+        "jaccard_hard_ci_high": 0.2692307692,
+        "jaccard_hard_n_boot": 1000,
+        "area_weighted_overlap": 0.2195136765,
+        "spearman_rank_corr": 1.0,
+        "continuous_mae": 0.0,
+        "continuous_rmse": 0.0,
+        "f1": 0.3600019921,
+        "fine_parent_recall": 0.3600019921,
+        "coarse_precision": 0.3600019921,
+        "matched_budgets_cell_count": false,
+        "primary_metric": "area_weighted_soft_jaccard",
+        "note": null
+      },
+      {
+        "fine_res": 10,
+        "coarse_res": 9,
+        "aggregation": "max",
+        "hotspot_budget": 0.1,
+        "budget_match_mode": "strict_area_budget",
+        "tie_method": "fractional_membership_area",
+        "study_domain_mask": true,
+        "study_domain_modelling_res": 9,
+        "n_fine": 1788,
+        "n_coarse": 262,
+        "nominal_cell_k": 179,
+        "fine_hotspot_area_m2": 2703759.994743376,
+        "coarse_hotspot_area_m2": 2703759.9947433765,
+        "target_area_m2": 2703759.994743376,
+        "area_budget_rel_err_fine": 1.722273013e-16,
+        "area_budget_rel_err_coarse": 1.722273013e-16,
+        "n_hotspot_fine": 275,
+        "n_hotspot_fine_parents": 140,
+        "n_hotspot_coarse": 140,
+        "fine_hotspot_threshold": 1.0,
+        "coarse_hotspot_threshold": 1.0,
+        "jaccard": 0.6479446116,
+        "jaccard_soft": 0.6479446116,
+        "jaccard_hard_median": 0.0322580645,
+        "jaccard_hard_ci_low": 0.0,
+        "jaccard_hard_ci_high": 0.0769230769,
+        "jaccard_hard_n_boot": 1000,
+        "area_weighted_overlap": 0.6479446116,
+        "spearman_rank_corr": 0.9159226353,
+        "continuous_mae": 0.3880170012,
+        "continuous_rmse": 0.5333877794,
+        "f1": 0.7863669774,
+        "fine_parent_recall": 0.7863669774,
+        "coarse_precision": 0.7863669774,
+        "matched_budgets_cell_count": false,
+        "primary_metric": "area_weighted_soft_jaccard",
+        "note": "max aggregation Jaccard near 1.0 can be structural (parent collapse under max), not a preferred strategy"
+      },
+      {
+        "fine_res": 10,
+        "coarse_res": 9,
+        "aggregation": "p90",
+        "hotspot_budget": 0.1,
+        "budget_match_mode": "strict_area_budget",
+        "tie_method": "fractional_membership_area",
+        "study_domain_mask": true,
+        "study_domain_modelling_res": 9,
+        "n_fine": 1788,
+        "n_coarse": 262,
+        "nominal_cell_k": 179,
+        "fine_hotspot_area_m2": 2703759.994743376,
+        "coarse_hotspot_area_m2": 2703759.994743376,
+        "target_area_m2": 2703759.994743376,
+        "area_budget_rel_err_fine": 1.722273013e-16,
+        "area_budget_rel_err_coarse": 0.0,
+        "n_hotspot_fine": 275,
+        "n_hotspot_fine_parents": 140,
+        "n_hotspot_coarse": 79,
+        "fine_hotspot_threshold": 1.0,
+        "coarse_hotspot_threshold": 1.0,
+        "jaccard": 0.5732473674,
+        "jaccard_soft": 0.5732473674,
+        "jaccard_hard_median": 0.0357142857,
+        "jaccard_hard_ci_low": 0.0,
+        "jaccard_hard_ci_high": 0.1158333333,
+        "jaccard_hard_n_boot": 1000,
+        "area_weighted_overlap": 0.5732473674,
+        "spearman_rank_corr": 0.9832057583,
+        "continuous_mae": 0.2512071461,
+        "continuous_rmse": 0.3662082079,
+        "f1": 0.7287440987,
+        "fine_parent_recall": 0.7287440987,
+        "coarse_precision": 0.7287440987,
+        "matched_budgets_cell_count": false,
+        "primary_metric": "area_weighted_soft_jaccard",
+        "note": null
+      }
+    ]
+  },
+  "manhattan_expanded": {
+    "n_cells": 956,
+    "n_positive": 461,
+    "positive_prevalence": 0.48221757322175735,
+    "bbox": [
+      -74.03,
+      40.68,
+      -73.94,
+      40.8
+    ],
+    "spatial_cv": {
+      "random_split_val_accuracy": 0.8177083333333334,
+      "random_split_val_r2": 0.40579380959759503,
+      "val_accuracy": 0.8177083333333334,
+      "val_r2": 0.40579380959759503,
+      "evaluation_fit_rows": 764,
+      "random_seed": 42,
+      "spatial_cv_n_folds": 5.0,
+      "spatial_cv_n_blocks": 28.0,
+      "spatial_cv_accuracy_mean": 0.8191492539231321,
+      "spatial_cv_accuracy_std": 0.02364405303390376,
+      "spatial_cv_r2_mean": 0.3793155818871859,
+      "spatial_cv_r2_std": 0.09036244907069464,
+      "spatial_cv_f1_mean": 0.822321839243153,
+      "spatial_cv_mae_mean": 0.27881617730353214,
+      "spatial_cv_roc_auc_mean": 0.879657565438724,
+      "spatial_cv_roc_auc_std": 0.032428133027697245,
+      "spatial_cv_pr_auc_mean": 0.8196112047792962,
+      "spatial_cv_pr_auc_std": 0.05686073853675828,
+      "spatial_cv_roc_auc_pooled": 0.8802077170840729,
+      "spatial_cv_pr_auc_pooled": 0.8146318204483659,
+      "spatial_cv_fold_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_expanded\\spatial_cv_folds.csv",
+      "spatial_cv_oof_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_expanded\\spatial_cv_oof_predictions.csv",
+      "spatial_cv_f1_std": 0.027931780952306178
+    },
+    "deployment": {
+      "role": "deployment_full",
+      "fit_rows": 956,
+      "training_h3_sha256": "233873daf9030be19c653f249550fff273b1c3309a8862148238179289fdcbb9"
+    },
+    "evaluation": {
+      "role": "evaluation_split",
+      "fit_rows": 764
+    },
+    "baselines": {
+      "overall_positive_prevalence": 0.48221757322175735,
+      "model_mean_acc": 0.8191492539231321,
+      "model_mean_f1": 0.822321839243153,
+      "always_positive_mean_acc": 0.4821973252312617,
+      "always_positive_mean_f1": 0.6489834520932082,
+      "always_negative_mean_acc": 0.5178026747687383,
+      "always_negative_mean_f1": 0.0,
+      "model_beats_majority_acc": true,
+      "model_beats_majority_f1": true
+    }
+  },
+  "source_ablation": {
+    "note": "Source-ablation (M2): same spatial H3-block CV (k=2 parent blocks, 5 folds, GBM) refit to seven target definitions to test construct validity of the composite max(dep_area_frac, complaint_presence, ida_hwm_presence) target; includes complaint_no_building_density. ROC-AUC is the headline ranking-discrimination metric; accuracy/F1 are threshold-dependent. Single-class targets are not fitted.",
+    "spatial_cv_k": 2,
+    "spatial_cv_folds": 5,
+    "pilots": {
+      "lower_manhattan": [
+        {
+          "target": "dep_only",
+          "n_cells": 262,
+          "n_blocks": 12,
+          "feature_drop": null,
+          "n_positive": 74,
+          "prevalence": 0.2824427480916031,
+          "roc_auc_pooled": 0.8007834962622197,
+          "roc_auc_mean": 0.7884225285115591,
+          "roc_auc_std": 0.1363767018084689,
+          "pr_auc_pooled": 0.5987323912937204,
+          "accuracy_mean": 0.8018583340447936,
+          "accuracy_std": 0.06083931227431927,
+          "f1_mean": 0.5066833855799373,
+          "note": ""
+        },
+        {
+          "target": "complaint_only",
+          "n_cells": 262,
+          "n_blocks": 12,
+          "feature_drop": null,
+          "n_positive": 144,
+          "prevalence": 0.549618320610687,
+          "roc_auc_pooled": 0.852930790960452,
+          "roc_auc_mean": 0.8235365681360264,
+          "roc_auc_std": 0.08498349593412911,
+          "pr_auc_pooled": 0.851238902697259,
+          "accuracy_mean": 0.7707931358319815,
+          "accuracy_std": 0.047178410642056946,
+          "f1_mean": 0.7730797117646432,
+          "note": ""
+        },
+        {
+          "target": "hwm_only",
+          "n_cells": 262,
+          "n_blocks": 12,
+          "feature_drop": null,
+          "n_positive": 0,
+          "prevalence": 0.0,
+          "roc_auc_pooled": null,
+          "roc_auc_mean": null,
+          "roc_auc_std": null,
+          "pr_auc_pooled": null,
+          "accuracy_mean": null,
+          "f1_mean": null,
+          "note": "single-class target (not fitted)"
+        },
+        {
+          "target": "complaint_hwm",
+          "n_cells": 262,
+          "n_blocks": 12,
+          "feature_drop": null,
+          "n_positive": 144,
+          "prevalence": 0.549618320610687,
+          "roc_auc_pooled": 0.852930790960452,
+          "roc_auc_mean": 0.8235365681360264,
+          "roc_auc_std": 0.08498349593412911,
+          "pr_auc_pooled": 0.851238902697259,
+          "accuracy_mean": 0.7707931358319815,
+          "accuracy_std": 0.047178410642056946,
+          "f1_mean": 0.7730797117646432,
+          "note": ""
+        },
+        {
+          "target": "composite",
+          "n_cells": 262,
+          "n_blocks": 12,
+          "feature_drop": null,
+          "n_positive": 167,
+          "prevalence": 0.6374045801526718,
+          "roc_auc_pooled": 0.8502678852820673,
+          "roc_auc_mean": 0.8342814926135574,
+          "roc_auc_std": 0.08936730882197093,
+          "pr_auc_pooled": 0.8505963197248279,
+          "accuracy_mean": 0.8240615839949912,
+          "accuracy_std": 0.05520659447974526,
+          "f1_mean": 0.8613633699914501,
+          "note": ""
+        },
+        {
+          "target": "composite_no_diststream",
+          "n_cells": 262,
+          "n_blocks": 12,
+          "feature_drop": "dist_stream_m",
+          "n_positive": 167,
+          "prevalence": 0.6374045801526718,
+          "roc_auc_pooled": 0.8507091080995903,
+          "roc_auc_mean": 0.8251750252108643,
+          "roc_auc_std": 0.10129806581701427,
+          "pr_auc_pooled": 0.848420106191177,
+          "accuracy_mean": 0.8279831526224424,
+          "accuracy_std": 0.042435114626836946,
+          "f1_mean": 0.8649662462608134,
+          "note": ""
+        },
+        {
+          "target": "complaint_no_building_density",
+          "n_cells": 262,
+          "n_blocks": 12,
+          "feature_drop": "building_density",
+          "n_positive": 144,
+          "prevalence": 0.549618320610687,
+          "roc_auc_pooled": 0.8390124764595104,
+          "roc_auc_mean": 0.8212057632507195,
+          "roc_auc_std": 0.0690542992327589,
+          "pr_auc_pooled": 0.8441207171605049,
+          "accuracy_mean": 0.7330601326161814,
+          "accuracy_std": 0.046839634913393664,
+          "f1_mean": 0.7356527128736912,
+          "note": ""
+        }
+      ],
+      "manhattan_expanded": [
+        {
+          "target": "dep_only",
+          "n_cells": 956,
+          "n_blocks": 28,
+          "feature_drop": null,
+          "n_positive": 231,
+          "prevalence": 0.24163179916317992,
+          "roc_auc_pooled": 0.8110882221227048,
+          "roc_auc_mean": 0.8144743351579191,
+          "roc_auc_std": 0.04410283415811695,
+          "pr_auc_pooled": 0.5299434962706807,
+          "accuracy_mean": 0.7762271397507414,
+          "accuracy_std": 0.0326966379931097,
+          "f1_mean": 0.46644593325574457,
+          "note": ""
+        },
+        {
+          "target": "complaint_only",
+          "n_cells": 956,
+          "n_blocks": 28,
+          "feature_drop": null,
+          "n_positive": 373,
+          "prevalence": 0.3901673640167364,
+          "roc_auc_pooled": 0.8431865317140242,
+          "roc_auc_mean": 0.8448550001566701,
+          "roc_auc_std": 0.04344383929805618,
+          "pr_auc_pooled": 0.6801540351588702,
+          "accuracy_mean": 0.7627838782861721,
+          "accuracy_std": 0.05593606903362509,
+          "f1_mean": 0.7071548859942274,
+          "note": ""
+        },
+        {
+          "target": "hwm_only",
+          "n_cells": 956,
+          "n_blocks": 28,
+          "feature_drop": null,
+          "n_positive": 6,
+          "prevalence": 0.006276150627615063,
+          "roc_auc_pooled": 0.2330701754385965,
+          "roc_auc_mean": 0.48439903936357837,
+          "roc_auc_std": 0.2140054823536849,
+          "pr_auc_pooled": 0.005100358734733841,
+          "accuracy_mean": 0.9769080678529463,
+          "accuracy_std": 0.02070996728074772,
+          "f1_mean": 0.0,
+          "note": ""
+        },
+        {
+          "target": "complaint_hwm",
+          "n_cells": 956,
+          "n_blocks": 28,
+          "feature_drop": null,
+          "n_positive": 375,
+          "prevalence": 0.3922594142259414,
+          "roc_auc_pooled": 0.8357039586919105,
+          "roc_auc_mean": 0.8359738856065959,
+          "roc_auc_std": 0.046611993937143055,
+          "pr_auc_pooled": 0.663449577687105,
+          "accuracy_mean": 0.7607056569345672,
+          "accuracy_std": 0.05794901621612195,
+          "f1_mean": 0.7064917489682196,
+          "note": ""
+        },
+        {
+          "target": "composite",
+          "n_cells": 956,
+          "n_blocks": 28,
+          "feature_drop": null,
+          "n_positive": 461,
+          "prevalence": 0.48221757322175735,
+          "roc_auc_pooled": 0.8802077170840729,
+          "roc_auc_mean": 0.879657565438724,
+          "roc_auc_std": 0.032428133027697245,
+          "pr_auc_pooled": 0.8146318204483659,
+          "accuracy_mean": 0.8191492539231321,
+          "accuracy_std": 0.02364405303390376,
+          "f1_mean": 0.822321839243153,
+          "note": ""
+        },
+        {
+          "target": "composite_no_diststream",
+          "n_cells": 956,
+          "n_blocks": 28,
+          "feature_drop": "dist_stream_m",
+          "n_positive": 461,
+          "prevalence": 0.48221757322175735,
+          "roc_auc_pooled": 0.8871754420561362,
+          "roc_auc_mean": 0.8874665992214347,
+          "roc_auc_std": 0.027532921977286278,
+          "pr_auc_pooled": 0.8358965592970748,
+          "accuracy_mean": 0.826468417197675,
+          "accuracy_std": 0.024593774297828195,
+          "f1_mean": 0.8307606242785539,
+          "note": ""
+        },
+        {
+          "target": "complaint_no_building_density",
+          "n_cells": 956,
+          "n_blocks": 28,
+          "feature_drop": "building_density",
+          "n_positive": 373,
+          "prevalence": 0.3901673640167364,
+          "roc_auc_pooled": 0.8161170611471589,
+          "roc_auc_mean": 0.8202287696841658,
+          "roc_auc_std": 0.05149167179507385,
+          "pr_auc_pooled": 0.6466207115729322,
+          "accuracy_mean": 0.7355518655848041,
+          "accuracy_std": 0.06445889685880381,
+          "f1_mean": 0.666999220310489,
+          "note": ""
+        }
+      ]
+    }
+  },
+  "block_sensitivity": {
+    "spatial_cv_folds": 5,
+    "pilots": {
+      "lower_manhattan": {
+        "block_sensitivity": [
+          {
+            "pilot": "lower_manhattan",
+            "k": 1,
+            "block_resolution": 8,
+            "n_blocks": 48,
+            "n_folds": 5,
+            "roc_auc_pooled": 0.8409706901985503,
+            "roc_auc_mean": 0.8469379290110919,
+            "roc_auc_std": 0.057514730378281,
+            "accuracy_mean": 0.8320029027576197,
+            "accuracy_std": 0.09734170565846652,
+            "f1_mean": 0.8659308425348126,
+            "r2_mean": 0.3459290482863412,
+            "note": ""
+          },
+          {
+            "pilot": "lower_manhattan",
+            "k": 2,
+            "block_resolution": 7,
+            "n_blocks": 12,
+            "n_folds": 5,
+            "roc_auc_pooled": 0.8502678852820673,
+            "roc_auc_mean": 0.8342814926135574,
+            "roc_auc_std": 0.08936730882197093,
+            "accuracy_mean": 0.8240615839949912,
+            "accuracy_std": 0.05520659447974526,
+            "f1_mean": 0.8613633699914501,
+            "r2_mean": 0.16690455185854486,
+            "note": ""
+          },
+          {
+            "pilot": "lower_manhattan",
+            "k": 3,
+            "block_resolution": 6,
+            "n_blocks": 4,
+            "n_folds": 4,
+            "roc_auc_pooled": 0.7936968168925308,
+            "roc_auc_mean": 0.8329015469309174,
+            "roc_auc_std": 0.059228265780606124,
+            "accuracy_mean": 0.8497811070949368,
+            "accuracy_std": 0.08966518654578372,
+            "f1_mean": 0.618995943995944,
+            "r2_mean": null,
+            "note": ""
+          }
+        ],
+        "morans_i": {
+          "morans_i": 0.387669647647046,
+          "n_edges": 1434,
+          "n_isolated": 0,
+          "note": ""
+        },
+        "morans_i_oof_residual": {
+          "morans_i": 0.04823651123875074,
+          "n_edges": 1434,
+          "n_isolated": 0,
+          "note": ""
+        },
+        "lobo_r7": {
+          "n_blocks": 12,
+          "n_folds": 12,
+          "roc_auc_pooled": 0.859691144027734,
+          "pr_auc_pooled": 0.8530508017676135,
+          "roc_auc_mean": 0.8595730272813608,
+          "roc_auc_std": 0.13685662708156013,
+          "accuracy_mean": 0.8730097081191551,
+          "accuracy_std": 0.11188521111075393,
+          "f1_mean": 0.6326065301725732,
+          "note": ""
+        }
+      },
+      "manhattan_expanded": {
+        "block_sensitivity": [
+          {
+            "pilot": "manhattan_expanded",
+            "k": 1,
+            "block_resolution": 8,
+            "n_blocks": 157,
+            "n_folds": 5,
+            "roc_auc_pooled": 0.8911610683844957,
+            "roc_auc_mean": 0.8931648706550067,
+            "roc_auc_std": 0.026671427914413508,
+            "accuracy_mean": 0.8210623909249563,
+            "accuracy_std": 0.03274711843965001,
+            "f1_mean": 0.8306769782895003,
+            "r2_mean": 0.381526172476617,
+            "note": ""
+          },
+          {
+            "pilot": "manhattan_expanded",
+            "k": 2,
+            "block_resolution": 7,
+            "n_blocks": 28,
+            "n_folds": 5,
+            "roc_auc_pooled": 0.8802077170840729,
+            "roc_auc_mean": 0.879657565438724,
+            "roc_auc_std": 0.032428133027697245,
+            "accuracy_mean": 0.8191492539231321,
+            "accuracy_std": 0.02364405303390376,
+            "f1_mean": 0.822321839243153,
+            "r2_mean": 0.3793155818871859,
+            "note": ""
+          },
+          {
+            "pilot": "manhattan_expanded",
+            "k": 3,
+            "block_resolution": 6,
+            "n_blocks": 7,
+            "n_folds": 5,
+            "roc_auc_pooled": 0.8720370735555119,
+            "roc_auc_mean": 0.8514248358937107,
+            "roc_auc_std": 0.09128151598985554,
+            "accuracy_mean": 0.7994050067772253,
+            "accuracy_std": 0.07097092945519728,
+            "f1_mean": 0.780320724689372,
+            "r2_mean": 0.3001943410597261,
+            "note": ""
+          }
+        ],
+        "morans_i": {
+          "morans_i": 0.4211666771120495,
+          "n_edges": 5470,
+          "n_isolated": 0,
+          "note": ""
+        },
+        "morans_i_oof_residual": {
+          "morans_i": 0.10760938934634683,
+          "n_edges": 5470,
+          "n_isolated": 0,
+          "note": ""
+        },
+        "lobo_r7": {
+          "n_blocks": 28,
+          "n_folds": 28,
+          "roc_auc_pooled": 0.8869431845570674,
+          "pr_auc_pooled": 0.8278490247221839,
+          "roc_auc_mean": 0.8040677901262059,
+          "roc_auc_std": 0.1392268063861653,
+          "accuracy_mean": 0.8499587099152265,
+          "accuracy_std": 0.12236173788548994,
+          "f1_mean": 0.6604274724591781,
+          "note": ""
+        }
+      }
+    }
+  },
+  "slr_sensitivity": {
+    "source_json": "outputs/slr_sensitivity.json",
+    "source_csv": "outputs/slr_sensitivity.csv",
+    "note": "Sea-level sensitivity (M4): the composite target is re-assembled with the DEP 'Moderate Flood with 2050 Sea Level Rise' layer (Layer 2, same Flooding_Category 1-2 filtering) and compared against the current-sea-level primary (Layer 1) under the same spatial H3-block CV (k=2 parent blocks, 5 folds, GBM). Both DEP variants are H&H model outputs.",
+    "spatial_cv_k": 2,
+    "spatial_cv_folds": 5,
+    "pilots": {
+      "lower_manhattan": [
+        {
+          "n_cells": 262,
+          "n_positive": 167,
+          "prevalence": 0.6374045801526718,
+          "dep_area_frac_sum": 2.9913945362582677,
+          "n_dep_cells": 74,
+          "roc_auc_pooled": 0.8479672234478411,
+          "roc_auc_mean": 0.8205489325647799,
+          "pr_auc_pooled": 0.8545950410046028,
+          "accuracy_mean": 0.8202154301488374,
+          "f1_mean": 0.8575558607370872,
+          "r2_mean": 0.19100916038984755,
+          "note": "",
+          "dep_variant": "current_sea_level"
+        },
+        {
+          "n_cells": 262,
+          "n_positive": 177,
+          "prevalence": 0.6755725190839694,
+          "dep_area_frac_sum": 4.367909821559699,
+          "n_dep_cells": 98,
+          "roc_auc_pooled": 0.8363243602525756,
+          "roc_auc_mean": 0.837357048525007,
+          "pr_auc_pooled": 0.8590256205452478,
+          "accuracy_mean": 0.8696377244656933,
+          "f1_mean": 0.9057747236825765,
+          "r2_mean": 0.21201949981108886,
+          "note": "",
+          "dep_variant": "2050_slr"
+        }
+      ],
+      "manhattan_expanded": [
+        {
+          "n_cells": 956,
+          "n_positive": 458,
+          "prevalence": 0.4790794979079498,
+          "dep_area_frac_sum": 9.675254661167566,
+          "n_dep_cells": 231,
+          "roc_auc_pooled": 0.8821267603163748,
+          "roc_auc_mean": 0.8814112745250906,
+          "pr_auc_pooled": 0.8227259317526048,
+          "accuracy_mean": 0.8233542690788225,
+          "f1_mean": 0.8257028376391744,
+          "r2_mean": 0.3481267811423597,
+          "note": "",
+          "dep_variant": "current_sea_level"
+        },
+        {
+          "n_cells": 956,
+          "n_positive": 478,
+          "prevalence": 0.5,
+          "dep_area_frac_sum": 12.121434465651408,
+          "n_dep_cells": 268,
+          "roc_auc_pooled": 0.8718247229565309,
+          "roc_auc_mean": 0.872968841773805,
+          "pr_auc_pooled": 0.8187739829939578,
+          "accuracy_mean": 0.8211890684854447,
+          "f1_mean": 0.8311983046542843,
+          "r2_mean": 0.34469354893453963,
+          "note": "",
+          "dep_variant": "2050_slr"
+        }
+      ]
+    }
+  },
+  "adaptive": {
+    "source_csv": "outputs/adaptive_vs_fixed_ablation.csv",
+    "note": "Cell-count accounting only (deployment_full in-sample selection); not runtime/efficiency claim.",
+    "rows": [
+      {
+        "ablation": "adaptive_vs_fixed_h3",
+        "score_col": "PFI_h",
+        "n_fixed_coarse": "262",
+        "n_adaptive_mixed": "7222",
+        "cell_count_ratio_vs_fixed": "27.564885496183205",
+        "note": "Fixed = keep all coarse cells; adaptive = refine high-score parents to fine_res. Hotspot recall vs uniform fine is under adaptive_* keys when estimated.",
+        "adaptive_coarse_res": "9",
+        "adaptive_fine_res": "11",
+        "adaptive_n_coarse": "262",
+        "adaptive_n_parents_refined": "145",
+        "adaptive_n_adaptive": "7222",
+        "adaptive_score_quantile": "0.8",
+        "adaptive_expand_k": "1",
+        "adaptive_uncertainty_min": "0.7",
+        "adaptive_n_uniform_fine": "12838.0",
+        "adaptive_cell_count_ratio": "0.5625486835955756"
+      }
+    ]
+  },
+  "negative_control": {
+    "source_json": "outputs/negative_control.json",
+    "note": "coastal overlay is a negative control, not a training label; metrics are on the live open-data stack (still Lower Manhattan / stated bbox, not citywide; not PFIb)",
+    "n_cells": 262.0,
+    "n_coastal": 74.0,
+    "n_pluvial": 165.0,
+    "n_coastal_only": 30.0,
+    "n_pluvial_only": 121.0,
+    "n_both": 44.0,
+    "n_neither": 67.0,
+    "frac_coastal_only": 0.11450381679389313,
+    "frac_pluvial_only": 0.4618320610687023,
+    "assembly_mode": "opendata",
+    "score_col": "oof_model_score",
+    "mean_score_coastal_only": 0.4064454798155867,
+    "mean_score_pluvial_only": 0.8861124886498636,
+    "mean_score_both": 0.7601391869621694,
+    "mean_score_neither": 0.2795122485976733,
+    "high_score_quantile": 0.8,
+    "high_score_threshold": 0.9650150736490354,
+    "n_high_score": 53.0,
+    "coastal_only_among_high_score": 0.03773584905660377,
+    "pluvial_among_high_score": 0.8301886792452831,
+    "pluvial_minus_coastal_mean_score": 0.4796670088342769
+  },
+  "classification_baselines": {
+    "lower_manhattan": "outputs/classification_baselines.json",
+    "manhattan_expanded": "outputs/classification_baselines_expanded.json"
+  },
+  "software_environment": {
+    "python": "3.13.12",
+    "h3": "4.4.2",
+    "scikit-learn": "1.8.0",
+    "pandas": "3.0.3",
+    "numpy": "2.4.6",
+    "shapely": "2.1.2",
+    "lock_file": "requirements.lock.txt"
+  },
+  "git_commit": "5d3b2ea04c4c5341011291d2b4654c9cf2fc4194",
+  "run_id": "20260921T035855Z",
+  "config_hash": "3c125cd7debb4dad",
+  "sandy_311_window_sensitivity": {
+    "note": "311 complaints with created_date in the Sandy landfall window [2012-10-27, 2012-11-05] are excluded before rebuilding the composite max(dep, complaint, hwm) target. Coastal diagnostic still uses OOF model scores from the primary (unmodified) CV, never the target score.",
+    "pilot": "lower_manhattan",
+    "n_cells": 262,
+    "311_meta": {
+      "n_311_features_total": 510,
+      "n_311_excluded_sandy_window": 9,
+      "n_311_kept_in_study_cells": 493,
+      "window": [
+        "2012-10-27T00:00:00",
+        "2012-11-05T23:59:59"
+      ]
+    },
+    "label_shift": {
+      "n_positive_baseline": 167,
+      "n_positive_sandy311_excluded": 166,
+      "n_cells_flipped": 1,
+      "prevalence_baseline": 0.6374045801526718,
+      "prevalence_sandy311_excluded": 0.6335877862595419
+    },
+    "spatial_cv_sandy311_excluded": {
+      "roc_auc_pooled": 0.8609751506024096,
+      "roc_auc_mean": 0.8518483047262851,
+      "pr_auc_pooled": 0.8623373286332393,
+      "accuracy_mean": 0.8395273058425111,
+      "f1_mean": 0.8769616494616495
+    },
+    "coastal_diagnostic_oof_vs_excluded_labels": {
+      "score_col": "oof_model_score",
+      "mean_score_by_group": {
+        "both": 0.8101898408559731,
+        "coastal_only": 0.4186830070917251,
+        "neither": 0.27053532413701153,
+        "pluvial_only": 0.8823574987230289
+      },
+      "pluvial_minus_coastal_mean_score": 0.4636744916313038,
+      "n_by_group": {
+        "pluvial_only": 122,
+        "neither": 66,
+        "both": 44,
+        "coastal_only": 30
+      }
+    }
+  },
+  "oof_extended_metrics": {
+    "lower_manhattan": {
+      "threshold": 0.5,
+      "threshold_note": "prespecified operating threshold for comparability (0.5)",
+      "pooled": {
+        "n": 262,
+        "roc_auc": 0.8502678852820673,
+        "average_precision": 0.8505963197248279,
+        "accuracy": 0.8244274809160306,
+        "balanced_accuracy": 0.7896627797037503,
+        "f1": 0.8693181818181818,
+        "precision": 0.827027027027027,
+        "recall": 0.9161676646706587,
+        "specificity": 0.6631578947368421,
+        "mcc": 0.6113803850184285
+      },
+      "spatial_fold_variability": {
+        "accuracy_mean": 0.8240615839949912,
+        "accuracy_std": 0.05520659447974526,
+        "balanced_accuracy_mean": 0.7551661555672968,
+        "balanced_accuracy_std": 0.08381984823957743,
+        "f1_mean": 0.8613633699914501,
+        "f1_std": 0.04893630236792049,
+        "mcc_mean": 0.5497917772955117,
+        "mcc_std": 0.1334897579116418,
+        "folds": [
+          {
+            "fold_id": 0,
+            "n": 53,
+            "accuracy": 0.7547169811320755,
+            "balanced_accuracy": 0.6642156862745098,
+            "f1": 0.8354430379746836,
+            "precision": 0.7674418604651163,
+            "recall": 0.9166666666666666,
+            "specificity": 0.4117647058823529,
+            "mcc": 0.3918195653861934,
+            "roc_auc": 0.6723856209150327
+          },
+          {
+            "fold_id": 1,
+            "n": 53,
+            "accuracy": 0.9056603773584906,
+            "balanced_accuracy": 0.6560283687943262,
+            "f1": 0.9484536082474226,
+            "precision": 0.92,
+            "recall": 0.9787234042553191,
+            "specificity": 0.3333333333333333,
+            "mcc": 0.42787064172715733,
+            "roc_auc": 0.8049645390070923
+          },
+          {
+            "fold_id": 2,
+            "n": 51,
+            "accuracy": 0.7843137254901961,
+            "balanced_accuracy": 0.78027950310559,
+            "f1": 0.8070175438596491,
+            "precision": 0.7931034482758621,
+            "recall": 0.8214285714285714,
+            "specificity": 0.7391304347826086,
+            "mcc": 0.5631886954203473,
+            "roc_auc": 0.8773291925465838
+          },
+          {
+            "fold_id": 3,
+            "n": 53,
+            "accuracy": 0.8679245283018868,
+            "balanced_accuracy": 0.875,
+            "f1": 0.8771929824561403,
+            "precision": 0.78125,
+            "recall": 1.0,
+            "specificity": 0.75,
+            "mcc": 0.7654655446197431,
+            "roc_auc": 0.9042857142857144
+          },
+          {
+            "fold_id": 4,
+            "n": 52,
+            "accuracy": 0.8076923076923077,
+            "balanced_accuracy": 0.8003072196620584,
+            "f1": 0.8387096774193549,
+            "precision": 0.8387096774193549,
+            "recall": 0.8387096774193549,
+            "specificity": 0.7619047619047619,
+            "mcc": 0.6006144393241167,
+            "roc_auc": 0.9124423963133641
+          }
+        ]
+      }
+    },
+    "manhattan_expanded": {
+      "threshold": 0.5,
+      "threshold_note": "prespecified operating threshold for comparability (0.5)",
+      "pooled": {
+        "n": 956,
+        "roc_auc": 0.8801879971077368,
+        "average_precision": 0.8146164946173106,
+        "accuracy": 0.8190376569037657,
+        "balanced_accuracy": 0.8210061570148338,
+        "f1": 0.8236493374108053,
+        "precision": 0.7769230769230769,
+        "recall": 0.8763557483731019,
+        "specificity": 0.7656565656565657,
+        "mcc": 0.6440973372994232
+      },
+      "spatial_fold_variability": {
+        "accuracy_mean": 0.8191492539231321,
+        "accuracy_std": 0.02364405303390376,
+        "balanced_accuracy_mean": 0.8215295606754085,
+        "balanced_accuracy_std": 0.020559060244719214,
+        "f1_mean": 0.822321839243153,
+        "f1_std": 0.027931780952306178,
+        "mcc_mean": 0.6441226018909011,
+        "mcc_std": 0.03996801435573814,
+        "folds": [
+          {
+            "fold_id": 0,
+            "n": 191,
+            "accuracy": 0.8324607329842932,
+            "balanced_accuracy": 0.8307862679955703,
+            "f1": 0.8476190476190476,
+            "precision": 0.8476190476190476,
+            "recall": 0.8476190476190476,
+            "specificity": 0.813953488372093,
+            "mcc": 0.6615725359911406,
+            "roc_auc": 0.9086378737541528
+          },
+          {
+            "fold_id": 1,
+            "n": 191,
+            "accuracy": 0.8324607329842932,
+            "balanced_accuracy": 0.8322368421052632,
+            "f1": 0.84,
+            "precision": 0.8076923076923077,
+            "recall": 0.875,
+            "specificity": 0.7894736842105263,
+            "mcc": 0.6671122399949516,
+            "roc_auc": 0.8976973684210527
+          },
+          {
+            "fold_id": 2,
+            "n": 191,
+            "accuracy": 0.8272251308900523,
+            "balanced_accuracy": 0.8257841631936829,
+            "f1": 0.8436018957345972,
+            "precision": 0.7807017543859649,
+            "recall": 0.9175257731958762,
+            "specificity": 0.7340425531914894,
+            "mcc": 0.6640671087918684,
+            "roc_auc": 0.8547927177012503
+          },
+          {
+            "fold_id": 3,
+            "n": 190,
+            "accuracy": 0.8315789473684211,
+            "balanced_accuracy": 0.8377192982456141,
+            "f1": 0.8048780487804879,
+            "precision": 0.75,
+            "recall": 0.868421052631579,
+            "specificity": 0.8070175438596491,
+            "mcc": 0.6635958688269413,
+            "roc_auc": 0.9082409972299169
+          },
+          {
+            "fold_id": 4,
+            "n": 193,
+            "accuracy": 0.772020725388601,
+            "balanced_accuracy": 0.7811212318369117,
+            "f1": 0.7755102040816326,
+            "precision": 0.6972477064220184,
+            "recall": 0.8735632183908046,
+            "specificity": 0.6886792452830188,
+            "mcc": 0.5642652558496036,
+            "roc_auc": 0.8283994795055303
+          }
+        ]
+      }
+    },
+    "hyperparameter_provenance": "GBM hyperparameters (n_estimators=80, max_depth=4, learning_rate=0.08, seed=42) are pre-specified in src/pluvial_flood_risk/config.py and estimators.py with no nested CV retuning.",
+    "urban_flag_note": "land_cover_urban removed from FEATURE_COLUMNS / estimator inputs (deterministic copy of impervious_frac; no independent information).",
+    "feature_columns": [
+      "elevation_m",
+      "slope_deg",
+      "flow_accum_proxy",
+      "impervious_frac",
+      "building_density",
+      "dist_stream_m",
+      "rainfall_mm_h"
+    ]
+  },
+  "land_mask_sensitivity": {
+    "note": "True land-mask sensitivity on Option B LM using NHDPlus water polygons (NHDArea/NHDWaterbody) from hydro_streams.geojson. land_frac = 1 - (cell \u2229 water)/cell_area; centroid_on_land excludes cell centres inside water polygons. Primary spatial CV recomputed per mask.",
+    "hydro_source": "data\\raw\\nyc\\hydro_streams.geojson",
+    "n_water_frac_gt_0": 9,
+    "n_centroid_in_water": 2,
+    "rows": [
+      {
+        "mask": "all_cells",
+        "n_cells": 262,
+        "n_positive": 167,
+        "prevalence": 0.6374045801526718,
+        "mean_land_frac": 0.9955162562520177,
+        "roc_auc_pooled": 0.8502678852820673,
+        "accuracy_mean": 0.8240615839949912,
+        "f1_mean": 0.8613633699914501,
+        "note": ""
+      },
+      {
+        "mask": "land_frac_ge_0.5",
+        "n_cells": 261,
+        "n_positive": 167,
+        "prevalence": 0.6398467432950191,
+        "mean_land_frac": 0.9981497161177135,
+        "roc_auc_pooled": 0.8439928653331634,
+        "accuracy_mean": 0.8199280002276673,
+        "f1_mean": 0.861049538844083,
+        "note": ""
+      },
+      {
+        "mask": "centroid_on_land",
+        "n_cells": 260,
+        "n_positive": 167,
+        "prevalence": 0.6423076923076924,
+        "mean_land_frac": 0.9993107094481637,
+        "roc_auc_pooled": 0.8452128002060396,
+        "accuracy_mean": 0.8229172714078375,
+        "f1_mean": 0.8637566426250407,
+        "note": ""
+      },
+      {
+        "mask": "land_frac_ge_0.5_and_centroid_on_land",
+        "n_cells": 260,
+        "n_positive": 167,
+        "prevalence": 0.6423076923076924,
+        "mean_land_frac": 0.9993107094481637,
+        "roc_auc_pooled": 0.8452128002060396,
+        "accuracy_mean": 0.8229172714078375,
+        "f1_mean": 0.8637566426250407,
+        "note": ""
+      }
+    ]
+  },
+  "polygon_area_threshold_sensitivity": {
+    "note": "Composite rebuilt with DEP area-fraction thresholds 0 / 1% / 5% / 10% (post-urban-drop features).",
+    "feature_columns": [
+      "elevation_m",
+      "slope_deg",
+      "flow_accum_proxy",
+      "impervious_frac",
+      "building_density",
+      "dist_stream_m",
+      "rainfall_mm_h"
+    ],
+    "rows": [
+      {
+        "threshold": 0.0,
+        "n_positive": 167,
+        "n_dep_positive": 74,
+        "prevalence": 0.6374045801526718,
+        "roc_auc_pooled": 0.8502678852820673,
+        "accuracy_mean": 0.8240615839949912,
+        "f1_mean": 0.8613633699914501,
+        "note": ""
+      },
+      {
+        "threshold": 0.01,
+        "n_positive": 163,
+        "n_dep_positive": 63,
+        "prevalence": 0.6221374045801527,
+        "roc_auc_pooled": 0.8225196752804115,
+        "accuracy_mean": 0.8091180739349442,
+        "f1_mean": 0.8487043576800393,
+        "note": ""
+      },
+      {
+        "threshold": 0.05,
+        "n_positive": 152,
+        "n_dep_positive": 23,
+        "prevalence": 0.5801526717557252,
+        "roc_auc_pooled": 0.841267942583732,
+        "accuracy_mean": 0.7633185349611542,
+        "f1_mean": 0.7968761459189964,
+        "note": ""
+      },
+      {
+        "threshold": 0.1,
+        "n_positive": 145,
+        "n_dep_positive": 4,
+        "prevalence": 0.5534351145038168,
+        "roc_auc_pooled": 0.8414382552313586,
+        "accuracy_mean": 0.7405290418054014,
+        "f1_mean": 0.7525844211558498,
+        "note": ""
+      }
+    ]
+  },
+  "hwm_quality_oof_validation": {
+    "note": "Quality-filtered OOF score validation on expanded-pilot HWM cells (Excellent/Good in ida_hwm_quality), plus USGS height_above_gnd diagnostic.",
+    "n_hwm_cells": 6,
+    "n_quality_filtered": 3,
+    "mean_oof_score_all_hwm": 0.7067036153368228,
+    "mean_oof_score_quality_filtered": 0.8816934610297539,
+    "fraction_oof_ge_0.5_quality_filtered": 1.0,
+    "quality_values": {
+      "Fair: +/- 0.20 ft": 3,
+      "Good: +/- 0.10 ft": 2,
+      "Excellent: +/- 0.05 ft; Fair: +/- 0.20 ft; Poor: +/- 0.40 ft; Good: +/- 0.10 ft; Fair: +/- 0.20 ft": 1
+    },
+    "height_above_gnd_diagnostic": {
+      "available": true,
+      "field": "height_above_gnd",
+      "units": "ft",
+      "n_raw_points_with_height": 159,
+      "n_hwm_cells_with_height": 6,
+      "mean_height_above_gnd_ft": 4.481006289308176,
+      "spearman_height_vs_oof": 0.3714285714285715,
+      "note": "Diagnostic only: USGS HWM height_above_gnd vs expanded-pilot OOF probability; not used as a training target."
+    },
+    "feature_columns_used_in_model": [
+      "elevation_m",
+      "slope_deg",
+      "flow_accum_proxy",
+      "impervious_frac",
+      "building_density",
+      "dist_stream_m",
+      "rainfall_mm_h"
+    ]
+  },
+  "feature_columns": [
+    "elevation_m",
+    "slope_deg",
+    "flow_accum_proxy",
+    "impervious_frac",
+    "building_density",
+    "dist_stream_m",
+    "rainfall_mm_h"
+  ],
+  "urban_flag_removed": true,
+  "hwm_validation": {
+    "note": "Quality-filtered OOF score validation on expanded-pilot HWM cells (Excellent/Good in ida_hwm_quality), plus USGS height_above_gnd diagnostic.",
+    "n_hwm_cells": 6,
+    "n_quality_filtered": 3,
+    "mean_oof_score_all_hwm": 0.7067036153368228,
+    "mean_oof_score_quality_filtered": 0.8816934610297539,
+    "fraction_oof_ge_0.5_quality_filtered": 1.0,
+    "quality_values": {
+      "Fair: +/- 0.20 ft": 3,
+      "Good: +/- 0.10 ft": 2,
+      "Excellent: +/- 0.05 ft; Fair: +/- 0.20 ft; Poor: +/- 0.40 ft; Good: +/- 0.10 ft; Fair: +/- 0.20 ft": 1
+    },
+    "height_above_gnd_diagnostic": {
+      "available": true,
+      "field": "height_above_gnd",
+      "units": "ft",
+      "n_raw_points_with_height": 159,
+      "n_hwm_cells_with_height": 6,
+      "mean_height_above_gnd_ft": 4.481006289308176,
+      "spearman_height_vs_oof": 0.3714285714285715,
+      "note": "Diagnostic only: USGS HWM height_above_gnd vs expanded-pilot OOF probability; not used as a training target."
+    },
+    "feature_columns_used_in_model": [
+      "elevation_m",
+      "slope_deg",
+      "flow_accum_proxy",
+      "impervious_frac",
+      "building_density",
+      "dist_stream_m",
+      "rainfall_mm_h"
+    ]
+  },
+  "operating_threshold_sensitivity": {
+    "lower_manhattan": {
+      "pilot": "lower_manhattan",
+      "note": "Operating threshold selected by maximising F1 on the training fold only, then applied to the held-out fold. Never tuned on test.",
+      "fixed_0.5": {
+        "accuracy_mean": 0.8240615839949912,
+        "accuracy_std": 0.05520659447974526,
+        "f1_mean": 0.8613633699914501,
+        "f1_std": 0.04893630236792049,
+        "folds": [
+          {
+            "fold_id": 0,
+            "threshold": 0.5,
+            "accuracy": 0.7547169811320755,
+            "f1": 0.8354430379746836
+          },
+          {
+            "fold_id": 1,
+            "threshold": 0.5,
+            "accuracy": 0.9056603773584906,
+            "f1": 0.9484536082474226
+          },
+          {
+            "fold_id": 2,
+            "threshold": 0.5,
+            "accuracy": 0.7843137254901961,
+            "f1": 0.8070175438596491
+          },
+          {
+            "fold_id": 3,
+            "threshold": 0.5,
+            "accuracy": 0.8679245283018868,
+            "f1": 0.8771929824561403
+          },
+          {
+            "fold_id": 4,
+            "threshold": 0.5,
+            "accuracy": 0.8076923076923077,
+            "f1": 0.8387096774193549
+          }
+        ],
+        "pooled_accuracy": 0.8244274809160306,
+        "pooled_f1": 0.8693181818181818
+      },
+      "train_fold_max_f1": {
+        "accuracy_mean": 0.8316813227468055,
+        "accuracy_std": 0.0498557806510141,
+        "f1_mean": 0.8679613983412138,
+        "f1_std": 0.04629908004260686,
+        "folds": [
+          {
+            "fold_id": 0,
+            "threshold_selected_on_train": 0.25,
+            "accuracy": 0.7735849056603774,
+            "f1": 0.85
+          },
+          {
+            "fold_id": 1,
+            "threshold_selected_on_train": 0.35,
+            "accuracy": 0.9056603773584906,
+            "f1": 0.9484536082474226
+          },
+          {
+            "fold_id": 2,
+            "threshold_selected_on_train": 0.49999999999999994,
+            "accuracy": 0.7843137254901961,
+            "f1": 0.8070175438596491
+          },
+          {
+            "fold_id": 3,
+            "threshold_selected_on_train": 0.39999999999999997,
+            "accuracy": 0.8679245283018868,
+            "f1": 0.8771929824561403
+          },
+          {
+            "fold_id": 4,
+            "threshold_selected_on_train": 0.44999999999999996,
+            "accuracy": 0.8269230769230769,
+            "f1": 0.8571428571428571
+          }
+        ],
+        "pooled_accuracy": 0.8320610687022901,
+        "pooled_f1": 0.8757062146892656,
+        "mean_selected_threshold": 0.38999999999999996
+      }
+    },
+    "manhattan_expanded": {
+      "pilot": "manhattan_expanded",
+      "note": "Operating threshold selected by maximising F1 on the training fold only, then applied to the held-out fold. Never tuned on test.",
+      "fixed_0.5": {
+        "accuracy_mean": 0.8191492539231321,
+        "accuracy_std": 0.02364405303390376,
+        "f1_mean": 0.822321839243153,
+        "f1_std": 0.027931780952306178,
+        "folds": [
+          {
+            "fold_id": 0,
+            "threshold": 0.5,
+            "accuracy": 0.8324607329842932,
+            "f1": 0.8476190476190476
+          },
+          {
+            "fold_id": 1,
+            "threshold": 0.5,
+            "accuracy": 0.8324607329842932,
+            "f1": 0.84
+          },
+          {
+            "fold_id": 2,
+            "threshold": 0.5,
+            "accuracy": 0.8272251308900523,
+            "f1": 0.8436018957345972
+          },
+          {
+            "fold_id": 3,
+            "threshold": 0.5,
+            "accuracy": 0.8315789473684211,
+            "f1": 0.8048780487804879
+          },
+          {
+            "fold_id": 4,
+            "threshold": 0.5,
+            "accuracy": 0.772020725388601,
+            "f1": 0.7755102040816326
+          }
+        ],
+        "pooled_accuracy": 0.8190376569037657,
+        "pooled_f1": 0.8236493374108053
+      },
+      "train_fold_max_f1": {
+        "accuracy_mean": 0.7878384687541494,
+        "accuracy_std": 0.03768552419716849,
+        "f1_mean": 0.7787548691518634,
+        "f1_std": 0.04754066121295225,
+        "folds": [
+          {
+            "fold_id": 0,
+            "threshold_selected_on_train": 0.5690668338981737,
+            "accuracy": 0.8167539267015707,
+            "f1": 0.8275862068965517
+          },
+          {
+            "fold_id": 1,
+            "threshold_selected_on_train": 0.6095758416419845,
+            "accuracy": 0.8010471204188482,
+            "f1": 0.7978723404255319
+          },
+          {
+            "fold_id": 2,
+            "threshold_selected_on_train": 0.5886737930427799,
+            "accuracy": 0.7905759162303665,
+            "f1": 0.801980198019802
+          },
+          {
+            "fold_id": 3,
+            "threshold_selected_on_train": 0.5611038249285696,
+            "accuracy": 0.8157894736842105,
+            "f1": 0.7770700636942676
+          },
+          {
+            "fold_id": 4,
+            "threshold_selected_on_train": 0.6243201844404758,
+            "accuracy": 0.7150259067357513,
+            "f1": 0.6892655367231638
+          }
+        ],
+        "pooled_accuracy": 0.7876569037656904,
+        "pooled_f1": 0.7810140237324703,
+        "mean_selected_threshold": 0.5905480955903968
+      }
+    }
+  },
+  "adaptive_r11_hotspot_retention": {
+    "mode": "option_A_true_r11_reextract",
+    "fine_res": 11,
+    "n_coarse": 262,
+    "n_parents_refined": 148,
+    "n_adaptive_mixed": 7366,
+    "n_uniform_fine": 12838,
+    "n_uniform_fine_scorable": 12578,
+    "n_refined_children": 7252,
+    "n_refined_children_scorable": 7222,
+    "n_dropped_refined_nan": 30,
+    "n_dropped_uniform_nan": 260,
+    "cell_count_ratio_vs_uniform": 0.5737653840162019,
+    "n_hotspot_uniform_scorable": 1258,
+    "hotspot_recall": 1.0,
+    "hotspot_quantile": 0.9,
+    "mean_score_refined_children": 0.5508342677846496,
+    "mean_score_uniform_fine": 0.38827656812040195,
+    "base_adaptive_metrics": {
+      "coarse_res": 9,
+      "fine_res": 11,
+      "n_coarse": 262,
+      "n_parents_refined": 148,
+      "n_adaptive": 7366,
+      "score_quantile": 0.8,
+      "expand_k": 1,
+      "uncertainty_min": 0.7,
+      "n_uniform_fine": 12838.0,
+      "cell_count_ratio": 0.5737653840162019
+    },
+    "note": "True R11 feature re-extraction on refined parents' children using the post-urban-drop deployment model; cells with NaN static features (DEM edge) are dropped before scoring. Hotspot recall vs uniformly scored scorable R11."
+  },
+  "freeze_tag": "submission-v5-full-recompute",
+  "stamp_commit": "cad956f9592b6632bf189ac604da51cda1fece08"
+}

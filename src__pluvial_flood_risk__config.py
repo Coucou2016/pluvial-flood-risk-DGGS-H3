@@ -1,0 +1,62 @@
+"""Project paths and default H3 / model settings."""
+
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+DATA_DIR = PROJECT_ROOT / "data"
+RAW_DIR = DATA_DIR / "raw"
+PROCESSED_DIR = DATA_DIR / "processed"
+MODELS_DIR = PROJECT_ROOT / "models"
+OUTPUTS_DIR = PROJECT_ROOT / "outputs"
+
+# Demo study area: small bbox near Oslo (paper context: Norway)
+DEFAULT_BBOX = (10.70, 59.90, 10.85, 59.98)  # min_lon, min_lat, max_lon, max_lat
+
+# H3 resolution: ~0.1 km² at res 9; use 9 for city-scale demo, 8 for regional
+DEFAULT_H3_RESOLUTION = 9
+
+# Production estimator inputs. land_cover_urban is intentionally omitted: it was a
+# deterministic copy of impervious_frac (>0.45) with no independent information
+# (Major Revision construct-validity / M6).
+FEATURE_COLUMNS = [
+    "elevation_m",
+    "slope_deg",
+    "flow_accum_proxy",
+    "impervious_frac",
+    "building_density",
+    "dist_stream_m",
+    "rainfall_mm_h",
+]
+
+# Pre-specified GBM hyperparameters (no nested CV retuning on the production path).
+GBM_N_ESTIMATORS = 80
+GBM_MAX_DEPTH = 4
+GBM_LEARNING_RATE = 0.08
+OPERATING_THRESHOLD_DEFAULT = 0.5
+
+TARGET_COLUMN = "flood_risk"
+TARGET_CLASS_COLUMN = "flood_class"
+
+RANDOM_SEED = 42
+
+PROVENANCE_SYNTHETIC = "synthetic"
+PROVENANCE_OBSERVED = "observed"
+PROVENANCE_MIXED = "mixed"
+PROVENANCE_FIXTURE = "fixture"
+# Composite flood-evidence label assembled from heterogeneous open public
+# sources (DEP model-derived stormwater polygons + 311 crowd-reported points +
+# USGS Ida high-water marks). These are NOT a single "observed" ground truth:
+# DEP is hydrologic/hydraulic model output, 311 is reported (not verified)
+# inundation, and only the HWM points are direct observations.
+PROVENANCE_OPEN_EVIDENCE = "open_public_evidence"
+
+ASSEMBLY_HASH = "hash_demo"
+ASSEMBLY_FIXTURE = "fixture"
+ASSEMBLY_OPENDATA = "opendata"
+
+DEFAULT_SPATIAL_CV_K = 2
+DEFAULT_SPATIAL_CV_FOLDS = 5
+
+# Lower Manhattan (paper main study). Oslo remains transfer/appendix.
+NYC_MANHATTAN_BBOX = (-74.02, 40.70, -73.97, 40.76)

@@ -1,0 +1,1689 @@
+{
+  "generated_utc": "2026-08-28T03:09:42.907183+00:00",
+  "git": {
+    "head": "1be9288db06e0611f2785c5381837cb48a50478e",
+    "branch": "master",
+    "submission_v2_commit": "1be9288db06e0611f2785c5381837cb48a50478e",
+    "submission_v2_object": "f525770eadb5b61cb24e877d22c5edf7bf4104c7",
+    "dirty": true,
+    "dirty_entry_count": 64,
+    "status_porcelain": [
+      "M data/raw/DATA_SOURCES.md",
+      " M docs/paper/audit.md",
+      " M docs/paper/figures/multi_resolution_spatial.pdf",
+      " M docs/paper/figures/multi_resolution_spatial.png",
+      " M docs/paper/figures/resolution_effects.pdf",
+      " M docs/paper/figures/resolution_effects.png",
+      " M docs/paper/figures/source_evidence_maps.pdf",
+      " M docs/paper/figures/source_evidence_maps.png",
+      " M docs/paper/figures/spatial_cv_folds.pdf",
+      " M docs/paper/figures/spatial_cv_folds.png",
+      " M docs/paper/figures/spatial_maps.pdf",
+      " M docs/paper/figures/spatial_maps.png",
+      " M docs/paper/figures/supplementary/adaptive_ablation.pdf",
+      " M docs/paper/figures/supplementary/adaptive_ablation.png",
+      " M docs/paper/figures/supplementary/jaccard_by_resolution.pdf",
+      " M docs/paper/figures/supplementary/jaccard_by_resolution.png",
+      " M docs/paper/figures/workflow_schematic.pdf",
+      " M docs/paper/manuscript.html",
+      " M docs/paper/manuscript.md",
+      " M docs/paper/manuscript.pdf",
+      " M docs/paper/report.html",
+      " M docs/paper/report.md",
+      " M docs/paper/report.pdf",
+      " M models/nyc_expanded/run_metadata.json",
+      " M models/nyc_expanded/spatial_cv_folds.csv",
+      " M models/nyc_expanded/spatial_cv_oof_predictions.csv",
+      " M models/nyc_smoke/run_metadata.json",
+      " M models/nyc_smoke/spatial_cv_folds.csv",
+      " M models/nyc_smoke/spatial_cv_oof_predictions.csv",
+      " M outputs/adaptive_vs_fixed_ablation.csv",
+      " M outputs/classification_baselines_expanded.csv",
+      " M outputs/classification_baselines_expanded.json",
+      " M outputs/expanded_primary_table.json",
+      " M outputs/jaccard_by_resolution.csv",
+      " M outputs/jaccard_by_resolution.png",
+      " M outputs/negative_control.json",
+      " M outputs/pfi_h_scenarios.csv",
+      " M outputs/spatial_cv_folds_nyc_expanded.csv",
+      " M outputs/spatial_cv_folds_nyc_smoke.csv",
+      " M report.html",
+      " M scripts/build_manuscript_html.py",
+      " M scripts/build_paper_report_html.py",
+      " M scripts/make_figures.py",
+      " M src/pluvial_flood_risk/download_nyc.py",
+      " M src/pluvial_flood_risk/figures.py",
+      " M src/pluvial_flood_risk/pipeline.py",
+      " M src/pluvial_flood_risk/rollups.py",
+      "?? outputs/block_sensitivity.csv",
+      "?? outputs/block_sensitivity.json",
+      "?? outputs/hotspot_budget_sensitivity.csv",
+      "?? outputs/hotspot_budget_sensitivity.json",
+      "?? outputs/slr_sensitivity.csv",
+      "?? outputs/slr_sensitivity.json",
+      "?? outputs/source_ablation.csv",
+      "?? outputs/source_ablation.json",
+      "?? scripts/_redownload_dep.py",
+      "?? scripts/_tmp_desc.py",
+      "?? scripts/_tmp_desc2.py",
+      "?? scripts/_tmp_stats.py",
+      "?? scripts/run_block_sensitivity.py",
+      "?? scripts/run_hotspot_budget_sensitivity.py",
+      "?? scripts/run_slr_sensitivity.py",
+      "?? scripts/run_source_ablation.py",
+      "?? \"\\345\\256\\241\\346\\237\\245\\350\\276\\223\\345\\207\\272/\""
+    ]
+  },
+  "metadata": {
+    "models/nyc_smoke/run_metadata.json": {
+      "created_utc": "2026-08-24T14:52:10.567937+00:00",
+      "random_seed": 42,
+      "data_provenance": "open_public_evidence",
+      "h3_version": "4.5.0",
+      "sklearn_version": "1.8.0",
+      "framework": "pluvial-flood-risk-dggs-h3",
+      "framework_version": "0.1.0",
+      "n_cells": 141,
+      "metrics": {
+        "random_split_val_accuracy": 0.7586206896551724,
+        "random_split_val_r2": 0.1580191307804404,
+        "val_accuracy": 0.7586206896551724,
+        "val_r2": 0.1580191307804404,
+        "spatial_cv_n_folds": 5.0,
+        "spatial_cv_n_blocks": 7.0,
+        "spatial_cv_accuracy_mean": 0.7814322820037106,
+        "spatial_cv_accuracy_std": 0.12314106233038542,
+        "spatial_cv_r2_mean": 0.048051827310876136,
+        "spatial_cv_r2_std": 0.34786693367599825,
+        "spatial_cv_f1_mean": 0.8219047619047618,
+        "spatial_cv_mae_mean": 0.33033658239838976,
+        "spatial_cv_roc_auc_mean": 0.7978760683760683,
+        "spatial_cv_roc_auc_std": 0.12974782207661728,
+        "spatial_cv_pr_auc_mean": 0.8551281289299226,
+        "spatial_cv_pr_auc_std": 0.08364933244494593,
+        "spatial_cv_roc_auc_pooled": 0.7797482837528604,
+        "spatial_cv_pr_auc_pooled": 0.8048051496591422,
+        "spatial_cv_fold_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_smoke\\spatial_cv_folds.csv",
+        "spatial_cv_oof_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_smoke\\spatial_cv_oof_predictions.csv"
+      },
+      "spatial_cv_k": 2,
+      "spatial_cv_folds": 5
+    },
+    "models/nyc_expanded/run_metadata.json": {
+      "created_utc": "2026-08-24T15:07:29.272572+00:00",
+      "random_seed": 42,
+      "data_provenance": "open_public_evidence",
+      "h3_version": "4.5.0",
+      "sklearn_version": "1.8.0",
+      "framework": "pluvial-flood-risk-dggs-h3",
+      "framework_version": "0.1.0",
+      "n_cells": 956,
+      "metrics": {
+        "random_split_val_accuracy": 0.8177083333333334,
+        "random_split_val_r2": 0.4150908865722551,
+        "val_accuracy": 0.8177083333333334,
+        "val_r2": 0.4150908865722551,
+        "spatial_cv_n_folds": 5.0,
+        "spatial_cv_n_blocks": 28.0,
+        "spatial_cv_accuracy_mean": 0.821259856909724,
+        "spatial_cv_accuracy_std": 0.032772438982148,
+        "spatial_cv_r2_mean": 0.33349385779821683,
+        "spatial_cv_r2_std": 0.14422916376304304,
+        "spatial_cv_f1_mean": 0.8191196339766484,
+        "spatial_cv_mae_mean": 0.2857316630702019,
+        "spatial_cv_roc_auc_mean": 0.8832537179873734,
+        "spatial_cv_roc_auc_std": 0.03703836491071337,
+        "spatial_cv_pr_auc_mean": 0.8153785925571515,
+        "spatial_cv_pr_auc_std": 0.05831003068744864,
+        "spatial_cv_roc_auc_pooled": 0.8833981255594364,
+        "spatial_cv_pr_auc_pooled": 0.8121272838030822,
+        "spatial_cv_fold_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_expanded\\spatial_cv_folds.csv",
+        "spatial_cv_oof_csv": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\models\\nyc_expanded\\spatial_cv_oof_predictions.csv"
+      },
+      "spatial_cv_k": 2,
+      "spatial_cv_folds": 5
+    },
+    "current_environment": {
+      "python": "3.13.12 | packaged by Anaconda, Inc. | (main, Feb 24 2026, 16:05:56) [MSC v.1942 64 bit (AMD64)]",
+      "h3": "4.4.2",
+      "pandas": "3.0.3",
+      "numpy": "2.4.6",
+      "sklearn": "1.8.0"
+    }
+  },
+  "manifests": {
+    "data/raw/nyc/DOWNLOAD_MANIFEST.json": {
+      "started_utc": null,
+      "finished_utc": null,
+      "bbox": [
+        -74.02,
+        40.7,
+        -73.97,
+        40.76
+      ],
+      "assembly_ready": true,
+      "layers": [
+        {
+          "name": "dem",
+          "status": "downloaded",
+          "source": "USGS 3DEP ImageServer",
+          "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc\\dem.tif",
+          "exists": true,
+          "actual_size_bytes": 1312662,
+          "actual_sha256": "e9373f5cd91db56cece473a17ae87764887ffac2ccc69799077100bf1d1d0209",
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": "EPSG:4326 GeoTIFF"
+        },
+        {
+          "name": "dep_stormwater_flood",
+          "status": "downloaded",
+          "source": "ArcGIS Hub DEP moderate+2050 SLR",
+          "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc\\dep_stormwater_flood.geojson",
+          "exists": true,
+          "actual_size_bytes": 24601038,
+          "actual_sha256": "175c7b31edeabab8a2cd6fb32d68b2faf59f02874ce7ffde6bd1b7e5632881b8",
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": null
+        },
+        {
+          "name": "building_footprints",
+          "status": "downloaded",
+          "source": "NYC MapHub BUILDING_view",
+          "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc\\building_footprints.geojson",
+          "exists": true,
+          "actual_size_bytes": 17924283,
+          "actual_sha256": "47df709d639f2f93612ea7468f4d2959014c253e3506a46d5fa22214e7536808",
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": null
+        },
+        {
+          "name": "usgs_ida_hwm",
+          "status": "downloaded",
+          "source": "USGS ScienceBase P9OMBJPQ",
+          "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc\\usgs_ida_hwm.geojson",
+          "exists": true,
+          "actual_size_bytes": 43209,
+          "actual_sha256": "2ca3f65a7c9ba3655efa7236fe795acc04e374038945a196ab206240188517af",
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": null
+        },
+        {
+          "name": "flooding_311",
+          "status": "downloaded",
+          "source": "arcgis_streetfloodtime",
+          "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc\\flooding_311.geojson",
+          "exists": true,
+          "actual_size_bytes": 286307,
+          "actual_sha256": "47cf5dcf488adad05d643f5b18933cbd1bbb8dfde26740bd0b4b0f4add51624c",
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": null
+        },
+        {
+          "name": "fema_sandy",
+          "status": "downloaded",
+          "source": "arcgis_sandy_jzHs",
+          "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc\\fema_sandy.geojson",
+          "exists": true,
+          "actual_size_bytes": 5533235,
+          "actual_sha256": "fcb8380920c30d2faf83d40b8186c418b1087496a9d321987c61537f2362245f",
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": null
+        },
+        {
+          "name": "impervious",
+          "status": "downloaded",
+          "source": "Esri Annual NLCD Fractional Impervious ImageServer",
+          "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc\\impervious.tif",
+          "exists": true,
+          "actual_size_bytes": 791768,
+          "actual_sha256": "2c36e60e97f9c01dc368647bb9bc0b0453cbfc3c09441a1aac67b0c8ad62a9f9",
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": "EPSG:4326 GeoTIFF, values scaled to fraction 0–1"
+        },
+        {
+          "name": "event_rainfall",
+          "status": "downloaded",
+          "source": "synthetic_constant_grid",
+          "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc\\event_rainfall.tif",
+          "exists": true,
+          "actual_size_bytes": 6696,
+          "actual_sha256": "d0d0fa458443ad235e8ce7f76446cbb4379204242fb24f5ee9cf00bd93447cc3",
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": "Uniform 75.0 mm/h over bbox (Ida-like scenario hook; not gauge radar)"
+        },
+        {
+          "name": "hydro_streams",
+          "status": "downloaded",
+          "source": "usgs_nhdplus_hr",
+          "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc\\hydro_streams.geojson",
+          "exists": true,
+          "actual_size_bytes": 18614,
+          "actual_sha256": "56b4959e09383bccf9924043c706bd4efd10c6f04ed0385647efc90f37fb141a",
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": "NHDPlus HR flowlines+areas+waterbodies; NetworkNHDFlowline=2, NonNetworkNHDFlowline=3, NHDArea=1, NHDWaterbody=8; wrote 13 after bbox clip. Honesty: mostly tidal rivers/waterbodies for LM — dist_stream_m is distance-to-water, not classic stream proximity."
+        },
+        {
+          "name": "floodnet",
+          "status": "skipped",
+          "source": "FloodNet",
+          "path": null,
+          "exists": false,
+          "actual_size_bytes": null,
+          "actual_sha256": null,
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": "stub unreachable: HTTP 404 for https://api.floodnet.nyc/status… b'{\"error\":\"resource does not exist\",\"path\":\"$\",\"code\":\"not-found\"}'"
+        }
+      ],
+      "all_layers_have_exact_url": false,
+      "all_layers_have_license": false,
+      "all_layers_have_checksum": false
+    },
+    "data/raw/nyc_expanded/DOWNLOAD_MANIFEST.json": {
+      "started_utc": null,
+      "finished_utc": null,
+      "bbox": [
+        -74.03,
+        40.68,
+        -73.94,
+        40.8
+      ],
+      "assembly_ready": true,
+      "layers": [
+        {
+          "name": "dem",
+          "status": "downloaded",
+          "source": "USGS 3DEP ImageServer",
+          "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc_expanded\\dem.tif",
+          "exists": true,
+          "actual_size_bytes": 5245782,
+          "actual_sha256": "103370ee8d0667402f208e5773a3a11a634888b67154f6a2362261afd198db59",
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": "EPSG:4326 GeoTIFF"
+        },
+        {
+          "name": "dep_stormwater_flood",
+          "status": "downloaded",
+          "source": "ArcGIS Hub DEP moderate+2050 SLR",
+          "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc_expanded\\dep_stormwater_flood.geojson",
+          "exists": true,
+          "actual_size_bytes": 24601038,
+          "actual_sha256": "175c7b31edeabab8a2cd6fb32d68b2faf59f02874ce7ffde6bd1b7e5632881b8",
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": null
+        },
+        {
+          "name": "building_footprints",
+          "status": "downloaded",
+          "source": "NYC MapHub BUILDING_view",
+          "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc_expanded\\building_footprints.geojson",
+          "exists": true,
+          "actual_size_bytes": 64021806,
+          "actual_sha256": "5ee3badb7a7a0d1c2b888b55bc94217126c9a7efef07dcf5214859b096e7e5e8",
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": null
+        },
+        {
+          "name": "usgs_ida_hwm",
+          "status": "downloaded",
+          "source": "USGS ScienceBase P9OMBJPQ",
+          "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc_expanded\\usgs_ida_hwm.geojson",
+          "exists": true,
+          "actual_size_bytes": 43209,
+          "actual_sha256": "2ca3f65a7c9ba3655efa7236fe795acc04e374038945a196ab206240188517af",
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": null
+        },
+        {
+          "name": "flooding_311",
+          "status": "downloaded",
+          "source": "arcgis_streetfloodtime",
+          "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc_expanded\\flooding_311.geojson",
+          "exists": true,
+          "actual_size_bytes": 661853,
+          "actual_sha256": "9847293561abe66c5f55ea038bd5815cf0227b486df5010d420f692a03a663ee",
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": null
+        },
+        {
+          "name": "fema_sandy",
+          "status": "downloaded",
+          "source": "arcgis_sandy_jzHs",
+          "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc_expanded\\fema_sandy.geojson",
+          "exists": true,
+          "actual_size_bytes": 11422173,
+          "actual_sha256": "457be2e3b0ddcfba4eeaa5f95753ca28c917527acdbf5e7b2d9f64b6da945801",
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": null
+        },
+        {
+          "name": "impervious",
+          "status": "downloaded",
+          "source": "Esri Annual NLCD Fractional Impervious ImageServer",
+          "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc_expanded\\impervious.tif",
+          "exists": true,
+          "actual_size_bytes": 2816752,
+          "actual_sha256": "eb976a12db38861f74bd160c933a8ef2b278d6a5f5f726b2118d4af98a2d0676",
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": "EPSG:4326 GeoTIFF, values scaled to fraction 0–1"
+        },
+        {
+          "name": "event_rainfall",
+          "status": "downloaded",
+          "source": "synthetic_constant_grid",
+          "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc_expanded\\event_rainfall.tif",
+          "exists": true,
+          "actual_size_bytes": 24996,
+          "actual_sha256": "391feaa67c0ef9d87f45fd5cd5173c0a3384ebff5ba604078207bc19cd5fde6a",
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": "Uniform 75.0 mm/h over bbox (Ida-like scenario hook; not gauge radar)"
+        },
+        {
+          "name": "hydro_streams",
+          "status": "downloaded",
+          "source": "usgs_nhdplus_hr",
+          "path": "E:\\Projects\\20260522-pluvial-flood-risk-DGGS-H3\\data\\raw\\nyc_expanded\\hydro_streams.geojson",
+          "exists": true,
+          "actual_size_bytes": 88192,
+          "actual_sha256": "5b0d02627209f5fa007ce7f35fde6d818b8b0ae22838fa51f2296d20d9f66919",
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": "NHDPlus HR flowlines+areas+waterbodies; NetworkNHDFlowline=36, NonNetworkNHDFlowline=9, NHDArea=4, NHDWaterbody=69; wrote 117 after bbox clip. Honesty: mostly tidal rivers/waterbodies for LM — dist_stream_m is distance-to-water, not classic stream proximity."
+        },
+        {
+          "name": "floodnet",
+          "status": "skipped",
+          "source": "FloodNet",
+          "path": null,
+          "exists": false,
+          "actual_size_bytes": null,
+          "actual_sha256": null,
+          "has_exact_url_field": false,
+          "has_license_field": false,
+          "has_checksum_field": false,
+          "manifest_detail": "stub unreachable: HTTP 404 for https://api.floodnet.nyc/status… b'{\"error\":\"resource does not exist\",\"path\":\"$\",\"code\":\"not-found\"}'"
+        }
+      ],
+      "all_layers_have_exact_url": false,
+      "all_layers_have_license": false,
+      "all_layers_have_checksum": false
+    }
+  },
+  "rasters": {
+    "data/raw/nyc/dem.tif": {
+      "shape": [
+        600,
+        500
+      ],
+      "crs": "EPSG:4326",
+      "bounds": [
+        -74.02000000000001,
+        40.70000000000001,
+        -73.97000000000001,
+        40.760000000000005
+      ],
+      "nodata": -9999.0,
+      "valid_count": 300000,
+      "min": -22.74851417541504,
+      "max": 24.018192291259766,
+      "mean": 5.530563694760132,
+      "std": 5.671773820144975,
+      "unique_count": 210122,
+      "sha256": "e9373f5cd91db56cece473a17ae87764887ffac2ccc69799077100bf1d1d0209"
+    },
+    "data/raw/nyc/impervious.tif": {
+      "shape": [
+        600,
+        500
+      ],
+      "crs": "EPSG:4326",
+      "bounds": [
+        -74.02000000000001,
+        40.70000000000001,
+        -73.97000000000001,
+        40.760000000000005
+      ],
+      "nodata": -9999.0,
+      "valid_count": 300000,
+      "min": 0.0,
+      "max": 0.9781928062438965,
+      "mean": 0.5816542447625292,
+      "std": 0.342698462401658,
+      "unique_count": 225290,
+      "sha256": "2c36e60e97f9c01dc368647bb9bc0b0453cbfc3c09441a1aac67b0c8ad62a9f9"
+    },
+    "data/raw/nyc/event_rainfall.tif": {
+      "shape": [
+        600,
+        500
+      ],
+      "crs": "EPSG:4326",
+      "bounds": [
+        -74.02,
+        40.7,
+        -73.97,
+        40.76
+      ],
+      "nodata": -9999.0,
+      "valid_count": 300000,
+      "min": 75.0,
+      "max": 75.0,
+      "mean": 75.0,
+      "std": 0.0,
+      "unique_count": 1,
+      "sha256": "d0d0fa458443ad235e8ce7f76446cbb4379204242fb24f5ee9cf00bd93447cc3"
+    },
+    "data/raw/nyc_expanded/dem.tif": {
+      "shape": [
+        1200,
+        900
+      ],
+      "crs": "EPSG:4326",
+      "bounds": [
+        -74.03,
+        40.67999999999999,
+        -73.94,
+        40.8
+      ],
+      "nodata": -9999.0,
+      "valid_count": 1080000,
+      "min": -22.74851417541504,
+      "max": 80.20616149902344,
+      "mean": 10.686776168563053,
+      "std": 14.52060234544394,
+      "unique_count": 771808,
+      "sha256": "103370ee8d0667402f208e5773a3a11a634888b67154f6a2362261afd198db59"
+    },
+    "data/raw/nyc_expanded/impervious.tif": {
+      "shape": [
+        1200,
+        900
+      ],
+      "crs": "EPSG:4326",
+      "bounds": [
+        -74.03,
+        40.67999999999999,
+        -73.94,
+        40.8
+      ],
+      "nodata": -9999.0,
+      "valid_count": 1080000,
+      "min": 0.0,
+      "max": 0.9785328507423401,
+      "mean": 0.5462107867911197,
+      "std": 0.35280769189332417,
+      "unique_count": 750384,
+      "sha256": "eb976a12db38861f74bd160c933a8ef2b278d6a5f5f726b2118d4af98a2d0676"
+    },
+    "data/raw/nyc_expanded/event_rainfall.tif": {
+      "shape": [
+        1200,
+        900
+      ],
+      "crs": "EPSG:4326",
+      "bounds": [
+        -74.03,
+        40.68,
+        -73.94,
+        40.8
+      ],
+      "nodata": -9999.0,
+      "valid_count": 1080000,
+      "min": 75.0,
+      "max": 75.0,
+      "mean": 75.0,
+      "std": 0.0,
+      "unique_count": 1,
+      "sha256": "391feaa67c0ef9d87f45fd5cd5173c0a3384ebff5ba604078207bc19cd5fde6a"
+    }
+  },
+  "processed_tables": {
+    "lower_manhattan": {
+      "rows": 141,
+      "columns": [
+        "h3_index",
+        "elevation_m",
+        "impervious_frac",
+        "land_cover_urban",
+        "slope_deg",
+        "flow_accum_proxy",
+        "building_density",
+        "dist_stream_m",
+        "rainfall_mm_h",
+        "lon",
+        "lat",
+        "h3_resolution",
+        "feature_source",
+        "assembly_mode",
+        "observed_feature_cols",
+        "rainfall_source",
+        "flood_area_frac",
+        "flood_point_count",
+        "dep_area_frac",
+        "dep_nuisance_frac",
+        "dep_deep_frac",
+        "complaint_count",
+        "complaint_presence",
+        "ida_hwm_count",
+        "ida_hwm_presence",
+        "ida_hwm_quality",
+        "evidence_sources",
+        "observed_risk",
+        "flood_risk",
+        "flood_class",
+        "label_source",
+        "sandy_area_frac",
+        "sandy_class"
+      ],
+      "duplicate_h3": 0,
+      "h3_resolutions": [
+        9
+      ],
+      "null_counts": {},
+      "unique_assembly_mode": [
+        "opendata"
+      ],
+      "unique_feature_source": [
+        "observed"
+      ],
+      "unique_label_source": [
+        "open_public_evidence"
+      ],
+      "unique_rainfall_source": [
+        "event_raster"
+      ],
+      "unique_observed_feature_cols": [
+        "building_density,dist_stream_m,elevation_m,flow_accum_proxy,impervious_frac,land_cover_urban,slope_deg"
+      ],
+      "numeric_min_max": {
+        "elevation_m": {
+          "min": -1.5726857119047322,
+          "max": 12.762222649455596,
+          "std": 4.219420579033605
+        },
+        "impervious_frac": {
+          "min": 0.0,
+          "max": 0.8600292421593112,
+          "std": 0.28161374690375984
+        },
+        "land_cover_urban": {
+          "min": 0.0,
+          "max": 1.0,
+          "std": 0.404193102092908
+        },
+        "slope_deg": {
+          "min": 0.0,
+          "max": 4.601608386528282,
+          "std": 0.9569604744735988
+        },
+        "flow_accum_proxy": {
+          "min": 1.0,
+          "max": 163.48849557522124,
+          "std": 28.447235551143795
+        },
+        "building_density": {
+          "min": 0.0,
+          "max": 3202.183541481517,
+          "std": 787.6782405175227
+        },
+        "dist_stream_m": {
+          "min": 0.0,
+          "max": 1499.3428101295665,
+          "std": 343.3944086167508
+        },
+        "rainfall_mm_h": {
+          "min": 75.0,
+          "max": 75.0,
+          "std": 0.0
+        },
+        "lon": {
+          "min": -74.01951335948576,
+          "max": -73.9800073154922,
+          "std": 0.011593480209869582
+        },
+        "lat": {
+          "min": 40.70147004899095,
+          "max": 40.73947590550561,
+          "std": 0.011379929679719344
+        },
+        "h3_resolution": {
+          "min": 9.0,
+          "max": 9.0,
+          "std": 0.0
+        },
+        "flood_area_frac": {
+          "min": 0.0,
+          "max": 0.16432889561495595,
+          "std": 0.023373063982461872
+        },
+        "flood_point_count": {
+          "min": 0.0,
+          "max": 14.0,
+          "std": 2.4813980233112654
+        },
+        "dep_area_frac": {
+          "min": 0.0,
+          "max": 0.16432889561495595,
+          "std": 0.023373063982461872
+        },
+        "dep_nuisance_frac": {
+          "min": 0.0,
+          "max": 0.12163290311329875,
+          "std": 0.016334152058802863
+        },
+        "dep_deep_frac": {
+          "min": 0.0,
+          "max": 0.060044573378258144,
+          "std": 0.009407500106066554
+        },
+        "complaint_count": {
+          "min": 0.0,
+          "max": 14.0,
+          "std": 2.4813980233112654
+        },
+        "complaint_presence": {
+          "min": 0.0,
+          "max": 1.0,
+          "std": 0.4907473444540763
+        },
+        "ida_hwm_count": {
+          "min": 0.0,
+          "max": 0.0,
+          "std": 0.0
+        },
+        "ida_hwm_presence": {
+          "min": 0.0,
+          "max": 0.0,
+          "std": 0.0
+        },
+        "observed_risk": {
+          "min": 0.0,
+          "max": 1.0,
+          "std": 0.48786982234350645
+        },
+        "flood_risk": {
+          "min": 0.0,
+          "max": 1.0,
+          "std": 0.48786982234350645
+        },
+        "flood_class": {
+          "min": 0.0,
+          "max": 1.0,
+          "std": 0.46883670584506126
+        },
+        "sandy_area_frac": {
+          "min": 0.0,
+          "max": 0.7440224058116194,
+          "std": 0.15285808764466086
+        },
+        "sandy_class": {
+          "min": 0.0,
+          "max": 1.0,
+          "std": 0.4141503920753598
+        }
+      },
+      "target_max_rule_mismatch_count": 0,
+      "source_positive_counts": {
+        "dep_positive": 40,
+        "complaint_positive": 84,
+        "hwm_positive": 0,
+        "composite_positive_at_1e_9": 95
+      },
+      "class_threshold_mismatch_count": 0,
+      "class_prevalence": 0.6737588652482269
+    },
+    "expanded": {
+      "rows": 956,
+      "columns": [
+        "h3_index",
+        "elevation_m",
+        "impervious_frac",
+        "land_cover_urban",
+        "slope_deg",
+        "flow_accum_proxy",
+        "building_density",
+        "dist_stream_m",
+        "rainfall_mm_h",
+        "lon",
+        "lat",
+        "h3_resolution",
+        "feature_source",
+        "assembly_mode",
+        "observed_feature_cols",
+        "rainfall_source",
+        "flood_area_frac",
+        "flood_point_count",
+        "dep_area_frac",
+        "dep_nuisance_frac",
+        "dep_deep_frac",
+        "complaint_count",
+        "complaint_presence",
+        "ida_hwm_count",
+        "ida_hwm_presence",
+        "ida_hwm_quality",
+        "evidence_sources",
+        "observed_risk",
+        "flood_risk",
+        "flood_class",
+        "label_source",
+        "sandy_area_frac",
+        "sandy_class"
+      ],
+      "duplicate_h3": 0,
+      "h3_resolutions": [
+        9
+      ],
+      "null_counts": {},
+      "unique_assembly_mode": [
+        "opendata"
+      ],
+      "unique_feature_source": [
+        "observed"
+      ],
+      "unique_label_source": [
+        "open_public_evidence"
+      ],
+      "unique_rainfall_source": [
+        "event_raster"
+      ],
+      "unique_observed_feature_cols": [
+        "building_density,dist_stream_m,elevation_m,flow_accum_proxy,impervious_frac,land_cover_urban,slope_deg"
+      ],
+      "numeric_min_max": {
+        "elevation_m": {
+          "min": -1.6200000047683716,
+          "max": 77.13151664969986,
+          "std": 14.317768738179083
+        },
+        "impervious_frac": {
+          "min": 0.0,
+          "max": 0.8889311911048248,
+          "std": 0.31464547519063574
+        },
+        "land_cover_urban": {
+          "min": 0.0,
+          "max": 1.0,
+          "std": 0.46569620344691304
+        },
+        "slope_deg": {
+          "min": 0.0,
+          "max": 11.686244044337622,
+          "std": 1.6916027646334513
+        },
+        "flow_accum_proxy": {
+          "min": 1.0,
+          "max": 303.12732095490713,
+          "std": 31.560743178875345
+        },
+        "building_density": {
+          "min": 0.0,
+          "max": 3505.450763992476,
+          "std": 859.5407487363307
+        },
+        "dist_stream_m": {
+          "min": 0.0,
+          "max": 2057.670590512816,
+          "std": 389.13338912976883
+        },
+        "rainfall_mm_h": {
+          "min": 75.0,
+          "max": 75.0,
+          "std": 0.0
+        },
+        "lon": {
+          "min": -74.02997065145077,
+          "max": -73.94010543566644,
+          "std": 0.02599550548424349
+        },
+        "lat": {
+          "min": 40.68012350060611,
+          "max": 40.799945737650596,
+          "std": 0.034662059607759026
+        },
+        "h3_resolution": {
+          "min": 9.0,
+          "max": 9.0,
+          "std": 0.0
+        },
+        "flood_area_frac": {
+          "min": 0.0,
+          "max": 0.3447635111760912,
+          "std": 0.02972861176071803
+        },
+        "flood_point_count": {
+          "min": 0.0,
+          "max": 16.0,
+          "std": 2.276110968689078
+        },
+        "dep_area_frac": {
+          "min": 0.0,
+          "max": 0.3447635111760912,
+          "std": 0.02972861176071803
+        },
+        "dep_nuisance_frac": {
+          "min": 0.0,
+          "max": 0.17421383590716205,
+          "std": 0.01918279469997661
+        },
+        "dep_deep_frac": {
+          "min": 0.0,
+          "max": 0.17054967526920653,
+          "std": 0.01239964827273003
+        },
+        "complaint_count": {
+          "min": 0.0,
+          "max": 16.0,
+          "std": 2.2546621632879926
+        },
+        "complaint_presence": {
+          "min": 0.0,
+          "max": 1.0,
+          "std": 0.4863319336335518
+        },
+        "ida_hwm_count": {
+          "min": 0.0,
+          "max": 5.0,
+          "std": 0.20908992649932115
+        },
+        "ida_hwm_presence": {
+          "min": 0.0,
+          "max": 1.0,
+          "std": 0.07897316354885722
+        },
+        "observed_risk": {
+          "min": 0.0,
+          "max": 1.0,
+          "std": 0.4847168821343776
+        },
+        "flood_risk": {
+          "min": 0.0,
+          "max": 1.0,
+          "std": 0.4847168821343776
+        },
+        "flood_class": {
+          "min": 0.0,
+          "max": 1.0,
+          "std": 0.4993693612275305
+        },
+        "sandy_area_frac": {
+          "min": 0.0,
+          "max": 0.9903488608971659,
+          "std": 0.17817299934714953
+        },
+        "sandy_class": {
+          "min": 0.0,
+          "max": 1.0,
+          "std": 0.4394550530878662
+        }
+      },
+      "target_max_rule_mismatch_count": 0,
+      "source_positive_counts": {
+        "dep_positive": 231,
+        "complaint_positive": 367,
+        "hwm_positive": 6,
+        "composite_positive_at_1e_9": 454
+      },
+      "class_threshold_mismatch_count": 0,
+      "class_prevalence": 0.47489539748953974
+    },
+    "r10_labels": {
+      "rows": 991,
+      "columns": [
+        "h3_index",
+        "lon",
+        "lat",
+        "h3_resolution",
+        "assembly_mode",
+        "feature_source",
+        "flood_area_frac",
+        "flood_point_count",
+        "dep_area_frac",
+        "dep_nuisance_frac",
+        "dep_deep_frac",
+        "complaint_count",
+        "complaint_presence",
+        "ida_hwm_count",
+        "ida_hwm_presence",
+        "ida_hwm_quality",
+        "evidence_sources",
+        "observed_risk",
+        "flood_risk",
+        "flood_class",
+        "label_source",
+        "label_scale_mode"
+      ],
+      "duplicate_h3": 0,
+      "h3_resolutions": [
+        10
+      ],
+      "null_counts": {},
+      "unique_assembly_mode": [
+        "opendata"
+      ],
+      "unique_feature_source": [
+        "labels_only_diagnostics"
+      ],
+      "unique_label_source": [
+        "open_public_evidence"
+      ],
+      "numeric_min_max": {
+        "lon": {
+          "min": -74.0199324898358,
+          "max": -73.9800073154922,
+          "std": 0.011539447539695267
+        },
+        "lat": {
+          "min": 40.70001185013083,
+          "max": 40.73991653626706,
+          "std": 0.011544905856828429
+        },
+        "h3_resolution": {
+          "min": 10.0,
+          "max": 10.0,
+          "std": 0.0
+        },
+        "flood_area_frac": {
+          "min": 0.0,
+          "max": 0.44745142181956304,
+          "std": 0.03981623856378579
+        },
+        "flood_point_count": {
+          "min": 0.0,
+          "max": 13.0,
+          "std": 0.8274002595631091
+        },
+        "dep_area_frac": {
+          "min": 0.0,
+          "max": 0.44745142181956304,
+          "std": 0.03981623856378579
+        },
+        "dep_nuisance_frac": {
+          "min": 0.0,
+          "max": 0.3353083861555866,
+          "std": 0.026227440381640047
+        },
+        "dep_deep_frac": {
+          "min": 0.0,
+          "max": 0.40850171257296647,
+          "std": 0.02182742969695728
+        },
+        "complaint_count": {
+          "min": 0.0,
+          "max": 13.0,
+          "std": 0.8274002595631091
+        },
+        "complaint_presence": {
+          "min": 0.0,
+          "max": 1.0,
+          "std": 0.3574172635591323
+        },
+        "ida_hwm_count": {
+          "min": 0.0,
+          "max": 0.0,
+          "std": 0.0
+        },
+        "ida_hwm_presence": {
+          "min": 0.0,
+          "max": 0.0,
+          "std": 0.0
+        },
+        "observed_risk": {
+          "min": 0.0,
+          "max": 1.0,
+          "std": 0.35648811270206077
+        },
+        "flood_risk": {
+          "min": 0.0,
+          "max": 1.0,
+          "std": 0.35648811270206077
+        },
+        "flood_class": {
+          "min": 0.0,
+          "max": 1.0,
+          "std": 0.4079461746840029
+        }
+      },
+      "target_max_rule_mismatch_count": 0,
+      "source_positive_counts": {
+        "dep_positive": 89,
+        "complaint_positive": 149,
+        "hwm_positive": 0,
+        "composite_positive_at_1e_9": 209
+      },
+      "class_threshold_mismatch_count": 0,
+      "class_prevalence": 0.21089808274470231
+    }
+  },
+  "oof": {
+    "lower_manhattan": {
+      "rows": 141,
+      "duplicate_h3": 0,
+      "merge_status": {
+        "both": 141,
+        "left_only": 0,
+        "right_only": 0
+      },
+      "y_true_mismatch_count": 0,
+      "oof_contains_regression_predictions": false,
+      "pooled_roc_auc_recomputed": 0.7797482837528604,
+      "pooled_average_precision_recomputed": 0.8048051496591422,
+      "fold_accuracy_mean_recomputed": 0.7814322820037106,
+      "fold_accuracy_sd0_recomputed": 0.12314106233038542,
+      "fold_f1_mean_recomputed": 0.8219047619047618,
+      "fold_f1_sd0_recomputed": 0.11608738596048376,
+      "fold_r2_mean_recomputed": 0.04805182731087616,
+      "fold_r2_sd0_recomputed": 0.3478669336759982,
+      "folds": [
+        {
+          "fold_id": 0,
+          "n": 49,
+          "accuracy_recomputed": 0.7346938775510204,
+          "f1_recomputed": 0.8266666666666667,
+          "blocks": [
+            "872a1072cffffff"
+          ]
+        },
+        {
+          "fold_id": 1,
+          "n": 25,
+          "accuracy_recomputed": 0.64,
+          "f1_recomputed": 0.64,
+          "blocks": [
+            "872a1072dffffff"
+          ]
+        },
+        {
+          "fold_id": 2,
+          "n": 22,
+          "accuracy_recomputed": 0.8181818181818182,
+          "f1_recomputed": 0.8571428571428571,
+          "blocks": [
+            "872a10728ffffff"
+          ]
+        },
+        {
+          "fold_id": 3,
+          "n": 21,
+          "accuracy_recomputed": 0.7142857142857143,
+          "f1_recomputed": 0.7857142857142857,
+          "blocks": [
+            "872a100d2ffffff",
+            "872a1072effffff"
+          ]
+        },
+        {
+          "fold_id": 4,
+          "n": 24,
+          "accuracy_recomputed": 1.0,
+          "f1_recomputed": 1.0,
+          "blocks": [
+            "872a100d3ffffff",
+            "872a10721ffffff"
+          ]
+        }
+      ]
+    },
+    "expanded": {
+      "rows": 956,
+      "duplicate_h3": 0,
+      "merge_status": {
+        "both": 956,
+        "left_only": 0,
+        "right_only": 0
+      },
+      "y_true_mismatch_count": 0,
+      "oof_contains_regression_predictions": false,
+      "pooled_roc_auc_recomputed": 0.8833981255594364,
+      "pooled_average_precision_recomputed": 0.8121272838030822,
+      "fold_accuracy_mean_recomputed": 0.821259856909724,
+      "fold_accuracy_sd0_recomputed": 0.032772438982148,
+      "fold_f1_mean_recomputed": 0.8191196339766484,
+      "fold_f1_sd0_recomputed": 0.03845144137653171,
+      "fold_r2_mean_recomputed": 0.33349385779821683,
+      "fold_r2_sd0_recomputed": 0.14422916376304304,
+      "folds": [
+        {
+          "fold_id": 0,
+          "n": 191,
+          "accuracy_recomputed": 0.8638743455497382,
+          "f1_recomputed": 0.8761904761904762,
+          "blocks": [
+            "872a100d2ffffff",
+            "872a100d3ffffff",
+            "872a100d8ffffff",
+            "872a10728ffffff",
+            "872a1072effffff"
+          ]
+        },
+        {
+          "fold_id": 1,
+          "n": 191,
+          "accuracy_recomputed": 0.8324607329842932,
+          "f1_recomputed": 0.8315789473684211,
+          "blocks": [
+            "872a1008bffffff",
+            "872a1008dffffff",
+            "872a100d1ffffff",
+            "872a100d6ffffff",
+            "872a10724ffffff"
+          ]
+        },
+        {
+          "fold_id": 2,
+          "n": 191,
+          "accuracy_recomputed": 0.806282722513089,
+          "f1_recomputed": 0.821256038647343,
+          "blocks": [
+            "872a10088ffffff",
+            "872a100dcffffff",
+            "872a100deffffff",
+            "872a10721ffffff",
+            "872a1072bffffff",
+            "872a1072cffffff"
+          ]
+        },
+        {
+          "fold_id": 3,
+          "n": 190,
+          "accuracy_recomputed": 0.8368421052631579,
+          "f1_recomputed": 0.8098159509202454,
+          "blocks": [
+            "872a10089ffffff",
+            "872a1008affffff",
+            "872a10099ffffff",
+            "872a100d0ffffff",
+            "872a100d5ffffff",
+            "872a10729ffffff"
+          ]
+        },
+        {
+          "fold_id": 4,
+          "n": 193,
+          "accuracy_recomputed": 0.7668393782383419,
+          "f1_recomputed": 0.7567567567567568,
+          "blocks": [
+            "872a100d4ffffff",
+            "872a100daffffff",
+            "872a100f2ffffff",
+            "872a10720ffffff",
+            "872a10725ffffff",
+            "872a1072dffffff"
+          ]
+        }
+      ]
+    }
+  },
+  "spatial_cv_independent_recompute": {
+    "lower_manhattan": {
+      "spatial_cv_n_folds": 5.0,
+      "spatial_cv_n_blocks": 7.0,
+      "spatial_cv_accuracy_mean": 0.7814322820037106,
+      "spatial_cv_accuracy_std": 0.12314106233038542,
+      "spatial_cv_r2_mean": 0.048051827310876136,
+      "spatial_cv_r2_std": 0.34786693367599825,
+      "spatial_cv_f1_mean": 0.8219047619047618,
+      "spatial_cv_mae_mean": 0.33033658239838976,
+      "spatial_cv_roc_auc_mean": 0.7978760683760683,
+      "spatial_cv_roc_auc_std": 0.12974782207661728,
+      "spatial_cv_pr_auc_mean": 0.8551281289299226,
+      "spatial_cv_pr_auc_std": 0.08364933244494593,
+      "spatial_cv_roc_auc_pooled": 0.7797482837528604,
+      "spatial_cv_pr_auc_pooled": 0.8048051496591422
+    },
+    "expanded": {
+      "spatial_cv_n_folds": 5.0,
+      "spatial_cv_n_blocks": 28.0,
+      "spatial_cv_accuracy_mean": 0.821259856909724,
+      "spatial_cv_accuracy_std": 0.032772438982148,
+      "spatial_cv_r2_mean": 0.33349385779821683,
+      "spatial_cv_r2_std": 0.14422916376304304,
+      "spatial_cv_f1_mean": 0.8191196339766484,
+      "spatial_cv_mae_mean": 0.2857316630702019,
+      "spatial_cv_roc_auc_mean": 0.8832537179873734,
+      "spatial_cv_roc_auc_std": 0.03703836491071337,
+      "spatial_cv_pr_auc_mean": 0.8153785925571515,
+      "spatial_cv_pr_auc_std": 0.05831003068744864,
+      "spatial_cv_roc_auc_pooled": 0.8833981255594364,
+      "spatial_cv_pr_auc_pooled": 0.8121272838030822
+    }
+  },
+  "saved_model_identity": {
+    "lower_manhattan": {
+      "feature_columns": [
+        "elevation_m",
+        "slope_deg",
+        "flow_accum_proxy",
+        "impervious_frac",
+        "building_density",
+        "dist_stream_m",
+        "rainfall_mm_h",
+        "land_cover_urban"
+      ],
+      "stored_classifier_classes": [
+        0,
+        1
+      ],
+      "stored_vs_refit80_max_abs_probability_diff": 0.0,
+      "stored_vs_refit100_max_abs_probability_diff": 0.8190720015625067,
+      "stored_vs_refit80_max_abs_regression_diff": 0.0,
+      "stored_vs_refit100_max_abs_regression_diff": 0.7364299791584884,
+      "independent_train_rows_80": 112,
+      "independent_train_rows_100": 141,
+      "rainfall_feature_importance_classifier": 0.0,
+      "rainfall_feature_importance_regressor": 0.0,
+      "sklearn_n_trees_per_iteration": 1
+    },
+    "expanded": {
+      "feature_columns": [
+        "elevation_m",
+        "slope_deg",
+        "flow_accum_proxy",
+        "impervious_frac",
+        "building_density",
+        "dist_stream_m",
+        "rainfall_mm_h",
+        "land_cover_urban"
+      ],
+      "stored_classifier_classes": [
+        0,
+        1
+      ],
+      "stored_vs_refit80_max_abs_probability_diff": 0.0,
+      "stored_vs_refit100_max_abs_probability_diff": 0.7181392883523791,
+      "stored_vs_refit80_max_abs_regression_diff": 0.0,
+      "stored_vs_refit100_max_abs_regression_diff": 0.6054146551387226,
+      "independent_train_rows_80": 764,
+      "independent_train_rows_100": 956,
+      "rainfall_feature_importance_classifier": 0.0,
+      "rainfall_feature_importance_regressor": 0.0,
+      "sklearn_n_trees_per_iteration": 1
+    }
+  },
+  "rainfall_scenarios": {
+    "rows": 564,
+    "unique_cells": 141,
+    "scenarios": [
+      {
+        "scenario": "extreme",
+        "rows": 141,
+        "rainfall_mm_h": 100.0,
+        "mean_PFI_h": 0.6773899740723189
+      },
+      {
+        "scenario": "heavy",
+        "rows": 141,
+        "rainfall_mm_h": 40.0,
+        "mean_PFI_h": 0.6773899740723189
+      },
+      {
+        "scenario": "ida_like",
+        "rows": 141,
+        "rainfall_mm_h": 75.0,
+        "mean_PFI_h": 0.6773899740723189
+      },
+      {
+        "scenario": "moderate",
+        "rows": 141,
+        "rainfall_mm_h": 25.0,
+        "mean_PFI_h": 0.6773899740723189
+      }
+    ],
+    "max_within_cell_range": 0.0,
+    "nonzero_range_cells": 0,
+    "pfi_min": 0.0041823893361547,
+    "pfi_max": 0.9961307563556152
+  },
+  "scale_diagnostic": {
+    "rows": [
+      {
+        "fine_res": 10,
+        "coarse_res": 8,
+        "aggregation": "mean",
+        "hotspot_budget": 0.1,
+        "n_fine": 991,
+        "n_coarse": 31,
+        "k_fine": 99,
+        "k_coarse": 3,
+        "n_hotspot_fine": 99,
+        "n_hotspot_fine_parents": 17,
+        "n_hotspot_coarse": 3,
+        "fine_hotspot_threshold": 1.0,
+        "coarse_hotspot_threshold": 0.3,
+        "jaccard": 0.1111111111111111,
+        "f1": 0.2,
+        "fine_parent_recall": 0.1176470588235294,
+        "coarse_precision": 0.6666666666666666,
+        "projected_fine_to_coarse_count_ratio": 5.666666666666667
+      },
+      {
+        "fine_res": 10,
+        "coarse_res": 8,
+        "aggregation": "max",
+        "hotspot_budget": 0.1,
+        "n_fine": 991,
+        "n_coarse": 31,
+        "k_fine": 99,
+        "k_coarse": 3,
+        "n_hotspot_fine": 99,
+        "n_hotspot_fine_parents": 17,
+        "n_hotspot_coarse": 3,
+        "fine_hotspot_threshold": 1.0,
+        "coarse_hotspot_threshold": 1.0,
+        "jaccard": 0.1764705882352941,
+        "f1": 0.3,
+        "fine_parent_recall": 0.1764705882352941,
+        "coarse_precision": 1.0,
+        "projected_fine_to_coarse_count_ratio": 5.666666666666667
+      },
+      {
+        "fine_res": 10,
+        "coarse_res": 8,
+        "aggregation": "p90",
+        "hotspot_budget": 0.1,
+        "n_fine": 991,
+        "n_coarse": 31,
+        "k_fine": 99,
+        "k_coarse": 3,
+        "n_hotspot_fine": 99,
+        "n_hotspot_fine_parents": 17,
+        "n_hotspot_coarse": 3,
+        "fine_hotspot_threshold": 1.0,
+        "coarse_hotspot_threshold": 1.0,
+        "jaccard": 0.1764705882352941,
+        "f1": 0.3,
+        "fine_parent_recall": 0.1764705882352941,
+        "coarse_precision": 1.0,
+        "projected_fine_to_coarse_count_ratio": 5.666666666666667
+      },
+      {
+        "fine_res": 10,
+        "coarse_res": 9,
+        "aggregation": "mean",
+        "hotspot_budget": 0.1,
+        "n_fine": 991,
+        "n_coarse": 160,
+        "k_fine": 99,
+        "k_coarse": 16,
+        "n_hotspot_fine": 99,
+        "n_hotspot_fine_parents": 56,
+        "n_hotspot_coarse": 16,
+        "fine_hotspot_threshold": 1.0,
+        "coarse_hotspot_threshold": 0.4285714285714285,
+        "jaccard": 0.180327868852459,
+        "f1": 0.3055555555555555,
+        "fine_parent_recall": 0.1964285714285714,
+        "coarse_precision": 0.6875,
+        "projected_fine_to_coarse_count_ratio": 3.5
+      },
+      {
+        "fine_res": 10,
+        "coarse_res": 9,
+        "aggregation": "max",
+        "hotspot_budget": 0.1,
+        "n_fine": 991,
+        "n_coarse": 160,
+        "k_fine": 99,
+        "k_coarse": 16,
+        "n_hotspot_fine": 99,
+        "n_hotspot_fine_parents": 56,
+        "n_hotspot_coarse": 16,
+        "fine_hotspot_threshold": 1.0,
+        "coarse_hotspot_threshold": 1.0,
+        "jaccard": 0.2857142857142857,
+        "f1": 0.4444444444444445,
+        "fine_parent_recall": 0.2857142857142857,
+        "coarse_precision": 1.0,
+        "projected_fine_to_coarse_count_ratio": 3.5
+      },
+      {
+        "fine_res": 10,
+        "coarse_res": 9,
+        "aggregation": "p90",
+        "hotspot_budget": 0.1,
+        "n_fine": 991,
+        "n_coarse": 160,
+        "k_fine": 99,
+        "k_coarse": 16,
+        "n_hotspot_fine": 99,
+        "n_hotspot_fine_parents": 56,
+        "n_hotspot_coarse": 16,
+        "fine_hotspot_threshold": 1.0,
+        "coarse_hotspot_threshold": 1.0,
+        "jaccard": 0.2857142857142857,
+        "f1": 0.4444444444444445,
+        "fine_parent_recall": 0.2857142857142857,
+        "coarse_precision": 1.0,
+        "projected_fine_to_coarse_count_ratio": 3.5
+      }
+    ],
+    "r10_k": 99,
+    "r10_threshold": 1.0,
+    "r10_cells_at_or_above_threshold": 149,
+    "r10_cells_strictly_above_threshold": 0,
+    "r10_ties_at_threshold": 149
+  },
+  "figure_files": [
+    {
+      "path": "docs/paper/figures/multi_resolution_spatial.png",
+      "width_px": 2150,
+      "height_px": 799,
+      "mode": "RGBA",
+      "sha256": "08cc18ecaa1f34aaf4653f0fdad3bbda56c57ce0e8acff6f0f69ba8cd65a90cf"
+    },
+    {
+      "path": "docs/paper/figures/resolution_effects.png",
+      "width_px": 2201,
+      "height_px": 822,
+      "mode": "RGBA",
+      "sha256": "8cd4686386ce4f259cb6b5301c8e0f06fff3c5467d412626e111d3b01790620f"
+    },
+    {
+      "path": "docs/paper/figures/source_evidence_maps.png",
+      "width_px": 1889,
+      "height_px": 1611,
+      "mode": "RGBA",
+      "sha256": "bc76f5d598e6ed0dfec93891b014e2262dd760ba63193bfe2c7be6d6ad30f242"
+    },
+    {
+      "path": "docs/paper/figures/spatial_cv_folds.png",
+      "width_px": 1582,
+      "height_px": 908,
+      "mode": "RGBA",
+      "sha256": "44404dd7287dbf40c39fef3af20a7e7e4d46d60a8375fa8acdcd2c672e09bc1b"
+    },
+    {
+      "path": "docs/paper/figures/spatial_maps.png",
+      "width_px": 2170,
+      "height_px": 706,
+      "mode": "RGBA",
+      "sha256": "2c0418b0cc411197b9c927799804ba20758c3be656521300a27b2d3148a1e4be"
+    },
+    {
+      "path": "docs/paper/figures/supplementary/adaptive_ablation.png",
+      "width_px": 1589,
+      "height_px": 871,
+      "mode": "RGBA",
+      "sha256": "3ea3d68426c8c972aef1084e15afa355699b55f8040e0a8d2d51b7aea18554f2"
+    },
+    {
+      "path": "docs/paper/figures/supplementary/jaccard_by_resolution.png",
+      "width_px": 2179,
+      "height_px": 870,
+      "mode": "RGBA",
+      "sha256": "30e625c6f59a3fb8c67e307de0109a945e858ffd4ddfd086637e8351311311a7"
+    },
+    {
+      "path": "docs/paper/figures/workflow_schematic.png",
+      "width_px": 1769,
+      "height_px": 1016,
+      "mode": "RGBA",
+      "sha256": "d80829c89364eab7757f1f46a850e57bd15ad0f8e8145ac6574283d84f157e40"
+    }
+  ],
+  "manuscript_reference_similarity": {
+    "method": "case-folded alphanumeric tokens; manuscript body excludes reference list",
+    "exact_10_word_overlap_count": 15,
+    "exact_10_word_overlaps": [
+      "competing financial interests or personal relationships that could have appeared",
+      "could have appeared to influence the work reported in this",
+      "declare that they have no known competing financial interests or",
+      "financial interests or personal relationships that could have appeared to",
+      "have appeared to influence the work reported in this paper",
+      "have no known competing financial interests or personal relationships that",
+      "interests or personal relationships that could have appeared to influence",
+      "known competing financial interests or personal relationships that could have",
+      "no known competing financial interests or personal relationships that could",
+      "or personal relationships that could have appeared to influence the",
+      "personal relationships that could have appeared to influence the work",
+      "relationships that could have appeared to influence the work reported",
+      "that could have appeared to influence the work reported in",
+      "that they have no known competing financial interests or personal",
+      "they have no known competing financial interests or personal relationships"
+    ],
+    "top_paragraph_matches": [
+      {
+        "manuscript_paragraph": 11,
+        "reference_paragraph": 43,
+        "similarity": 0.31266846361185985,
+        "manuscript_excerpt": "The method uses the H3 hierarchy as a common spatial reference while assigning distinct roles to the resolutions used for model fitting, spatial blocking, scale diagnostics, and adaptive refinement (Fig. 1).",
+        "reference_excerpt": "![](https://cdn.mathpix.com/cropped/169e0d6e-713a-4112-aad5-8ddab0e37c14-06.jpg?height=580&width=1098&top_left_y=1757&top_left_x=397) Fig. 3. The Pluvial Flood Index $\\mathrm{PFI}_{b}$ to $\\mathrm{PFI}_{h}$. Transition from (a) building-lev"
+      },
+      {
+        "manuscript_paragraph": 46,
+        "reference_paragraph": 15,
+        "similarity": 0.2979942693409742,
+        "manuscript_excerpt": "Moran's I (composite evidence score): 0.224 (LM), 0.433 (Exp). Fold-mean and pooled ROC-AUC differ in the smaller pilot because the folds derive from different fitted models on few blocks.",
+        "reference_excerpt": "Can building-level scores $\\left(P F I_{b}\\right)$ produced by the machine-learning model be aggregated within H3 cells to yield a scalable hexagonlevel index $\\left(P F I_{h}\\right)$ ?"
+      },
+      {
+        "manuscript_paragraph": 35,
+        "reference_paragraph": 15,
+        "similarity": 0.285132382892057,
+        "manuscript_excerpt": "**Table 6. Sandy negative-control statistics on the 141-cell pilot.** The score comparison uses the out-of-fold model score (never the target flood-evidence score, which is 0 in coastal-only cells by construction). The pluvial−coastal diffe",
+        "reference_excerpt": "Can building-level scores $\\left(P F I_{b}\\right)$ produced by the machine-learning model be aggregated within H3 cells to yield a scalable hexagonlevel index $\\left(P F I_{h}\\right)$ ?"
+      },
+      {
+        "manuscript_paragraph": 28,
+        "reference_paragraph": 15,
+        "similarity": 0.27710843373493976,
+        "manuscript_excerpt": "**Table 4. Scale-loss ladder under exact top-k hotspots (10% spatial budget, H3-index tie-break).** The fine R10 hotspot is 99 of 991 cells; coarse R9/R8 hotspots are the top 10% of their own cells, so the two sets carry matched budgets. Re",
+        "reference_excerpt": "Can building-level scores $\\left(P F I_{b}\\right)$ produced by the machine-learning model be aggregated within H3 cells to yield a scalable hexagonlevel index $\\left(P F I_{h}\\right)$ ?"
+      },
+      {
+        "manuscript_paragraph": 61,
+        "reference_paragraph": 15,
+        "similarity": 0.269449715370019,
+        "manuscript_excerpt": "**Supplementary Figure S1. Open-evidence hotspot scale-loss diagnostics across H3 resolutions.** Jaccard similarity and F1 compare hotspot sets defined on the reference fine support, H3 R10 (exact top-10% threshold, H3-index tie-break), wit",
+        "reference_excerpt": "Can building-level scores $\\left(P F I_{b}\\right)$ produced by the machine-learning model be aggregated within H3 cells to yield a scalable hexagonlevel index $\\left(P F I_{h}\\right)$ ?"
+      },
+      {
+        "manuscript_paragraph": 59,
+        "reference_paragraph": 43,
+        "similarity": 0.2533532041728763,
+        "manuscript_excerpt": "**Figure 5. Multi-resolution open-evidence score surface on the label-assembly footprint.** (a) R10 open-evidence flood score (n = 991); (b) mean rollup to R9 (n = 160); and (c) mean rollup to R8 (n = 31). All panels use the same map extent",
+        "reference_excerpt": "![](https://cdn.mathpix.com/cropped/169e0d6e-713a-4112-aad5-8ddab0e37c14-06.jpg?height=580&width=1098&top_left_y=1757&top_left_x=397) Fig. 3. The Pluvial Flood Index $\\mathrm{PFI}_{b}$ to $\\mathrm{PFI}_{h}$. Transition from (a) building-lev"
+      },
+      {
+        "manuscript_paragraph": 10,
+        "reference_paragraph": 15,
+        "similarity": 0.2505399568034557,
+        "manuscript_excerpt": "Rainfall enters the framework separately as the condition r (rainfall intensity). The pilot rainfall is a constant synthetic input representing an Ida-like scenario (75 mm/h), not radar or gauge data; this choice is deliberate and its conse",
+        "reference_excerpt": "Can building-level scores $\\left(P F I_{b}\\right)$ produced by the machine-learning model be aggregated within H3 cells to yield a scalable hexagonlevel index $\\left(P F I_{h}\\right)$ ?"
+      },
+      {
+        "manuscript_paragraph": 6,
+        "reference_paragraph": 15,
+        "similarity": 0.24483306836248012,
+        "manuscript_excerpt": "The analysis uses two Manhattan pilot extents. The smaller is a Lower Manhattan bounding box (approximately 74.02–73.97°W, 40.70–40.76°N); the larger expanded-Manhattan box spans approximately 74.03–73.94°W, 40.68–40.80°N. Both lie within N",
+        "reference_excerpt": "Can building-level scores $\\left(P F I_{b}\\right)$ produced by the machine-learning model be aggregated within H3 cells to yield a scalable hexagonlevel index $\\left(P F I_{h}\\right)$ ?"
+      },
+      {
+        "manuscript_paragraph": 30,
+        "reference_paragraph": 15,
+        "similarity": 0.2414486921529175,
+        "manuscript_excerpt": "Note: exact top-k avoids the earlier 0.9-quantile tie inflation (149 of 991 cells, i.e. 15%). Mean-aggregation budget sensitivity: Jaccard/F1 at R9 rise from 0.129/0.229 (5%) to 0.180/0.306 (10%), 0.296/0.457 (15%), and 0.352/0.520 (20%); a",
+        "reference_excerpt": "Can building-level scores $\\left(P F I_{b}\\right)$ produced by the machine-learning model be aggregated within H3 cells to yield a scalable hexagonlevel index $\\left(P F I_{h}\\right)$ ?"
+      },
+      {
+        "manuscript_paragraph": 56,
+        "reference_paragraph": 43,
+        "similarity": 0.2402088772845953,
+        "manuscript_excerpt": "**Figure 2. Spatial results for the Lower Manhattan pilot (n = 141 R9 cells).** (a) Open-evidence flood score; (b) pooled out-of-fold gradient-boosting score under H3-block spatial cross-validation; (c) full-fit model score at the synthetic",
+        "reference_excerpt": "![](https://cdn.mathpix.com/cropped/169e0d6e-713a-4112-aad5-8ddab0e37c14-06.jpg?height=580&width=1098&top_left_y=1757&top_left_x=397) Fig. 3. The Pluvial Flood Index $\\mathrm{PFI}_{b}$ to $\\mathrm{PFI}_{h}$. Transition from (a) building-lev"
+      },
+      {
+        "manuscript_paragraph": 48,
+        "reference_paragraph": 43,
+        "similarity": 0.2373806275579809,
+        "manuscript_excerpt": "Svellingen et al. [5] use H3 to aggregate a proprietary building-level index for scalable communication, whereas the present framework learns from heterogeneous open evidence and evaluates predictions across held-out H3 spatial blocks. The ",
+        "reference_excerpt": "![](https://cdn.mathpix.com/cropped/169e0d6e-713a-4112-aad5-8ddab0e37c14-06.jpg?height=580&width=1098&top_left_y=1757&top_left_x=397) Fig. 3. The Pluvial Flood Index $\\mathrm{PFI}_{b}$ to $\\mathrm{PFI}_{h}$. Transition from (a) building-lev"
+      },
+      {
+        "manuscript_paragraph": 32,
+        "reference_paragraph": 43,
+        "similarity": 0.23529411764705882,
+        "manuscript_excerpt": "**Table 5. Adaptive refinement versus fixed and uniform fine grids by cell count** (Lower Manhattan pilot; adaptive = 34.4× fixed R9 = 70.1% of uniform R11; 98 of 141 R9 cells refined).",
+        "reference_excerpt": "![](https://cdn.mathpix.com/cropped/169e0d6e-713a-4112-aad5-8ddab0e37c14-06.jpg?height=580&width=1098&top_left_y=1757&top_left_x=397) Fig. 3. The Pluvial Flood Index $\\mathrm{PFI}_{b}$ to $\\mathrm{PFI}_{h}$. Transition from (a) building-lev"
+      },
+      {
+        "manuscript_paragraph": 42,
+        "reference_paragraph": 43,
+        "similarity": 0.23140495867768596,
+        "manuscript_excerpt": "Note: \"—\" marks a single-class target that was not fitted. Pooled ROC-AUC in the smaller pilot differs from the fold-mean because the five folds derive from different fitted models on only seven blocks (per-fold ROC-AUC ranges from 0.588 to",
+        "reference_excerpt": "![](https://cdn.mathpix.com/cropped/169e0d6e-713a-4112-aad5-8ddab0e37c14-06.jpg?height=580&width=1098&top_left_y=1757&top_left_x=397) Fig. 3. The Pluvial Flood Index $\\mathrm{PFI}_{b}$ to $\\mathrm{PFI}_{h}$. Transition from (a) building-lev"
+      },
+      {
+        "manuscript_paragraph": 5,
+        "reference_paragraph": 43,
+        "similarity": 0.22487223168654175,
+        "manuscript_excerpt": "Accordingly, the analysis asks whether predictive performance persists when entire H3 parent blocks are withheld, relative to class-prevalence baselines; how hotspot membership changes as fine-scale evidence is aggregated, and whether train",
+        "reference_excerpt": "![](https://cdn.mathpix.com/cropped/169e0d6e-713a-4112-aad5-8ddab0e37c14-06.jpg?height=580&width=1098&top_left_y=1757&top_left_x=397) Fig. 3. The Pluvial Flood Index $\\mathrm{PFI}_{b}$ to $\\mathrm{PFI}_{h}$. Transition from (a) building-lev"
+      },
+      {
+        "manuscript_paragraph": 57,
+        "reference_paragraph": 43,
+        "similarity": 0.20863309352517986,
+        "manuscript_excerpt": "**Figure 3. Source-specific open-evidence maps for the Lower Manhattan pilot (n = 141 R9 cells).** The composite flood-evidence score (d) is the maximum over the source-specific layers retained as separate columns in the assembled table: (a",
+        "reference_excerpt": "![](https://cdn.mathpix.com/cropped/169e0d6e-713a-4112-aad5-8ddab0e37c14-06.jpg?height=580&width=1098&top_left_y=1757&top_left_x=397) Fig. 3. The Pluvial Flood Index $\\mathrm{PFI}_{b}$ to $\\mathrm{PFI}_{h}$. Transition from (a) building-lev"
+      }
+    ],
+    "caveat": "This checks only the supplied reference PDF/Markdown and cannot prove originality against all external literature."
+  },
+  "file_inventory_count": 152
+}

@@ -1,0 +1,22 @@
+# Oslo-area demo study (synthetic features/labels — not production validation)
+name: demo_oslo
+data_provenance: synthetic
+
+bbox: [10.70, 59.90, 10.85, 59.98]  # min_lon, min_lat, max_lon, max_lat (EPSG:4326)
+resolution: 9
+random_seed: 42
+
+rainfall_mm_h: 30.0
+rainfall_scenarios:
+  - name: light
+    mm_h: 15
+  - name: moderate
+    mm_h: 25
+  - name: heavy
+    mm_h: 40
+  - name: extreme
+    mm_h: 60
+
+spatial_cv:
+  k_ring: 2
+  n_folds: 5

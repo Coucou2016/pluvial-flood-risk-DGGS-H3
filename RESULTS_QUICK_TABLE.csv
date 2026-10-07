@@ -1,0 +1,45 @@
+section,metric,value,note
+"Lower Manhattan (Option B, n=262)",n_cells,262,
+"Lower Manhattan (Option B, n=262)",n_positive,167,
+"Lower Manhattan (Option B, n=262)",positive_prevalence,0.6374,
+"Lower Manhattan (Option B, n=262)",spatial_cv ROC-AUC (pooled OOF),0.8503,
+"Lower Manhattan (Option B, n=262)",spatial_cv PR-AUC (pooled OOF),0.8506,
+"Lower Manhattan (Option B, n=262)",spatial_cv accuracy (fold mean±std),0.8241 ± 0.0552,
+"Lower Manhattan (Option B, n=262)",spatial_cv F1 (fold mean±std),0.8614 ± 0.0489,
+"Lower Manhattan (Option B, n=262)",spatial_CV n_folds / n_blocks,5 / 12,
+Manhattan Expanded (n=956),n_cells,956,
+Manhattan Expanded (n=956),n_positive,461,
+Manhattan Expanded (n=956),positive_prevalence,0.4822,
+Manhattan Expanded (n=956),spatial_cv ROC-AUC (pooled OOF),0.8802,
+Manhattan Expanded (n=956),spatial_cv PR-AUC (pooled OOF),0.8146,
+Manhattan Expanded (n=956),spatial_cv accuracy (fold mean±std),0.8191 ± 0.0236,
+Manhattan Expanded (n=956),spatial_cv F1 (fold mean±std),0.8223 ± 0.0279,
+Manhattan Expanded (n=956),spatial_CV n_folds / n_blocks,5 / 28,
+"Scale-loss (R10→coarse, strict area budget, 10% hotspot)",primary_metric,area_weighted_soft_jaccard,"n_fine=1788, n_coarse_r9=262"
+Scale-loss,soft Jaccard R10→R8 (mean),0.1364,spearman=1.0
+Scale-loss,soft Jaccard R10→R8 (max),0.5787,spearman=0.707
+Scale-loss,soft Jaccard R10→R8 (p90),0.6819,spearman=0.91
+Scale-loss,soft Jaccard R10→R9 (mean),0.2195,spearman=1.0
+Scale-loss,soft Jaccard R10→R9 (max),0.6479,spearman=0.916
+Scale-loss,soft Jaccard R10→R9 (p90),0.5732,spearman=0.983
+"Negative control (coastal vs pluvial, OOF score)",mean OOF score: pluvial-only,0.8861,
+"Negative control (coastal vs pluvial, OOF score)",mean OOF score: coastal-only,0.4064,
+Source ablation · lower_manhattan,dep_only ROC-AUC pooled,0.8008,n_pos=74
+Source ablation · lower_manhattan,complaint_only ROC-AUC pooled,0.8529,n_pos=144
+Source ablation · lower_manhattan,complaint_hwm ROC-AUC pooled,0.8529,n_pos=144
+Source ablation · lower_manhattan,composite ROC-AUC pooled,0.8503,n_pos=167
+Source ablation · lower_manhattan,composite_no_diststream ROC-AUC pooled,0.8507,n_pos=167
+Source ablation · lower_manhattan,complaint_no_building_density ROC-AUC pooled,0.839,n_pos=144
+Source ablation · manhattan_expanded,dep_only ROC-AUC pooled,0.8111,n_pos=231
+Source ablation · manhattan_expanded,complaint_only ROC-AUC pooled,0.8432,n_pos=373
+Source ablation · manhattan_expanded,hwm_only ROC-AUC pooled,0.2331,n_pos=6
+Source ablation · manhattan_expanded,complaint_hwm ROC-AUC pooled,0.8357,n_pos=375
+Source ablation · manhattan_expanded,composite ROC-AUC pooled,0.8802,n_pos=461
+Source ablation · manhattan_expanded,composite_no_diststream ROC-AUC pooled,0.8872,n_pos=461
+Source ablation · manhattan_expanded,complaint_no_building_density ROC-AUC pooled,0.8161,n_pos=373
+Software environment,python,3.13.12,
+Software environment,h3,4.4.2,
+Software environment,scikit-learn,1.8.0,
+Provenance,git_commit (frozen registry),5d3b2ea04c4c5341011291d2b4654c9cf2fc4194,
+Provenance,run_id,20260921T035855Z,
+Provenance,freeze_tag,submission-v5-full-recompute,

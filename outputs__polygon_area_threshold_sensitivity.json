@@ -1,0 +1,54 @@
+{
+  "note": "Composite rebuilt with DEP area-fraction thresholds 0 / 1% / 5% / 10% (post-urban-drop features).",
+  "feature_columns": [
+    "elevation_m",
+    "slope_deg",
+    "flow_accum_proxy",
+    "impervious_frac",
+    "building_density",
+    "dist_stream_m",
+    "rainfall_mm_h"
+  ],
+  "rows": [
+    {
+      "threshold": 0.0,
+      "n_positive": 167,
+      "n_dep_positive": 74,
+      "prevalence": 0.6374045801526718,
+      "roc_auc_pooled": 0.8502678852820673,
+      "accuracy_mean": 0.8240615839949912,
+      "f1_mean": 0.8613633699914501,
+      "note": ""
+    },
+    {
+      "threshold": 0.01,
+      "n_positive": 163,
+      "n_dep_positive": 63,
+      "prevalence": 0.6221374045801527,
+      "roc_auc_pooled": 0.8225196752804115,
+      "accuracy_mean": 0.8091180739349442,
+      "f1_mean": 0.8487043576800393,
+      "note": ""
+    },
+    {
+      "threshold": 0.05,
+      "n_positive": 152,
+      "n_dep_positive": 23,
+      "prevalence": 0.5801526717557252,
+      "roc_auc_pooled": 0.841267942583732,
+      "accuracy_mean": 0.7633185349611542,
+      "f1_mean": 0.7968761459189964,
+      "note": ""
+    },
+    {
+      "threshold": 0.1,
+      "n_positive": 145,
+      "n_dep_positive": 4,
+      "prevalence": 0.5534351145038168,
+      "roc_auc_pooled": 0.8414382552313586,
+      "accuracy_mean": 0.7405290418054014,
+      "f1_mean": 0.7525844211558498,
+      "note": ""
+    }
+  ]
+}

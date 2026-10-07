@@ -1,0 +1,411 @@
+{
+  "checked_utc": "2026-08-28T03:07:26.117880+00:00",
+  "arcgis_services": {
+    "dep_stormwater_mirror": {
+      "service_url": "https://services.arcgis.com/g8EzU2gNHvGpFUGY/ArcGIS/rest/services/New_York_City_Map_WFL1/FeatureServer",
+      "service_item_id": "d5965828d8004df9a08938f1fc7f2675",
+      "layers": [
+        "NYC_PH_Developments",
+        "NYC_Stormwater_Flood_Map_Moderate_Flood_with_Current_Sea_Levels",
+        "NYC_Stormwater_Flood_Map_Moderate_Flood_with_2050_Sea_Level_Rise",
+        "NYC_Stormwater_Flood_Map_Extreme_Flood_with_2080_Sea_Level_Rise",
+        "NYC_bdry"
+      ],
+      "service_description": "",
+      "service_copyright": "",
+      "item_title": "New York City Map_WFL1",
+      "item_owner": "20221058@GT2022",
+      "item_org_id": null,
+      "item_access": "public",
+      "item_license_info": "",
+      "item_access_information": "",
+      "item_modified_utc": "2023-02-22T15:08:35+00:00"
+    },
+    "streetfloodtime_311_mirror": {
+      "service_url": "https://services.arcgis.com/ximI3fAlai1oq9BZ/arcgis/rest/services/streetfloodtime/FeatureServer",
+      "service_item_id": "cb239bd64163462a8aa444fc1d7e900b",
+      "layers": [
+        "streetfloodtime"
+      ],
+      "service_description": "",
+      "service_copyright": "",
+      "item_title": "streetfloodtime",
+      "item_owner": "jeichen_GIS",
+      "item_org_id": null,
+      "item_access": "public",
+      "item_license_info": null,
+      "item_access_information": null,
+      "item_modified_utc": "2015-01-22T06:23:58+00:00"
+    },
+    "building_view": {
+      "service_url": "https://services6.arcgis.com/yG5s3afENB5iO9fj/arcgis/rest/services/BUILDING_view/FeatureServer",
+      "service_item_id": "870bf69e8a8044aea4488e564c0b4010",
+      "layers": [
+        "BUILDING"
+      ],
+      "service_description": "",
+      "service_copyright": "",
+      "item_title": "Building",
+      "item_owner": "maps.nyc.data",
+      "item_org_id": "yG5s3afENB5iO9fj",
+      "item_access": "public",
+      "item_license_info": "<p><a href='https://www.nyc.gov/home/terms-of-use.page' target='_blank' rel='nofollow ugc noopener noreferrer'>NYC.gov Terms of Use</a></p>",
+      "item_access_information": "",
+      "item_modified_utc": "2026-08-24T08:01:05+00:00"
+    }
+  },
+  "raw_vectors": [
+    {
+      "path": "data/raw/nyc/dep_stormwater_flood.geojson",
+      "sha256": "175c7b31edeabab8a2cd6fb32d68b2faf59f02874ce7ffde6bd1b7e5632881b8",
+      "size_bytes": 24601038,
+      "n_features": 2,
+      "geometry_types": {
+        "MultiPolygon": 2
+      },
+      "property_keys": [
+        "Flooding_Category",
+        "OBJECTID",
+        "Shape__Area",
+        "Shape__Length"
+      ],
+      "source_values": [],
+      "flooding_category_counts": {
+        "1": 1,
+        "2": 1
+      }
+    },
+    {
+      "path": "data/raw/nyc/dep_stormwater_flood_2050slr.geojson",
+      "sha256": "f2943e366c15df66972b2be06070640ead3fcddeca304ca4c9314fd447940187",
+      "size_bytes": 27170031,
+      "n_features": 2,
+      "geometry_types": {
+        "MultiPolygon": 2
+      },
+      "property_keys": [
+        "Flooding_Category",
+        "OBJECTID",
+        "Shape__Area",
+        "Shape__Length"
+      ],
+      "source_values": [],
+      "flooding_category_counts": {
+        "1": 1,
+        "2": 1
+      }
+    },
+    {
+      "path": "data/raw/nyc/flooding_311.geojson",
+      "sha256": "47cf5dcf488adad05d643f5b18933cbd1bbb8dfde26740bd0b4b0f4add51624c",
+      "size_bytes": 286307,
+      "n_features": 488,
+      "geometry_types": {
+        "Point": 488
+      },
+      "property_keys": [
+        "COMB_OR_SE",
+        "Created_Da",
+        "FID",
+        "Field2",
+        "Field2_X",
+        "Field2_Y",
+        "Intercepto",
+        "Latitude",
+        "Location",
+        "Longitude",
+        "Outfall",
+        "WPCP",
+        "X_Coord",
+        "X_Coord2",
+        "X_Coordina",
+        "Y_Coord",
+        "hazard",
+        "source"
+      ],
+      "source_values": [
+        "arcgis_streetfloodtime"
+      ],
+      "created_date_min": "2010-01-07T17:56:00",
+      "created_date_max": "2014-12-26T12:37:00",
+      "invalid_created_dates": 0
+    },
+    {
+      "path": "data/raw/nyc/usgs_ida_hwm.geojson",
+      "sha256": "2ca3f65a7c9ba3655efa7236fe795acc04e374038945a196ab206240188517af",
+      "size_bytes": 43209,
+      "n_features": 159,
+      "geometry_types": {
+        "Point": 159
+      },
+      "property_keys": [
+        "county",
+        "event",
+        "height_above_gnd",
+        "hwm_id",
+        "hwm_quality",
+        "source"
+      ],
+      "source_values": [
+        "usgs_sciencebase_P9OMBJPQ"
+      ]
+    },
+    {
+      "path": "data/raw/nyc/building_footprints.geojson",
+      "sha256": "47df709d639f2f93612ea7468f4d2959014c253e3506a46d5fa22214e7536808",
+      "size_bytes": 17924283,
+      "n_features": 18767,
+      "geometry_types": {
+        "Polygon": 18767
+      },
+      "property_keys": [
+        "BASE_BBL",
+        "BIN",
+        "CONSTRUCTION_YEAR",
+        "DOITT_ID",
+        "FEATURE_CODE",
+        "GEOM_SOURCE",
+        "GROUND_ELEVATION",
+        "HEIGHT_ROOF",
+        "LAST_EDITED_DATE",
+        "LAST_STATUS_TYPE",
+        "MAPPLUTO_BBL",
+        "NAME",
+        "OBJECTID",
+        "Shape__Area",
+        "Shape__Length"
+      ],
+      "source_values": []
+    },
+    {
+      "path": "data/raw/nyc/hydro_streams.geojson",
+      "sha256": "56b4959e09383bccf9924043c706bd4efd10c6f04ed0385647efc90f37fb141a",
+      "size_bytes": 18614,
+      "n_features": 13,
+      "geometry_types": {
+        "LineString": 2,
+        "MultiLineString": 3,
+        "Polygon": 8
+      },
+      "property_keys": [
+        "OBJECTID",
+        "fcode",
+        "ftype",
+        "gnis_name",
+        "hydro_role",
+        "nhd_layer",
+        "proxy_note",
+        "source"
+      ],
+      "source_values": [
+        "usgs_nhdplus_hr"
+      ]
+    },
+    {
+      "path": "data/raw/nyc/fema_sandy.geojson",
+      "sha256": "fcb8380920c30d2faf83d40b8186c418b1087496a9d321987c61537f2362245f",
+      "size_bytes": 5533235,
+      "n_features": 9,
+      "geometry_types": {
+        "Polygon": 9
+      },
+      "property_keys": [
+        "FID",
+        "Shape__Area",
+        "Shape__Length",
+        "comments",
+        "demsource",
+        "event",
+        "hazard",
+        "id",
+        "source",
+        "sourcedata",
+        "state",
+        "status",
+        "verified"
+      ],
+      "source_values": [
+        "arcgis_sandy_jzHs"
+      ]
+    },
+    {
+      "path": "data/raw/nyc_expanded/dep_stormwater_flood.geojson",
+      "sha256": "175c7b31edeabab8a2cd6fb32d68b2faf59f02874ce7ffde6bd1b7e5632881b8",
+      "size_bytes": 24601038,
+      "n_features": 2,
+      "geometry_types": {
+        "MultiPolygon": 2
+      },
+      "property_keys": [
+        "Flooding_Category",
+        "OBJECTID",
+        "Shape__Area",
+        "Shape__Length"
+      ],
+      "source_values": [],
+      "flooding_category_counts": {
+        "1": 1,
+        "2": 1
+      }
+    },
+    {
+      "path": "data/raw/nyc_expanded/dep_stormwater_flood_2050slr.geojson",
+      "sha256": "f2943e366c15df66972b2be06070640ead3fcddeca304ca4c9314fd447940187",
+      "size_bytes": 27170031,
+      "n_features": 2,
+      "geometry_types": {
+        "MultiPolygon": 2
+      },
+      "property_keys": [
+        "Flooding_Category",
+        "OBJECTID",
+        "Shape__Area",
+        "Shape__Length"
+      ],
+      "source_values": [],
+      "flooding_category_counts": {
+        "1": 1,
+        "2": 1
+      }
+    },
+    {
+      "path": "data/raw/nyc_expanded/flooding_311.geojson",
+      "sha256": "9847293561abe66c5f55ea038bd5815cf0227b486df5010d420f692a03a663ee",
+      "size_bytes": 661853,
+      "n_features": 1134,
+      "geometry_types": {
+        "Point": 1134
+      },
+      "property_keys": [
+        "COMB_OR_SE",
+        "Created_Da",
+        "FID",
+        "Field2",
+        "Field2_X",
+        "Field2_Y",
+        "Intercepto",
+        "Latitude",
+        "Location",
+        "Longitude",
+        "Outfall",
+        "WPCP",
+        "X_Coord",
+        "X_Coord2",
+        "X_Coordina",
+        "Y_Coord",
+        "hazard",
+        "source"
+      ],
+      "source_values": [
+        "arcgis_streetfloodtime"
+      ],
+      "created_date_min": "2010-01-07T17:56:00",
+      "created_date_max": "2014-12-26T12:37:00",
+      "invalid_created_dates": 0
+    },
+    {
+      "path": "data/raw/nyc_expanded/usgs_ida_hwm.geojson",
+      "sha256": "2ca3f65a7c9ba3655efa7236fe795acc04e374038945a196ab206240188517af",
+      "size_bytes": 43209,
+      "n_features": 159,
+      "geometry_types": {
+        "Point": 159
+      },
+      "property_keys": [
+        "county",
+        "event",
+        "height_above_gnd",
+        "hwm_id",
+        "hwm_quality",
+        "source"
+      ],
+      "source_values": [
+        "usgs_sciencebase_P9OMBJPQ"
+      ]
+    },
+    {
+      "path": "data/raw/nyc_expanded/building_footprints.geojson",
+      "sha256": "5ee3badb7a7a0d1c2b888b55bc94217126c9a7efef07dcf5214859b096e7e5e8",
+      "size_bytes": 64021806,
+      "n_features": 69718,
+      "geometry_types": {
+        "Polygon": 69718
+      },
+      "property_keys": [
+        "BASE_BBL",
+        "BIN",
+        "CONSTRUCTION_YEAR",
+        "DOITT_ID",
+        "FEATURE_CODE",
+        "GEOM_SOURCE",
+        "GROUND_ELEVATION",
+        "HEIGHT_ROOF",
+        "LAST_EDITED_DATE",
+        "LAST_STATUS_TYPE",
+        "MAPPLUTO_BBL",
+        "NAME",
+        "OBJECTID",
+        "Shape__Area",
+        "Shape__Length"
+      ],
+      "source_values": []
+    },
+    {
+      "path": "data/raw/nyc_expanded/hydro_streams.geojson",
+      "sha256": "5b0d02627209f5fa007ce7f35fde6d818b8b0ae22838fa51f2296d20d9f66919",
+      "size_bytes": 88192,
+      "n_features": 117,
+      "geometry_types": {
+        "LineString": 42,
+        "MultiLineString": 3,
+        "Polygon": 70,
+        "MultiPolygon": 2
+      },
+      "property_keys": [
+        "OBJECTID",
+        "fcode",
+        "ftype",
+        "gnis_name",
+        "hydro_role",
+        "nhd_layer",
+        "proxy_note",
+        "source"
+      ],
+      "source_values": [
+        "usgs_nhdplus_hr"
+      ]
+    },
+    {
+      "path": "data/raw/nyc_expanded/fema_sandy.geojson",
+      "sha256": "457be2e3b0ddcfba4eeaa5f95753ca28c917527acdbf5e7b2d9f64b6da945801",
+      "size_bytes": 11422173,
+      "n_features": 45,
+      "geometry_types": {
+        "Polygon": 45
+      },
+      "property_keys": [
+        "FID",
+        "Shape__Area",
+        "Shape__Length",
+        "comments",
+        "demsource",
+        "event",
+        "hazard",
+        "id",
+        "source",
+        "sourcedata",
+        "state",
+        "status",
+        "verified"
+      ],
+      "source_values": [
+        "arcgis_sandy_jzHs"
+      ]
+    }
+  ],
+  "interpretation": {
+    "dep_stormwater_mirror": "Public ArcGIS item, but item owner is not an identified NYC institutional account; no org/license/copyright metadata returned.",
+    "streetfloodtime_311_mirror": "Public ArcGIS item, but item owner is not an identified NYC institutional account; no org/license/copyright metadata returned.",
+    "building_view": "Public item owned by maps.nyc.data in the NYC ArcGIS organisation and carrying NYC terms of use."
+  }
+}

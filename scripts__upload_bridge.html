@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>upload bridge</title></head>
+<body>
+<script>
+const FILES = [
+  "/docs/paper/manuscript.md",
+  "/docs/paper/audit.md",
+  "/src/pluvial_flood_risk/figures.py"
+];
+(async () => {
+  const results = [];
+  for (const path of FILES) {
+    try {
+      const resp = await fetch(path);
+      if (!resp.ok) { results.push({ path, error: "HTTP " + resp.status }); continue; }
+      const blob = await resp.blob();
+      const buf = await blob.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      let bin = "";
+      const CHUNK = 0x8000;
+      for (let i = 0; i < bytes.length; i += CHUNK) {
+        bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+      }
+      results.push({ path, name: path.split("/").pop(), b64: btoa(bin), size: bytes.length });
+    } catch (e) {
+      results.push({ path, error: String(e) });
+    }
+  }
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ __uploadBridge: true, results }, "*");
+  } else if (window.opener) {
+    window.opener.postMessage({ __uploadBridge: true, results }, "*");
+  }
+  document.body.textContent = "done, " + JSON.stringify(results.map(r => r.error ? r.error : r.name + ":" + r.size));
+})();
+</script>
+</body>
+</html>
