@@ -11,10 +11,52 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "outputs" / "paper_results.json"
 MS = ROOT / "docs" / "paper" / "manuscript.md"
+README = ROOT / "README.md"
 
 
 def _approx(a: float, b: float, tol: float = 0.006) -> bool:
     return abs(a - b) <= tol
+
+
+def _check_readme(reg: dict, errors: list[str]) -> None:
+    """README headline numbers must track the registry (it drifted once)."""
+    if not README.exists():
+        return
+    text = README.read_text(encoding="utf-8")
+    lm_sc = reg["lower_manhattan"]["spatial_cv"]
+    exp_sc = reg["manhattan_expanded"]["spatial_cv"]
+
+    # Lower Manhattan pooled ROC-AUC / AP
+    lm_roc = round(float(lm_sc["spatial_cv_roc_auc_pooled"]), 3)
+    lm_ap = round(float(lm_sc["spatial_cv_pr_auc_pooled"]), 3)
+    if f"{lm_roc:.3f}" not in text:
+        errors.append(f"README stale: LM pooled ROC-AUC should be {lm_roc:.3f}")
+    if f"{lm_ap:.3f}" not in text:
+        errors.append(f"README stale: LM AP should be {lm_ap:.3f}")
+    # Lower Manhattan fold accuracy / F1
+    lm_acc = f"{float(lm_sc['spatial_cv_accuracy_mean']):.3f} ± {float(lm_sc['spatial_cv_accuracy_std']):.3f}"
+    if lm_acc not in text:
+        errors.append(f"README stale: LM accuracy should be {lm_acc}")
+    lm_f1 = round(float(lm_sc["spatial_cv_f1_mean"]), 3)
+    if f"F1 **{lm_f1:.3f}**" not in text:
+        errors.append(f"README stale: LM F1 should be {lm_f1:.3f}")
+    # Expanded
+    exp_acc = f"{float(exp_sc['spatial_cv_accuracy_mean']):.3f} ± {float(exp_sc['spatial_cv_accuracy_std']):.3f}"
+    if exp_acc not in text:
+        errors.append(f"README stale: Expanded accuracy should be {exp_acc}")
+    exp_roc = round(float(exp_sc["spatial_cv_roc_auc_pooled"]), 3)
+    if f"{exp_roc:.3f}" not in text:
+        errors.append(f"README stale: Expanded pooled ROC-AUC should be {exp_roc:.3f}")
+    exp_ap = round(float(exp_sc["spatial_cv_pr_auc_pooled"]), 3)
+    if f"{exp_ap:.3f}" not in text:
+        errors.append(f"README stale: Expanded AP should be {exp_ap:.3f}")
+    # Scale loss R10→R9 mean (area-weighted soft Jaccard)
+    rows = (reg.get("scale_loss") or {}).get("rows") or []
+    for r in rows:
+        if r.get("aggregation") == "mean" and r.get("coarse_res") == 9:
+            j = round(float(r["jaccard_soft"]), 3)
+            if f"{j:.3f}" not in text:
+                errors.append(f"README stale: R10→R9 mean soft Jaccard should be {j:.3f}")
 
 
 def main() -> int:
@@ -49,12 +91,15 @@ def main() -> int:
     if "evidence-positive" not in text.lower() and "evidence-unrecorded" not in text.lower():
         errors.append("manuscript missing evidence-positive / evidence-unrecorded framing")
 
+    # README must track the same frozen registry.
+    _check_readme(reg, errors)
+
     if errors:
         print("MANUSCRIPT_REGISTRY_MISMATCH:")
         for e in errors:
             print(" -", e)
         return 1
-    print("OK: manuscript headline numbers align with paper_results.json")
+    print("OK: manuscript + README headline numbers align with paper_results.json")
     return 0
 
 

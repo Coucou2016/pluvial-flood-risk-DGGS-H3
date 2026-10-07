@@ -1425,13 +1425,13 @@
     "flat_name": "FILE_INDEX.csv",
     "original_path": "(flat-review doc: flat_name -> original_path index)",
     "category": "review_doc",
-    "size_bytes": 28593
+    "size_bytes": 28532
   },
   {
     "flat_name": "FILE_INDEX.json",
     "original_path": "(flat-review doc: FILE_INDEX.csv as JSON)",
     "category": "review_doc",
-    "size_bytes": 58666
+    "size_bytes": 58510
   },
   {
     "flat_name": "FLAT_LAYOUT_EXPLAINED.md",
@@ -1449,13 +1449,13 @@
     "flat_name": "RESTORE_STRUCTURE.ps1",
     "original_path": "(flat-review doc: Restore original tree (PowerShell))",
     "category": "review_doc",
-    "size_bytes": 1423
+    "size_bytes": 1520
   },
   {
     "flat_name": "RESTORE_STRUCTURE.py",
     "original_path": "(flat-review doc: Restore original tree (Python))",
     "category": "review_doc",
-    "size_bytes": 1955
+    "size_bytes": 1956
   },
   {
     "flat_name": "RESULTS_QUICK_TABLE.csv",
@@ -1629,7 +1629,7 @@
     "flat_name": "scripts__check_manuscript_vs_registry.py",
     "original_path": "scripts/check_manuscript_vs_registry.py",
     "category": "script",
-    "size_bytes": 2245
+    "size_bytes": 4542
   },
   {
     "flat_name": "scripts__compute_classification_baselines.py",

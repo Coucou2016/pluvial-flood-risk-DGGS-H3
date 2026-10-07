@@ -236,12 +236,12 @@ outputs__spatial_cv_oof_predictions_eval.csv,result,15334,outputs/spatial_cv_oof
 .gitignore,review_doc,1719,(flat-review doc: permissive .gitignore for the flat repo)
 AI_REVIEW_READING_GUIDE.md,review_doc,6300,(flat-review doc: 5-minute reviewer/agent reading guide)
 DATA_DICTIONARY.md,review_doc,6406,(flat-review doc: Column-level data dictionary)
-FILE_INDEX.csv,review_doc,28593,(flat-review doc: flat_name -> original_path index)
-FILE_INDEX.json,review_doc,58666,(flat-review doc: FILE_INDEX.csv as JSON)
+FILE_INDEX.csv,review_doc,28532,(flat-review doc: flat_name -> original_path index)
+FILE_INDEX.json,review_doc,58510,(flat-review doc: FILE_INDEX.csv as JSON)
 FLAT_LAYOUT_EXPLAINED.md,review_doc,4076,(flat-review doc: Why the repo is flat + naming convention)
 README.md,review_doc,7427,(flat-review doc: Flat-repository review README)
-RESTORE_STRUCTURE.ps1,review_doc,1423,(flat-review doc: Restore original tree (PowerShell))
-RESTORE_STRUCTURE.py,review_doc,1955,(flat-review doc: Restore original tree (Python))
+RESTORE_STRUCTURE.ps1,review_doc,1520,(flat-review doc: Restore original tree (PowerShell))
+RESTORE_STRUCTURE.py,review_doc,1956,(flat-review doc: Restore original tree (Python))
 RESULTS_QUICK_TABLE.csv,review_doc,3184,(flat-review doc: Headline frozen numbers (from paper_results.json))
 artifacts__acceptance_R6_R10.md,review_history,7062,artifacts/acceptance_R6_R10.md
 artifacts__acceptance_github_chatgpt_read.md,review_history,3618,artifacts/acceptance_github_chatgpt_read.md
@@ -270,7 +270,7 @@ scripts__bridge_test.html,script,190,scripts/bridge_test.html
 scripts__build_manuscript_html.py,script,7470,scripts/build_manuscript_html.py
 scripts__build_nyc_h3.py,script,4462,scripts/build_nyc_h3.py
 scripts__build_paper_report_html.py,script,18965,scripts/build_paper_report_html.py
-scripts__check_manuscript_vs_registry.py,script,2245,scripts/check_manuscript_vs_registry.py
+scripts__check_manuscript_vs_registry.py,script,4542,scripts/check_manuscript_vs_registry.py
 scripts__compute_classification_baselines.py,script,3217,scripts/compute_classification_baselines.py
 scripts__compute_oof_discrimination.py,script,3440,scripts/compute_oof_discrimination.py
 scripts__download_nyc_data.py,script,3764,scripts/download_nyc_data.py
