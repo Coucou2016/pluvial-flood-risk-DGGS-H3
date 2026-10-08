@@ -31,10 +31,21 @@ default_smoke_profile: lower_manhattan
 resolution: 9
 random_seed: 42
 
-# Optional FloodNet point enrichment (opt-in). Prefer held-out sensor validation when
-# coverage exists; do not treat sensors as interchangeable with DEP/311/HWM by default.
-labels:
-  include_floodnet: false
+# External validation + negative control are role-typed, never training labels
+# (Major Revision P0-3). The legacy "include FloodNet in labels" switch was
+# removed entirely; FloodNet physically cannot reach attach_training_labels.
+external_validation:
+  floodnet:
+    role: external_validation
+    events_dataset_id: aq7i-eu5q
+    sensors_dataset_id: kb2e-tjy3
+    analysis_freeze_utc: "2026-08-30T00:00:00+00:00"
+    sensors: data/raw/nyc/floodnet_sensors.geojson
+
+negative_control:
+  sandy:
+    role: negative_control
+    path: data/raw/nyc/fema_sandy.geojson
 
 rainfall_mm_h: 40.0
 rainfall_scenarios:
@@ -48,8 +59,13 @@ rainfall_scenarios:
     mm_h: 100
 
 spatial_cv:
-  k_ring: 2
+  # P0-6: `k_ring` was misnamed — this is a PARENT-RESOLUTION OFFSET. Offset 2 at
+  # R9 gives R7 blocks (R9 − 2 = R7). Renamed `parent_resolution_offset`.
+  parent_resolution_offset: 2
   n_folds: 5
+  # P0-5: physical guard-band buffers (metres, EPSG:2263) for train-neighbour purge.
+  buffers_m: [0, 250, 500, 1000]
+  bootstrap_n: 1000
 
 diagnostics:
   # Ladder uses fine_res for hotspot definition; train table may stay at `resolution`.
@@ -77,5 +93,4 @@ paths:
     - data/raw/nyc/flooding_311.geojson
     - data/raw/nyc/usgs_ida_hwm.geojson
   coastal: data/raw/nyc/fema_sandy.geojson  # negative control, not a training label
-  event_rainfall: data/raw/nyc/event_rainfall.tif  # optional event grid hook
-  floodnet: data/raw/nyc/floodnet_sensors.geojson  # optional; joined only if non-empty
+  event_rainfall: data/raw/nyc/event_rainfall.tif  # optional event grid hook (NOT a trained driver)

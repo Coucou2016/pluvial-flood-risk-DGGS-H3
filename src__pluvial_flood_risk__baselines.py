@@ -25,9 +25,10 @@ def _ponding_bounds(df: pd.DataFrame) -> dict[str, float]:
         "elev_min": float(np.nanmin(elev)) if elev.size else 0.0,
         "elev_max": float(np.nanmax(elev)) if elev.size else 1.0,
     }
-    if "flow_accum_proxy" in df.columns:
+    flow_col = "dem_d8_accum_proxy" if "dem_d8_accum_proxy" in df.columns else "flow_accum_proxy"
+    if flow_col in df.columns:
         slope = df["slope_deg"].to_numpy(dtype=np.float64)
-        flow = df["flow_accum_proxy"].to_numpy(dtype=np.float64)
+        flow = df[flow_col].to_numpy(dtype=np.float64)
         tan_s = np.tan(np.radians(np.clip(slope, 0.05, 89.0)))
         twi = np.log1p(np.clip(flow, 0, None) / (tan_s + 1e-6))
         twi = twi[np.isfinite(twi)]
@@ -57,7 +58,8 @@ def rule_ponding_score(
     elev_lo = elev_min if elev_min is not None else np.nanmin(elev)
     elev_hi = elev_max if elev_max is not None else np.nanmax(elev)
     elev_norm = (elev - elev_lo) / (elev_hi - elev_lo + 1e-9)
-    flow = df["flow_accum_proxy"].to_numpy(dtype=np.float64) if "flow_accum_proxy" in df.columns else 1.0
+    flow_col = "dem_d8_accum_proxy" if "dem_d8_accum_proxy" in df.columns else "flow_accum_proxy"
+    flow = df[flow_col].to_numpy(dtype=np.float64) if flow_col in df.columns else 1.0
     tan_s = np.tan(np.radians(np.clip(slope, 0.05, 89.0)))
     twi = np.log1p(np.clip(flow, 0, None) / (tan_s + 1e-6))
     twi_lo = twi_min if twi_min is not None else np.nanmin(twi)
@@ -95,7 +97,7 @@ def _safe_metrics(y_risk, pred_risk, y_class, pred_class, proba=None) -> dict[st
 
 def compare_baselines(
     df: pd.DataFrame,
-    spatial_cv_k: int = 2,
+    parent_resolution_offset: int = 2,
     spatial_cv_folds: int = 5,
     feature_cols: list[str] | None = None,
 ) -> dict[str, float]:
@@ -142,7 +144,7 @@ def compare_baselines(
         out["baseline_logistic_roc_auc"] = log_m["roc_auc"]
 
     if "h3_index" in df.columns and len(df) >= 10:
-        groups = block_ids_for_cells(df["h3_index"].astype(str).tolist(), spatial_cv_k)
+        groups = block_ids_for_cells(df["h3_index"].astype(str).tolist(), parent_resolution_offset)
         try:
             cv = spatial_block_cv_metrics(
                 X,

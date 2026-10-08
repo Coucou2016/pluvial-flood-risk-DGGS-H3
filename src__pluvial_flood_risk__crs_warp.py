@@ -32,6 +32,11 @@ def _area_transformer(area_crs: str = AREA_CRS_NYC):
     return transformer
 
 
+def area_transformer(area_crs: str = AREA_CRS_NYC):
+    """Public alias for the WGS84→projected transformer used for metre distances."""
+    return _area_transformer(area_crs)
+
+
 def project_geometry_for_area(geom, area_crs: str = AREA_CRS_NYC):
     """
     Reproject a WGS84 (lon/lat) shapely geometry to a projected CRS for area ratios.

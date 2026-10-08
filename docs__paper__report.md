@@ -4,7 +4,7 @@
 **PDF：** `docs/paper/report.pdf`（Chrome headless；HTML 为规范源）  
 **手稿对照：** `docs/paper/manuscript.md`（submission-v5-1 写作/审计重写；数字仍锁 registry）  
 **数值基线：** 仅来自 `outputs/paper_results.json` 与 live CSV；缺则标 **待补充**  
-**冻结标签：** `submission-v5-full-recompute`（计算）+ `submission-v5-1-prose-audit`（散文/审计）  
+**冻结标签：** `submission-v5-full-recompute`（计算）+ `submission-v5-1-prose-audit`（散文/审计）+ `major-revision-2026-10-08`（P0/P1 重算）  
 **GitHub：** https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3  
 **框架说明：** `docs/paper/framework_note.md`
 
@@ -32,7 +32,7 @@
 
 本报告是仓库 **live Lower Manhattan open-data Option B（n=262）** 的教师向过程说明：对每张表/图交代**来龙去脉、如何读、意义、可下结论、不可下结论**。
 
-在 H3 R9 上组装 **n_cells = 262**（bbox `[-74.02, 40.70, -73.97, 40.76]`）。主评价为 **spatial H3-block CV**（12 个 R7 块，5 折）：准确率 **0.824 ± 0.055**，F1 **0.861**；正类占比 **63.7%**；恒判正基线 accuracy **0.637**、F1 **0.769**，模型超过该基线。留出 pooled ROC-AUC **0.850**、AP **0.851**。扩展试点 n=956：acc **0.819 ± 0.024**，F1 **0.822**，pooled ROC-AUC **0.880**。尺度损失（strict area budget + study_domain_mask）：R10→R9 mean soft Jaccard **0.220**，R10→R8 mean **0.136**（n_fine=1788，n_coarse R9=262）。自适应相对均匀 R11 单元数比 **≈0.574**（148/262 父单元加密 → 7,366 vs 12,838；Option A R11 重提特征 hotspot recall = 1.0）。FloodNet 为严格留出诊断（LM ROC-AUC 0.314，23 传感器单元）。
+在 H3 R9 上组装 **n_cells = 262**（bbox `[-74.02, 40.70, -73.97, 40.76]`）。主目标为**二元证据并集** `evidence_positive = (dep_area_frac>0)|(complaint_count>0)|(ida_hwm_count>0)`。主评价为 **spatial H3-block CV**（12 个 R7 块，5 折）：准确率 **0.828 ± 0.053**，F1 **0.868**；正类占比 **63.7%**；恒判正基线 accuracy **0.637**、F1 **0.769**，模型超过该基线。留出 pooled ROC-AUC **0.849**（95% spatial-block bootstrap CI 0.728–0.951）、AP **0.850**（CI 0.778–0.965）。扩展试点 n=956：acc **0.824 ± 0.036**，F1 **0.824**，pooled ROC-AUC **0.887**（CI 0.831–0.929），AP **0.827**（CI 0.774–0.883）。尺度损失（strict area budget + study_domain_mask）：R10→R9 mean soft Jaccard **0.193**，R10→R8 mean **0.114**；真重建误差 R9 MAE **0.238**/RMSE **0.345**（n_fine=1788，n_coarse R9=262）。自适应相对均匀 R11 单元数比 **≈0.574**（148/262 父单元加密 → 7,366 vs 12,838；hotspot refinement recall **0.882**，legacy coverage recall 1.0 为同义反复）。**FloodNet 严格留出为负结果**：LM ROC-AUC **0.451**、Expanded **0.479**，无事件传感器单元得分不低——不作外部事件技能主张。
 
 > **历史注记：** 修订前曾用 n=141 smoke 主表。该数字**不是**当前真相。
 
@@ -97,15 +97,15 @@
 | Jaccard 细网格 | R10（n_fine=1788，domain-masked） |
 | Jaccard 上卷 | R9 / R8 |
 | 自适应加密 | 选中父单元 → R11 |
-| 空间块 | 主协议 R7（k=2）；敏感性 R8/R6 |
+| 空间块 | 主协议 R7（parent-resolution offset = 2）；敏感性 R8/R6 |
 
 ### 3.4 模型与评价
 
-- GBM 分类器 + 证据分回归器（80 trees, depth 4, lr 0.08, seed 42；**预指定，无 nested CV**）。  
-- 主指标：H3-block GroupKFold；常量类基线必须同报。  
+- 主学习器 GBM **分类器**（80 trees, depth 4, lr 0.08, seed 42；**预指定，无 nested CV**）；证据覆盖率回归器降为 Supplement 诊断（`evidence_coverage_proxy`，DEP-only）。  
+- 主目标为二元证据并集 `evidence_positive`；主指标：H3-block GroupKFold；常量类基线必须同报。  
 - 评价后 **deployment_full** 全量重拟合仅用于图 2(c) 与自适应筛选。  
 - 组装 **fail-closed**。  
-- 源消融 / LOBO / Moran / NHD land-mask / Sandy 311 窗口 / DEP 面积阈值：均写入 registry。
+- 源消融（含 physics-only / reporting-only / full）/ buffered CV / LOBO / Moran / NHD land-mask / Sandy 311 窗口 / DEP 面积阈值 / FloodNet 外验：均写入 registry。
 
 ### 3.5 S_h(c) 与延后的 S_h(c,r)
 
@@ -145,33 +145,34 @@ S_h(c)=f_\theta(X_c),\qquad S_h(c,r)=f_\theta(X_c,r)\ \text{(deferred)}
 |--------|-------|
 | n_cells | 262 |
 | spatial_cv_n_folds / n_blocks | 5 / 12 |
-| accuracy mean ± std | 0.824 ± 0.055 |
-| F1 mean | 0.861 |
-| R² mean ± std | 0.167 ± 0.319 |
-| MAE mean | 0.280 |
-| random_split_val_accuracy（诊断） | 0.811 |
+| accuracy mean ± std | 0.828 ± 0.053 |
+| F1 mean | 0.868 |
+| R² mean ± std | 0.258 ± 0.225 |
+| MAE mean | 0.234 |
+| random_split_val_accuracy（诊断） | 0.792 |
 | 正类占比 | 0.6374 |
 | 恒判正 accuracy / F1 | 0.637 / 0.769 |
 | 恒判负 accuracy | 0.363 |
 | 模型是否超过多数类 acc / f1 | **是 / 是** |
-| pooled ROC-AUC / AP | **0.850 / 0.851** |
+| pooled ROC-AUC / AP | **0.849 / 0.850** |
+| ROC-AUC / AP 95% CI（空间块 bootstrap） | 0.728–0.951 / 0.778–0.965 |
 | evaluation_fit_rows / deployment_fit_rows | 209 / 262 |
 
 **来龙去脉：** 训练脚本按 R7 父块 GroupKFold 留出；折均写入 metadata/registry；常量基线按同一折表聚合。这是报告与手稿优先引用的主表。  
-**如何读：** 先看正类占比（63.7%），再看恒判正基线（0.637 / 0.769），最后才看模型（0.824 / 0.861）。ROC-AUC/AP 是阈值无关排序指标；Table 3 Panel A 还报 MCC/bal.acc 等（registry `oof_extended_metrics`）。  
+**如何读：** 先看正类占比（63.7%），再看恒判正基线（0.637 / 0.769），最后才看模型（0.828 / 0.868）。ROC-AUC/AP 是阈值无关排序指标；Table 3 Panel A 还报 MCC/bal.acc 等（registry `oof_extended_metrics`）。  
 **意义：** 在类别失衡试点上，离开平凡基线谈 accuracy/F1 没有意义。  
-**结论（允许）：** Option B 上模型超过恒判正；存在中等排序判别（pooled ROC-AUC 0.850）。  
+**结论（允许）：** Option B 上模型超过恒判正；存在中等排序判别（pooled ROC-AUC 0.849）。  
 **结论（禁止）：** 全市技能；用随机划分替换空间 CV；把 R² 当成物理水深拟合。
 
 ### 表 2 · 逐折明细
 
-| fold | n_train | n_test | +/− | accuracy | f1 | r2 | mae | roc_auc | pr_auc |
+| fold | n_train | n_test | +/− | accuracy | f1 | r2 | mae | roc_auc | average_precision |
 |------|---------|--------|-----|----------|-----|-----|-----|---------|--------|
-| 0 | 209 | 53 | 36/17 | 0.755 | 0.835 | +0.162 | 0.309 | 0.672 | 0.766 |
-| 1 | 209 | 53 | 47/6 | 0.906 | 0.948 | -0.441 | 0.316 | 0.805 | 0.969 |
-| 2 | 211 | 51 | 28/23 | 0.784 | 0.807 | +0.404 | 0.271 | 0.877 | 0.896 |
-| 3 | 209 | 53 | 25/28 | 0.868 | 0.877 | +0.434 | 0.239 | 0.904 | 0.811 |
-| 4 | 210 | 52 | 31/21 | 0.808 | 0.839 | +0.275 | 0.267 | 0.912 | 0.935 |
+| 0 | 209 | 53 | 36/17 | 0.755 | 0.831 | +0.121 | 0.262 | 0.684 | 0.746 |
+| 1 | 209 | 53 | 47/6 | 0.887 | 0.938 | -0.050 | 0.207 | 0.770 | 0.963 |
+| 2 | 211 | 51 | 28/23 | 0.784 | 0.820 | +0.248 | 0.290 | 0.862 | 0.877 |
+| 3 | 209 | 53 | 25/28 | 0.887 | 0.893 | +0.621 | 0.169 | 0.923 | 0.897 |
+| 4 | 210 | 52 | 31/21 | 0.827 | 0.857 | +0.351 | 0.244 | 0.914 | 0.938 |
 
 **来龙去脉：** 每折留出若干 R7 块；折间正负比不均导致跳动（尤其 Fold1 正类极高）。  
 **如何读：** 同时看 n_test 与正负计数，再读 accuracy/F1；末列 ROC/PR 是折内排序。  
@@ -192,7 +193,7 @@ S_h(c)=f_\theta(X_c),\qquad S_h(c,r)=f_\theta(X_c,r)\ \text{(deferred)}
 **来龙去脉：** 把 DEP / 311 / HWM / composite 拆成四面板，证明“源保持区分”发生在训练表而非仅文档。  
 **如何读：** (a)(d) 0–1；(b)(c) 计数；LM 内 Ida 点为空是数据事实。  
 **意义：** 回应“合成标签掩盖异质来源”质疑。  
-**结论（允许）：** 三源空间部分重叠；composite=max。  
+**结论（允许）：** 三源空间部分重叠；(d) 为显示用 max 合成（仅供参考，主目标已是二元并集，不再作为连续主结果）。  
 **结论（禁止）：** 把 DEP 当观测洪水。
 
 #### 图 4 · `docs/paper/figures/spatial_cv_folds.png`
@@ -208,17 +209,19 @@ S_h(c)=f_\theta(X_c),\qquad S_h(c,r)=f_\theta(X_c,r)\ \text{(deferred)}
 
 | Coarse | Agg | Soft Jaccard | Hard median [95% CI] | Fine-parent recall | Coarse precision |
 |--------|-----|--------------|----------------------|--------------------|------------------|
-| R8 | mean | 0.136 | 0.000 [0.000, 0.000] | 0.240 | 0.240 |
-| R8 | max | 0.579 | 0.000 [0.000, 0.000] | 0.733 | 0.733 |
-| R8 | p90 | 0.682 | 0.000 [0.000, 0.000] | 0.811 | 0.811 |
-| R9 | mean | 0.220 | 0.154 [0.038, 0.269] | 0.360 | 0.360 |
-| R9 | max | 0.648 | 0.032 [0.000, 0.077] | 0.786 | 0.786 |
-| R9 | p90 | 0.573 | 0.036 [0.000, 0.116] | 0.729 | 0.729 |
+| R8 | mean | 0.114 | 0.000 [0.000, 0.000] | 0.205 | 0.205 |
+| R8 | max | 0.682 | 0.000 [0.000, 0.000] | 0.811 | 0.811 |
+| R8 | p90 | 0.734 | 0.000 [0.000, 0.000] | 0.846 | 0.846 |
+| R9 | mean | 0.193 | 0.148 [0.037, 0.269] | 0.323 | 0.323 |
+| R9 | max | 0.609 | 0.014 [0.000, 0.074] | 0.757 | 0.757 |
+| R9 | p90 | 0.633 | 0.033 [0.000, 0.107] | 0.775 | 0.775 |
+
+真重建误差（area-weighted reconstruction）：R9 mean MAE **0.238** / RMSE **0.345**；R8 mean MAE **0.323** / RMSE **0.402**。旧 `continuous_mae`（父均值与自己比）为恒等式 0，仅作 QA。
 
 **来龙去脉：** 在原生 R10 证据上按 10% 面积预算定义热点，再上卷到 R9/R8；图 6b 与本表同 CSV，禁止图中重算。  
-**如何读：** 主看 mean 聚合：R9=0.220，R8=0.136；max/p90 更高是因为极值保留，不是“更正确”。  
+**如何读：** 主看 mean 聚合：R9=0.193，R8=0.114；max/p90 更高是因为极值保留，不是“更正确”。  
 **意义：** 粗化会抹掉细热点——这是表示代价，不是软件 bug。  
-**结论（允许）：** 开放证据下存在实质性尺度损失。  
+**结论（允许）：** 开放证据下存在实质性尺度损失（重建 MAE 0.238/0.323）。  
 **结论（禁止）：** “复现了 Svellingen 的 0.14”。
 
 #### 图 5 · `docs/paper/figures/multi_resolution_spatial.png`
@@ -243,12 +246,12 @@ S_h(c)=f_\theta(X_c),\qquad S_h(c,r)=f_\theta(X_c,r)\ \text{(deferred)}
 | Adaptive R9/R11 | 7366 |
 | Uniform R11 | 12838 |
 
-筛选：分数 ≥0.8 分位或不确定区间，再扩一环；**deployment_full** 入样分数。Option A：R11 重提特征后 scorable children 上 hotspot recall = 1.0。
+筛选：分数 ≥0.8 分位或不确定区间，再扩一环；**deployment_full** 入样分数。Option A：R11 重提特征后 scorable children 上 **hotspot refinement recall = 0.882**（legacy coverage recall 1.0 为同义反复）；precision 0.154，enrichment 8.8；cost–recall 曲线见 `adaptive_r11_hotspot_retention.json`。
 
-**来龙去脉：** 自适应主叙事是表示密度；Option A 另做真 R11 重提特征诊断（DEM 边 NaN 丢弃后评分）。  
+**来龙去脉：** 自适应主叙事是表示密度；Option A 另做真 R11 重提特征诊断（DEM 边 NaN 丢弃后评分，missing fraction 0.008）。  
 **如何读：** 7,366 / 12,838 ≈ 0.574（148/262 父单元加密）。  
 **意义：** 表示压缩可行；runtime 未测。  
-**结论（允许）：** 单元数减少；Option A 显示 refined 子单元可覆盖均匀细网格热点（recall=1.000）。  
+**结论（允许）：** 单元数减少；真 R11 加密可召回 88.2% 的均匀细网格热点。  
 **结论（禁止）：** 全市算力节省；把 cell-count 实验写成预报技能提升。
 
 #### 补充图 S1 · `docs/paper/figures/supplementary/jaccard_by_resolution.png`
@@ -267,60 +270,74 @@ S_h(c)=f_\theta(X_c),\qquad S_h(c,r)=f_\theta(X_c,r)\ \text{(deferred)}
 | Mean OOF coastal-only / pluvial-only | 0.406 / 0.886 |
 | Pluvial − coastal OOF difference | 0.480 |
 
-**来龙去脉：** Sandy **不是**训练标签；比较的是 OOF 模型分，不是目标分（海岸-only 目标分恒为 0）。  
+**来龙去脉：** Sandy **不是**训练标签（`negative_control`）；比较的是 OOF 模型分，不是目标分（海岸-only 目标分恒为 0）。  
 **结论（允许）：** 模型不完全由海岸位置驱动，但海岸-only 仍获非零分。  
 **结论（禁止）：** “已排除沿海混淆”。
 
-### 表 6 · FloodNet 严格留出诊断
+### 表 6 · FloodNet 严格留出外验（核心负结果）
 
-| Pilot | Sensor cells | Event cells | ROC-AUC | AP |
-|-------|--------------|-------------|---------|-----|
-| LM | 23 | 17 | 0.314 | 0.632 |
-| Exp | 57 | 40 | 0.463 | 0.686 |
+| Pilot | Sensor cells | Event cells | ROC-AUC | AP | 最小暴露 |
+|-------|--------------|-------------|---------|-----|---------|
+| LM | 23 | 17 | 0.451 | 0.726 | all |
+| LM | 20 | 15 | 0.467 | 0.740 | ≥90 d |
+| LM | 19 | 15 | 0.333 | 0.740 | ≥180 d |
+| LM | 9 | 6 | 0.444 | 0.705 | ≥365 d |
+| Exp | 57 | 40 | 0.479 | 0.754 | all |
+| Exp | 48 | 36 | 0.521 | 0.807 | ≥90 d |
+| Exp | 46 | 36 | 0.514 | 0.836 | ≥180 d |
+| Exp | 32 | 25 | 0.617 | 0.882 | ≥365 d |
 
-**来龙去脉：** 传感器足迹稀疏；诊断弱且不可外推。  
+**来龙去脉：** 传感器足迹稀疏；冻结在数据上强制执行（events/sensors < 2026-08-30，最大保留时间戳 2026-08-29）。  
+**结论（允许）：** **负结果**——独立事件级技能未建立；无事件传感器单元得分不低。  
 **结论（禁止）：** 把 FloodNet 写成外部验证成功或训练标签。
 
 ### 表 7 · 扩展试点摘要
 
 | Metric | Expanded n=956 |
 |--------|----------------|
-| Prevalence | 0.4822 |
-| Acc ± SD | 0.819 ± 0.024 |
-| F1 | 0.822 |
-| Pooled ROC-AUC / AP | 0.880 / 0.815 |
-| Always-pos acc / F1 | 0.482 / 0.649 |
-| Majority-neg acc | 0.518 |
+| Prevalence | 0.479 |
+| Acc ± SD | 0.824 ± 0.036 |
+| F1 | 0.824 |
+| Pooled ROC-AUC / AP | 0.887 / 0.827 |
+| ROC-AUC / AP 95% CI | 0.831–0.929 / 0.774–0.883 |
+| Always-pos acc / F1 | 0.479 / 0.646 |
+| Majority-neg acc | 0.521 |
 
 **意义：** 曼哈顿内尺度放大检查，不是独立外域验证。
 
-### 表 8 · 源消融（pooled ROC-AUC；同空间 CV）
+### 表 8 · 源消融（pooled ROC-AUC；同空间 CV，parent-resolution offset = 2）
 
-| Target | LM ROC | Exp ROC |
-|--------|--------|---------|
-| DEP-only | 0.801 | 0.811 |
-| 311-only | 0.853 | 0.843 |
-| Composite | 0.850 | 0.880 |
-| 311 w/o building_density | 0.839 | 0.816 |
+| Target | LM ROC | Exp ROC | LM F1 | Exp F1 |
+|--------|--------|---------|-------|--------|
+| DEP-only | 0.800 | 0.801 | 0.422 | 0.473 |
+| 311-only | 0.837 | 0.850 | 0.785 | 0.695 |
+| HWM-only | — | 0.234 | — | 0.000 |
+| 311 + HWM | 0.837 | 0.853 | 0.785 | 0.702 |
+| Evidence union（主目标） | 0.849 | 0.887 | 0.868 | 0.824 |
+| Union w/o dist_mapped_water_m | 0.849 | 0.885 | 0.871 | 0.816 |
+| 311-only w/o building_density | 0.843 | 0.848 | 0.786 | 0.714 |
+| Union, physics-only 特征 | 0.851 | 0.862 | 0.871 | 0.786 |
+| Union, reporting/exposure-only 特征 | 0.805 | 0.873 | 0.875 | 0.809 |
+| Union, full 特征 | 0.849 | 0.887 | 0.868 | 0.824 |
 
-**来龙去脉：** 同一 GroupKFold 协议，换目标定义；回答“会不会只是复读 DEP 模型图”。  
-**结论（允许）：** 311-only 仍 >0.5；减轻单源伪象担忧。  
+**来龙去脉：** 同一 GroupKFold 协议，换目标定义/特征子集；回答“会不会只是复读 DEP 模型图”。  
+**结论（允许）：** 311-only 仍 >0.5；physics-only 判别力最高，说明与地形/不透水率共线，作为 limitation 报告。  
 **结论（禁止）：** 证明标签语义完全有效。
 
 ### 表 9 · NHD 陆地掩膜敏感性（LM Option B）
 
 | Mask | n_cells | Pooled ROC-AUC | Acc | F1 |
 |------|---------|----------------|-----|-----|
-| all_cells | 262 | 0.850 | 0.824 | 0.861 |
-| land_frac ≥ 0.5 | 261 | 0.844 | 0.820 | 0.861 |
-| centroid_on_land | 260 | 0.845 | 0.823 | 0.864 |
+| all_cells | 262 | 0.849 | 0.828 | 0.868 |
+| land_frac ≥ 0.5 | 261 | 0.847 | 0.819 | 0.858 |
+| centroid_on_land | 260 | 0.832 | 0.811 | 0.852 |
 
 **来龙去脉：** 用本机 hydrography 中 NHDArea/NHDWaterbody 多边形算 land_frac；**不是** NYC 行政陆地多边形。  
 **意义：** 矩形 bbox 含少量水域格；剔除后 ROC 几乎不动。  
 **结论（允许）：** 主表不被 1–2 个水域格主导。  
 **结论（禁止）：** “已完成严格陆地足迹建模”。更强 land mask 仍待行政多边形。
 
-扩展 OOF 阈值指标（LM pooled）：MCC 0.611，balanced accuracy 0.790，specificity 0.663。
+扩展 OOF 阈值指标（LM pooled）：MCC 0.620，balanced accuracy 0.793，specificity 0.663。
 
 ---
 
@@ -330,8 +347,9 @@ S_h(c)=f_\theta(X_c),\qquad S_h(c,r)=f_\theta(X_c,r)\ \text{(deferred)}
 2. **尺度损失**与 **自适应单元压缩**回答的是表示问题，不是预报问题。  
 3. **源消融**显示 311-only 也能排序，减轻“只会复读 DEP 模型图”的担忧，但不能证明标签语义完全有效。  
 4. **降雨响应平坦**是当前数据事实，不是写作疏漏。  
-5. **Nested CV 未做**：超参预指定写进 Methods；小样本上再套一层调参成本高且易泄漏，audit 已诚实记录。  
-6. **NHD land-mask** 只剔除 1–2 格：说明当前 bbox 水域污染有限，也说明还缺行政陆地多边形。
+5. **FloodNet 外验为负结果**：严格留出下 ROC-AUC <0.5（LM 0.451 / Exp 0.479），无事件传感器单元得分不低 → 主张限定为“开放证据目标的分块排序”，不是外部事件级技能。  
+6. **Nested CV 未做**：超参预指定写进 Methods；小样本上再套一层调参成本高且易泄漏，audit 已诚实记录。  
+7. **NHD land-mask** 只剔除 1–2 格：说明当前 bbox 水域污染有限，也说明还缺行政陆地多边形。
 
 ---
 
@@ -351,13 +369,30 @@ S_h(c)=f_\theta(X_c),\qquad S_h(c,r)=f_\theta(X_c,r)\ \text{(deferred)}
 
 ```text
 .venv\Scripts\python.exe -m pytest -q
+$env:PAPER_RELEASE_STRICT="1"; .venv\Scripts\python.exe -m pytest tests\test_submission_hard_gates.py -q
 .venv\Scripts\python.exe scripts\make_figures.py
 .venv\Scripts\python.exe scripts\build_manuscript_html.py
 .venv\Scripts\python.exe scripts\build_paper_report_html.py
 ```
 
-核对：`outputs/paper_results.json` 与本文表 1/3/7 数值一致；图 6b 与 `jaccard_by_resolution.csv` 一致；手稿 Table 6 与 `negative_control` 一致。
+核对：`outputs/paper_results.json` 与本文表 1/3/7/8 数值一致；图 6b 与 `jaccard_by_resolution.csv` 一致；手稿 Table 9 与 `negative_control`/`external_validation` 一致；`scripts/check_manuscript_vs_registry.py` 必须通过。
 
 ---
 
-*Generated for Option B freeze · registry 2026-09-21T03:58:55.685822+00:00 · fail_closed=True · seed=42 · freeze_tag=submission-v5-full-recompute*
+## 附录 A · buffered spatial-CV 敏感性（P0-5）
+
+metre 缓冲会把留出块的邻近训练格剔除；在本试点中 12 个 R7 块间最小 train–test 距离已达 ≈1127 m，故 0/250/500/1000 m 缓冲的 retained-train fraction 均为 1.000，ROC-AUC/AP 不变（LM 0.849/0.850；Exp 0.887/0.827）。真正起作用的 H3 `grid_disk` purge：k=1 保留 0.876（LM 0.842/0.837；Exp 0.885/0.829），k=2 保留 0.733（LM 0.817/0.826；Exp 0.876/0.816）。来源：`outputs/buffer_sensitivity.csv`。
+
+## 附录 B · 证据语义表（Evidence semantics）
+
+| Source | 观测/模型 | 时间 | 几何 | 主要偏差 | 训练角色 |
+|---|---|---|---|---|---|
+| DEP stormwater cat. 1–2 | H&H **模型输出** | 当前海平面（2050 SLR 另作敏感性） | 多边形面积占比 | 模型结构/参数；排除 coastal “future high tides” | `training_label` |
+| NYC 311 street-flooding | 众包**上报**、未核实 | 2010–2014 | 点数/存在性 | 上报与制图偏差 | `training_label` |
+| USGS Ida HWM | **观测**（单事件） | Ida 2021 | 点数/存在性/质量 | 稀疏（扩展 pilot 6 个正格） | `training_label` |
+| FEMA Sandy surge | 模型/制图海岸 | Sandy 2012 | 多边形叠置 | 海岸而非雨洪 | `negative_control`（永不训练） |
+| NYC FloodNet events | 传感器**观测**事件 | 冻结前，强制执行 | 点/传感器格 | 稀疏足迹；暴露期 | `external_validation`（永不训练） |
+
+---
+
+*Generated for Option B Major Revision · registry generated_utc 见 `outputs/paper_results.json` · fail_closed=True · seed=42 · freeze_tag=major-revision-2026-10-08*

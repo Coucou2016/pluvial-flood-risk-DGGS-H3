@@ -13,18 +13,23 @@ from pluvial_flood_risk.adaptive import run_adaptive_refinement
 def adaptive_vs_fixed_ablation(
     coarse_df: pd.DataFrame,
     fine_res: int,
-    score_col: str = "PFI_h",
-    proba_col: str | None = "flood_probability",
+    score_col: str = "susceptibility_score",
+    proba_col: str | None = "susceptibility_score",
     score_quantile: float = 0.8,
     expand_k: int = 1,
     hotspot_quantile: float = 0.9,
 ) -> dict[str, Any]:
     """
     Compare adaptive mixed-resolution index against keeping the full coarse grid
-    and against a uniform fine grid (cell count + hotspot recall).
+    and against a uniform fine grid (cell count + refinement recall).
 
-    ``coarse_df`` must already carry trained scores (``PFI_h`` / predicted_risk).
+    ``coarse_df`` must already carry trained scores (``susceptibility_score``).
     """
+    if score_col not in coarse_df.columns:
+        for legacy in ("PFI_h", "predicted_risk"):
+            if legacy in coarse_df.columns:
+                score_col = legacy
+                break
     if score_col not in coarse_df.columns:
         raise KeyError(f"ablation requires score column '{score_col}'")
 

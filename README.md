@@ -14,7 +14,9 @@ it is *not* a reproduction of any proprietary flood-risk index.
 
 Third-party reference material kept here for review context:
 `1-s2.0-S2212420926001032-main.md` / `.pdf` (Svellingen et al., IJDRR — used only
-as a writing/positioning reference; **not redistributed as our own output**).
+as a writing/positioning reference; **not redistributed as our own output**, not
+MIT-licensed, and should be replaced by a DOI link before any further
+redistribution — see `THIRD_PARTY_NOTICE.md` / `LICENSE`).
 
 ---
 
@@ -32,30 +34,51 @@ as a writing/positioning reference; **not redistributed as our own output**).
 
 **Single source of truth for numbers:** `outputs__paper_results.json`. Every
 figure, table and sentence in the manuscript/report/audit is checked against it
-by `tests__test_major_revision_gates.py`.
+by `tests__test_major_revision_gates.py` and `tests__test_submission_hard_gates.py`
+(8 submission hard gates, run fail-closed with `PAPER_RELEASE_STRICT=1`).
 
 ---
 
 ## 2. Headline results (frozen, from `outputs__paper_results.json`)
 
 Two Manhattan pilots. Evaluation is **spatial H3-block cross-validation**
-(GroupKFold over R7 parent blocks) with pooled out-of-fold (OOF) metrics; a
-separate `deployment_full` model is fitted on 100% of cells for mapping only.
+(GroupKFold over R7 parent blocks, i.e. parent-resolution offset = 2) with pooled
+out-of-fold (OOF) metrics and spatial-block bootstrap 95% CIs; a separate
+`deployment_full` model is fitted on 100% of cells for mapping only.
 
 | Quantity | Lower Manhattan (Option B) | Manhattan Expanded |
 |---|---|---|
 | Cells (R9) | **262** | **956** |
-| Positive (`evidence-positive`) | 167 (63.7%) | 461 (48.2%) |
-| Spatial-CV ROC-AUC (pooled OOF) | **0.850** | **0.880** |
-| Spatial-CV PR-AUC / AP (pooled OOF) | **0.851** | **0.815** |
-| Spatial-CV accuracy (fold mean ± SD) | 0.824 ± 0.055 | 0.819 ± 0.024 |
-| Spatial-CV F1 (fold mean ± SD) | 0.861 ± 0.049 | 0.822 ± 0.028 |
-| Always-positive baseline (acc / F1) | 0.637 / 0.769 | 0.482 / 0.649 |
+| Positive (`evidence-positive`) | 167 (63.7%) | 458 (47.9%) |
+| Spatial-CV ROC-AUC (pooled OOF) | **0.849** (CI 0.728–0.951) | **0.887** (CI 0.831–0.929) |
+| Spatial-CV AP (pooled OOF) | **0.850** (CI 0.778–0.965) | **0.827** (CI 0.774–0.883) |
+| Spatial-CV accuracy (fold mean ± SD) | 0.828 ± 0.053 | 0.824 ± 0.036 |
+| Spatial-CV F1 (fold mean ± SD) | 0.868 ± 0.043 | 0.824 ± 0.039 |
+| Always-positive baseline (acc / F1) | 0.637 / 0.769 | 0.479 / 0.646 |
 | n folds / n spatial blocks | 5 / 12 | 5 / 28 |
 
-**Scale loss (R10 → coarse, strict area budget, 10% hotspot budget, soft
-Jaccard):** R10→R9 mean **0.220**, R10→R8 mean **0.136** (primary, area-weighted).
-Max/p90 aggregations are reported as sensitivity only.
+**Buffer sensitivity (P0-5).** Metre guard bands (0/250/500/1000 m, EPSG:2263)
+leave the retained-train fraction at 1.000 because the nearest R7 blocks are
+already ≈1127 m apart; an H3 `grid_disk` purge is the guard band that bites
+(k=1 retains 0.876 → ROC-AUC 0.842; k=2 retains 0.733 → 0.817).
+
+**Scale loss (R10 → coarse, strict area budget, 10% hotspot budget).** Soft
+Jaccard R10→R9 mean **0.193**, R10→R8 mean **0.114**. True area-weighted
+reconstruction error is MAE **0.238** / RMSE **0.345** to R9 and MAE **0.323** /
+RMSE **0.402** to R8. The legacy parent-mean-identity MAE (0) is QA-only.
+
+**Adaptive refinement (Option A, true R11 re-extraction).** 148/262 parents
+refined → 7,366 mixed cells vs 12,838 uniform R11 (ratio 0.574).
+`hotspot_refinement_recall` **0.882** of uniform-R11 hotspots, precision 0.154,
+enrichment 8.8 (legacy coverage recall 1.0 is a tautology).
+
+**FloodNet external validation — a CORE NEGATIVE result.** Strict, never-trained
+held-out sensor-event check fails to discriminate: ROC-AUC **0.451** (LM, 23
+sensor cells) / **0.479** (Expanded, 57 cells), with no-event sensor cells
+scoring at least as high as event cells; filtering by sensor exposure (30/90/180/
+365 d) does not rescue it. The study claim is therefore limited to blocked-CV
+discrimination of a heterogeneous open-evidence target — **not** external
+event-level skill.
 
 **Negative control (coastal vs pluvial, OOF score):** mean OOF score is
 **0.886** for pluvial-only cells vs **0.406** for coastal-only cells — the model
@@ -66,7 +89,8 @@ separates pluvial from coastal flooding evidence rather than merely detecting
 assembled from open sources: DEP stormwater flood polygons (H&H model output),
 NYC 311 street-flood complaints (official SODA dataset `76ig-c548`), and USGS
 Ida high-water marks. **FloodNet** (`aq7i-eu5q` + `kb2e-tjy3`) is a **strict
-held-out** diagnostic only — never a training label.
+held-out external-validation** block only — never a training label; **Sandy** is
+a `negative_control`.
 
 **Honest boundaries.** No claim of citywide skill, PFIb reproduction, radar
 rainfall, or rainfall discrimination. `event_rainfall.tif` is a constant
@@ -134,9 +158,12 @@ mirror), USGS (`P9OMBJPQ` Ida HWM; NHDPlus HR hydro; 3DEP DEM), FEMA (Sandy),
 and Esri/Annual NLCD (impervious). See `data__raw__nyc__DOWNLOAD_MANIFEST.json`
 for per-layer provenance and `data__raw__nyc__README.md` for honesty caveats.
 
-Repository code is MIT. The third-party reference article retained at the root
-remains under its publisher's copyright and is included **only** as review
-context — it is not part of this project's output.
+Repository code is MIT (see `LICENSE`). The third-party reference article
+retained at the root remains under its publisher's copyright and is included
+**only** as review context — it is not part of this project's output, is not
+MIT-licensed, and should be replaced with a DOI link before any further
+redistribution (see `THIRD_PARTY_NOTICE.md`).
 
-Authoritative provenance: `outputs__paper_results.json` (`git_commit`,
-`run_id`, `freeze_tag`) and `审查输出__evidence__file_sha256_inventory.csv`.
+Authoritative provenance: `outputs__paper_results.json` (`git_commit`, `run_id`,
+`freeze_tag` = `major-revision-2026-10-08`, `provenance`) and
+`审查输出__evidence__file_sha256_inventory.csv`.

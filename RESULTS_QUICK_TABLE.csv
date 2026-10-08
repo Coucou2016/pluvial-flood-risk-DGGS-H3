@@ -2,44 +2,74 @@ section,metric,value,note
 "Lower Manhattan (Option B, n=262)",n_cells,262,
 "Lower Manhattan (Option B, n=262)",n_positive,167,
 "Lower Manhattan (Option B, n=262)",positive_prevalence,0.6374,
-"Lower Manhattan (Option B, n=262)",spatial_cv ROC-AUC (pooled OOF),0.8503,
-"Lower Manhattan (Option B, n=262)",spatial_cv PR-AUC (pooled OOF),0.8506,
-"Lower Manhattan (Option B, n=262)",spatial_cv accuracy (fold mean±std),0.8241 ± 0.0552,
-"Lower Manhattan (Option B, n=262)",spatial_cv F1 (fold mean±std),0.8614 ± 0.0489,
+"Lower Manhattan (Option B, n=262)",spatial_cv ROC-AUC (pooled OOF),0.8494,95% block-bootstrap CI 0.728-0.951
+"Lower Manhattan (Option B, n=262)",spatial_cv average precision / AP (pooled OOF),0.8505,95% block-bootstrap CI 0.778-0.965
+"Lower Manhattan (Option B, n=262)",spatial_cv accuracy (fold mean±std),0.8279 ± 0.0533,
+"Lower Manhattan (Option B, n=262)",spatial_cv F1 (fold mean±std),0.8677 ± 0.0430,
 "Lower Manhattan (Option B, n=262)",spatial_CV n_folds / n_blocks,5 / 12,
 Manhattan Expanded (n=956),n_cells,956,
-Manhattan Expanded (n=956),n_positive,461,
-Manhattan Expanded (n=956),positive_prevalence,0.4822,
-Manhattan Expanded (n=956),spatial_cv ROC-AUC (pooled OOF),0.8802,
-Manhattan Expanded (n=956),spatial_cv PR-AUC (pooled OOF),0.8146,
-Manhattan Expanded (n=956),spatial_cv accuracy (fold mean±std),0.8191 ± 0.0236,
-Manhattan Expanded (n=956),spatial_cv F1 (fold mean±std),0.8223 ± 0.0279,
+Manhattan Expanded (n=956),n_positive,458,
+Manhattan Expanded (n=956),positive_prevalence,0.4791,
+Manhattan Expanded (n=956),spatial_cv ROC-AUC (pooled OOF),0.8874,95% block-bootstrap CI 0.831-0.929
+Manhattan Expanded (n=956),spatial_cv average precision / AP (pooled OOF),0.8269,95% block-bootstrap CI 0.774-0.883
+Manhattan Expanded (n=956),spatial_cv accuracy (fold mean±std),0.8244 ± 0.0356,
+Manhattan Expanded (n=956),spatial_cv F1 (fold mean±std),0.8236 ± 0.0390,
 Manhattan Expanded (n=956),spatial_CV n_folds / n_blocks,5 / 28,
 "Scale-loss (R10→coarse, strict area budget, 10% hotspot)",primary_metric,area_weighted_soft_jaccard,"n_fine=1788, n_coarse_r9=262"
-Scale-loss,soft Jaccard R10→R8 (mean),0.1364,spearman=1.0
-Scale-loss,soft Jaccard R10→R8 (max),0.5787,spearman=0.707
-Scale-loss,soft Jaccard R10→R8 (p90),0.6819,spearman=0.91
-Scale-loss,soft Jaccard R10→R9 (mean),0.2195,spearman=1.0
-Scale-loss,soft Jaccard R10→R9 (max),0.6479,spearman=0.916
-Scale-loss,soft Jaccard R10→R9 (p90),0.5732,spearman=0.983
+Scale-loss,soft Jaccard R10→R8 (mean),0.1143,recon_MAE=0.323; recon_RMSE=0.402
+Scale-loss,soft Jaccard R10→R8 (max),0.6815,recon_MAE=0.669; recon_RMSE=0.818
+Scale-loss,soft Jaccard R10→R8 (p90),0.7338,recon_MAE=0.583; recon_RMSE=0.757
+Scale-loss,soft Jaccard R10→R9 (mean),0.1927,recon_MAE=0.238; recon_RMSE=0.345
+Scale-loss,soft Jaccard R10→R9 (max),0.6093,recon_MAE=0.403; recon_RMSE=0.635
+Scale-loss,soft Jaccard R10→R9 (p90),0.6332,recon_MAE=0.321; recon_RMSE=0.525
 "Negative control (coastal vs pluvial, OOF score)",mean OOF score: pluvial-only,0.8861,
 "Negative control (coastal vs pluvial, OOF score)",mean OOF score: coastal-only,0.4064,
-Source ablation · lower_manhattan,dep_only ROC-AUC pooled,0.8008,n_pos=74
-Source ablation · lower_manhattan,complaint_only ROC-AUC pooled,0.8529,n_pos=144
-Source ablation · lower_manhattan,complaint_hwm ROC-AUC pooled,0.8529,n_pos=144
-Source ablation · lower_manhattan,composite ROC-AUC pooled,0.8503,n_pos=167
-Source ablation · lower_manhattan,composite_no_diststream ROC-AUC pooled,0.8507,n_pos=167
-Source ablation · lower_manhattan,complaint_no_building_density ROC-AUC pooled,0.839,n_pos=144
-Source ablation · manhattan_expanded,dep_only ROC-AUC pooled,0.8111,n_pos=231
-Source ablation · manhattan_expanded,complaint_only ROC-AUC pooled,0.8432,n_pos=373
-Source ablation · manhattan_expanded,hwm_only ROC-AUC pooled,0.2331,n_pos=6
-Source ablation · manhattan_expanded,complaint_hwm ROC-AUC pooled,0.8357,n_pos=375
-Source ablation · manhattan_expanded,composite ROC-AUC pooled,0.8802,n_pos=461
-Source ablation · manhattan_expanded,composite_no_diststream ROC-AUC pooled,0.8872,n_pos=461
-Source ablation · manhattan_expanded,complaint_no_building_density ROC-AUC pooled,0.8161,n_pos=373
+FloodNet external validation (strict held-out; CORE NEGATIVE),lower_manhattan ROC-AUC (all sensors),0.451,n_sensor_cells=23; no-event cells score >= event cells
+FloodNet external validation (exposure sensitivity),lower_manhattan min_exposure_30d ROC-AUC / AP,0.451 / 0.726,n=23
+FloodNet external validation (exposure sensitivity),lower_manhattan min_exposure_90d ROC-AUC / AP,0.467 / 0.74,n=20
+FloodNet external validation (exposure sensitivity),lower_manhattan min_exposure_180d ROC-AUC / AP,0.333 / 0.74,n=19
+FloodNet external validation (exposure sensitivity),lower_manhattan min_exposure_365d ROC-AUC / AP,0.444 / 0.705,n=9
+FloodNet external validation (strict held-out; CORE NEGATIVE),manhattan_expanded ROC-AUC (all sensors),0.4794,n_sensor_cells=57; no-event cells score >= event cells
+FloodNet external validation (exposure sensitivity),manhattan_expanded min_exposure_30d ROC-AUC / AP,0.479 / 0.754,n=57
+FloodNet external validation (exposure sensitivity),manhattan_expanded min_exposure_90d ROC-AUC / AP,0.521 / 0.807,n=48
+FloodNet external validation (exposure sensitivity),manhattan_expanded min_exposure_180d ROC-AUC / AP,0.514 / 0.836,n=46
+FloodNet external validation (exposure sensitivity),manhattan_expanded min_exposure_365d ROC-AUC / AP,0.617 / 0.882,n=32
+Buffer sensitivity · lower_manhattan,guard band 0 m,retained=1.0; ROC=0.849; AP=0.85,
+Buffer sensitivity · lower_manhattan,guard band 250 m,retained=1.0; ROC=0.849; AP=0.85,
+Buffer sensitivity · lower_manhattan,guard band 500 m,retained=1.0; ROC=0.849; AP=0.85,
+Buffer sensitivity · lower_manhattan,guard band 1000 m,retained=1.0; ROC=0.849; AP=0.85,
+Buffer sensitivity · lower_manhattan,guard band h3_grid_disk_k1,retained=0.876; ROC=0.842; AP=0.837,
+Buffer sensitivity · lower_manhattan,guard band h3_grid_disk_k2,retained=0.733; ROC=0.817; AP=0.826,
+Buffer sensitivity · manhattan_expanded,guard band 0 m,retained=1.0; ROC=0.887; AP=0.827,
+Buffer sensitivity · manhattan_expanded,guard band 250 m,retained=1.0; ROC=0.887; AP=0.827,
+Buffer sensitivity · manhattan_expanded,guard band 500 m,retained=1.0; ROC=0.887; AP=0.827,
+Buffer sensitivity · manhattan_expanded,guard band 1000 m,retained=1.0; ROC=0.887; AP=0.827,
+Buffer sensitivity · manhattan_expanded,guard band h3_grid_disk_k1,retained=0.885; ROC=0.885; AP=0.829,
+Buffer sensitivity · manhattan_expanded,guard band h3_grid_disk_k2,retained=0.758; ROC=0.876; AP=0.816,
+Provenance,FloodNet analysis freeze (enforced),2026-08-30T00:00:00+00:00,
+Source ablation · lower_manhattan,dep_only ROC-AUC pooled,0.7996,n_pos=74
+Source ablation · lower_manhattan,complaint_only ROC-AUC pooled,0.8373,n_pos=144
+Source ablation · lower_manhattan,complaint_hwm ROC-AUC pooled,0.8373,n_pos=144
+Source ablation · lower_manhattan,evidence_union ROC-AUC pooled,0.8494,n_pos=167
+Source ablation · manhattan_expanded,dep_only ROC-AUC pooled,0.8006,n_pos=231
+Source ablation · manhattan_expanded,complaint_only ROC-AUC pooled,0.8503,n_pos=373
+Source ablation · manhattan_expanded,hwm_only ROC-AUC pooled,0.2336,n_pos=6
+Source ablation · manhattan_expanded,complaint_hwm ROC-AUC pooled,0.853,n_pos=375
+Source ablation · manhattan_expanded,evidence_union ROC-AUC pooled,0.8874,n_pos=458
+Nested feature-set model · lower_manhattan,evidence_union_no_distwater ROC-AUC pooled,0.8488,n_features=6
+Nested feature-set model · lower_manhattan,complaint_no_building_density ROC-AUC pooled,0.8434,n_features=6
+Nested feature-set model · lower_manhattan,union_physics_only ROC-AUC pooled,0.8506,n_features=4
+Nested feature-set model · lower_manhattan,union_reporting_only ROC-AUC pooled,0.8047,n_features=3
+Nested feature-set model · lower_manhattan,union_full ROC-AUC pooled,0.8494,n_features=7
+Nested feature-set model · manhattan_expanded,evidence_union_no_distwater ROC-AUC pooled,0.8853,n_features=6
+Nested feature-set model · manhattan_expanded,complaint_no_building_density ROC-AUC pooled,0.8479,n_features=6
+Nested feature-set model · manhattan_expanded,union_physics_only ROC-AUC pooled,0.8616,n_features=4
+Nested feature-set model · manhattan_expanded,union_reporting_only ROC-AUC pooled,0.8727,n_features=3
+Nested feature-set model · manhattan_expanded,union_full ROC-AUC pooled,0.8874,n_features=7
 Software environment,python,3.13.12,
 Software environment,h3,4.4.2,
 Software environment,scikit-learn,1.8.0,
-Provenance,git_commit (frozen registry),5d3b2ea04c4c5341011291d2b4654c9cf2fc4194,
-Provenance,run_id,20260921T035855Z,
-Provenance,freeze_tag,submission-v5-full-recompute,
+Provenance,git_commit (frozen registry),37b400c38bcbda1100bad238759bc00d820c31fc,
+Provenance,run_id,20261008T062129Z,
+Provenance,freeze_tag,major-revision-2026-10-08,
+Provenance,schema,2,

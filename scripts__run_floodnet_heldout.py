@@ -1,8 +1,16 @@
-"""Strict held-out FloodNet diagnostic (never used as a training label).
+"""Strict held-out FloodNet external-validation diagnostic (never a training label).
 
-Downloads (if needed) NYC Open Data aq7i-eu5q + kb2e-tjy3, maps sensors to H3 R9,
-and scores existing OOF probabilities against sensor cells that recorded ≥1 flood
-event. Production labels.include_floodnet remains False.
+Downloads (if needed) NYC Open Data aq7i-eu5q + kb2e-tjy3, applies the enforced
+analysis freeze on data timestamps, maps sensors to H3 R9, and scores existing OOF
+susceptibility ranks against sensor cells that recorded >=1 flood event.
+
+Major Revision 2026-10-08 (P0-2/P0-4)
+-------------------------------------
+- The freeze is enforced: post-freeze events/sensors are dropped and audited.
+- Sensor exposure (``sensor_exposure_days`` / ``event_rate_per_year``) is computed
+  and the diagnostic is repeated at min-exposure thresholds 30/90/180/365 days.
+- The result is reported **even when AUC < 0.5** — the FloodNet external result is
+  a documented NEGATIVE result, surfacing in the abstract/conclusion.
 """
 
 from __future__ import annotations
@@ -22,12 +30,17 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from pluvial_flood_risk.floodnet import (  # noqa: E402
     ANALYSIS_FREEZE_UTC,
+    DEFAULT_EXPOSURE_THRESHOLDS_DAYS,
     FLOODNET_EVENTS_DATASET,
     FLOODNET_EVENTS_LANDING,
     FLOODNET_PUBLISHED,
     FLOODNET_SENSORS_DATASET,
     FLOODNET_SENSORS_LANDING,
+    compute_sensor_exposure,
     download_floodnet_heldout,
+    filter_events_before_freeze,
+    filter_sensors_before_freeze,
+    freeze_time,
     load_floodnet_points,
 )
 
@@ -47,6 +60,65 @@ def _ensure_floodnet(raw_dir: Path, bbox: tuple[float, float, float, float]) -> 
     return geo
 
 
+def _load_raw_events(raw_dir: Path) -> tuple[list[dict], dict]:
+    """Load downloaded events and enforce the freeze on their timestamps."""
+    events_path = raw_dir / "floodnet_events.json"
+    if not events_path.exists():
+        return [], {}
+    try:
+        payload = json.loads(events_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return [], {}
+    events = payload.get("events") or []
+    kept, audit = filter_events_before_freeze(events, freeze_time())
+    return kept, audit
+
+
+def _load_raw_sensors(raw_dir: Path) -> tuple[list[dict], dict]:
+    """Reconstruct sensor dicts from the GeoJSON properties; filter by install date."""
+    geo = raw_dir / "floodnet_sensors.geojson"
+    if not geo.exists():
+        return [], {}
+    sensors = [dict(props) for _pt, props in load_floodnet_points(geo)]
+    kept, audit = filter_sensors_before_freeze(sensors, freeze_time())
+    return kept, audit
+
+
+def _score_variant(
+    cell_agg: pd.DataFrame,
+    oof: pd.DataFrame,
+    score_col: str,
+    exposure_min_days: float | None = None,
+) -> dict:
+    """Compute ROC-AUC / AP for a (possibly exposure-filtered) sensor-cell outcome."""
+    agg = cell_agg
+    if exposure_min_days is not None and "sensor_exposure_days" in agg.columns:
+        agg = agg.loc[agg["sensor_exposure_days"] >= exposure_min_days].copy()
+    merged = agg.merge(oof[["h3_index", score_col]], on="h3_index", how="left")
+    y = merged["any_event"].astype(int).to_numpy()
+    s = merged[score_col].astype(float).to_numpy()
+    mask = np.isfinite(s)
+    y, s = y[mask], s[mask]
+    out: dict = {
+        "exposure_min_days": exposure_min_days,
+        "n_cells": int(len(y)),
+        "n_positive": int((y == 1).sum()),
+        "positive_prevalence": float(y.mean()) if len(y) else None,
+        "roc_auc": None,
+        "average_precision": None,
+        "mean_score_event_cells": float(s[y == 1].mean()) if (y == 1).any() else None,
+        "mean_score_no_event_cells": float(s[y == 0].mean()) if (y == 0).any() else None,
+    }
+    if len(y) >= 5 and len(np.unique(y)) == 2:
+        out["roc_auc"] = float(roc_auc_score(y, s))
+        out["average_precision"] = float(average_precision_score(y, s))
+    elif len(y) < 5:
+        out["note"] = "too few sensor-overlapping study cells for ROC/AP"
+    else:
+        out["note"] = "single-class sensor-cell outcome; ROC/AP undefined"
+    return out
+
+
 def _pilot_diag(
     *,
     name: str,
@@ -63,19 +135,34 @@ def _pilot_diag(
     h3_col_table = "h3_index" if "h3_index" in table.columns else "h3"
     h3_set = set(table[h3_col_table].astype(str))
 
+    # Freeze audit + exposure from the enforced raw dumps.
+    events, event_audit = _load_raw_events(raw_dir)
+    sensors_raw, sensor_audit = _load_raw_sensors(raw_dir)
+    exposure = compute_sensor_exposure(sensors_raw, events, freeze_time())
+
     sensor_rows = []
     for pt, props in pts:
         lon, lat = float(pt.x), float(pt.y)
         if not (bbox[0] <= lon <= bbox[2] and bbox[1] <= lat <= bbox[3]):
             continue
+        sid = str(props.get("sensor_id"))
+        exp = exposure.get(sid, {})
+        exposure_days = props.get("sensor_exposure_days")
+        if exposure_days is None:
+            exposure_days = exp.get("sensor_exposure_days")
+        event_rate = props.get("event_rate_per_year")
+        if event_rate is None:
+            event_rate = exp.get("event_rate_per_year")
         cell = h3.latlng_to_cell(lat, lon, resolution)
         sensor_rows.append(
             {
-                "sensor_id": props.get("sensor_id"),
+                "sensor_id": sid,
                 "sensor_name": props.get("sensor_name"),
                 "tidally_influenced": props.get("tidally_influenced"),
                 "n_flood_events": int(props.get("n_flood_events") or 0),
                 "max_depth_inches": props.get("max_depth_inches"),
+                "sensor_exposure_days": exposure_days,
+                "event_rate_per_year": event_rate,
                 "h3_index": cell,
                 "in_study_table": cell in h3_set,
             }
@@ -89,19 +176,20 @@ def _pilot_diag(
             "note": "no FloodNet sensors in bbox after download",
         }
 
-    # Cell-level held-out outcome: any sensor in cell with ≥1 QC flood event.
+    # Cell-level held-out outcome: any sensor in cell with >=1 pre-freeze QC event.
     cell_agg = (
         sens.groupby("h3_index", as_index=False)
         .agg(
             n_sensors=("sensor_id", "count"),
             n_events=("n_flood_events", "sum"),
             max_depth_inches=("max_depth_inches", "max"),
+            sensor_exposure_days=("sensor_exposure_days", "min"),
+            event_rate_per_year=("event_rate_per_year", "max"),
             any_event=("n_flood_events", lambda s: int((s.fillna(0) > 0).any())),
         )
     )
     cell_agg = cell_agg[cell_agg["h3_index"].isin(h3_set)].copy()
 
-    # Prefer OOF probability column names used in this repo.
     score_col = None
     for c in ("y_proba", "y_prob", "oof_proba", "proba", "y_score", "oof_model_score"):
         if c in oof.columns:
@@ -109,7 +197,7 @@ def _pilot_diag(
             break
     if score_col is None:
         for c in oof.columns:
-            if c.lower() in {"h3", "h3_index", "y_true", "y_pred", "fold", "fold_id", "block", "h3_block"}:
+            if c.lower() in {"h3", "h3_index", "y_true", "y_pred", "fold", "fold_id", "block", "h3_parent_block"}:
                 continue
             if pd.api.types.is_numeric_dtype(oof[c]):
                 score_col = c
@@ -120,13 +208,17 @@ def _pilot_diag(
     oof = oof.copy()
     h3_col_oof = "h3_index" if "h3_index" in oof.columns else "h3"
     oof["h3_index"] = oof[h3_col_oof].astype(str)
-    merged = cell_agg.merge(oof[["h3_index", score_col]], on="h3_index", how="left")
-    y = merged["any_event"].astype(int).to_numpy()
-    s = merged[score_col].astype(float).to_numpy()
-    mask = np.isfinite(s)
-    y, s = y[mask], s[mask]
 
-    out: dict = {
+    baseline = _score_variant(cell_agg, oof, score_col)
+    sensitivity = {
+        "all_sensors": baseline,
+        **{
+            f"min_exposure_{d}d": _score_variant(cell_agg, oof, score_col, float(d))
+            for d in DEFAULT_EXPOSURE_THRESHOLDS_DAYS
+        },
+    }
+
+    return {
         "pilot": name,
         "bbox": list(bbox),
         "resolution": resolution,
@@ -139,22 +231,16 @@ def _pilot_diag(
         "n_tidally_influenced_sensors": int(
             sens["tidally_influenced"].astype(str).str.lower().str.startswith("y").sum()
         ),
-        "positive_prevalence_sensor_cells": float(y.mean()) if len(y) else None,
-        "roc_auc": None,
-        "average_precision": None,
-        "mean_score_event_cells": float(s[y == 1].mean()) if (y == 1).any() else None,
-        "mean_score_no_event_cells": float(s[y == 0].mean()) if (y == 0).any() else None,
+        "positive_prevalence_sensor_cells": baseline["positive_prevalence"],
+        "roc_auc": baseline["roc_auc"],
+        "average_precision": baseline["average_precision"],
+        "mean_score_event_cells": baseline["mean_score_event_cells"],
+        "mean_score_no_event_cells": baseline["mean_score_no_event_cells"],
+        "exposure_sensitivity": sensitivity,
+        "freeze_audit": {**event_audit, **sensor_audit},
         "held_out": True,
         "used_in_training_labels": False,
     }
-    if len(y) >= 5 and len(np.unique(y)) == 2:
-        out["roc_auc"] = float(roc_auc_score(y, s))
-        out["average_precision"] = float(average_precision_score(y, s))
-    elif len(y) < 5:
-        out["note"] = "too few sensor-overlapping study cells for ROC/AP"
-    else:
-        out["note"] = "single-class sensor-cell outcome; ROC/AP undefined"
-    return out
 
 
 def main() -> None:
@@ -192,7 +278,7 @@ def main() -> None:
     payload = {
         "generated_utc": datetime.now(timezone.utc).isoformat(),
         "analysis_freeze_utc": ANALYSIS_FREEZE_UTC,
-        "role": "strict_held_out_external_validation_diagnostic",
+        "role": "external_validation",
         "used_in_training_or_evaluation_labels": False,
         "events_dataset_id": FLOODNET_EVENTS_DATASET,
         "events_landing_page": FLOODNET_EVENTS_LANDING,
@@ -200,9 +286,14 @@ def main() -> None:
         "sensors_landing_page": FLOODNET_SENSORS_LANDING,
         "published": FLOODNET_PUBLISHED,
         "outcome_definition": (
-            "Study R9 cell is positive if it contains ≥1 FloodNet sensor with "
-            "≥1 QC street-flooding event in aq7i-eu5q; scores are spatial-CV OOF "
-            "probabilities from the composite open-evidence model (FloodNet excluded)."
+            "Study R9 cell is positive if it contains >=1 FloodNet sensor with "
+            ">=1 pre-freeze QC street-flooding event in aq7i-eu5q; scores are "
+            "spatial-CV OOF susceptibility ranks from the open-evidence model "
+            "(FloodNet excluded from training)."
+        ),
+        "interpretation": (
+            "NEGATIVE external result: independent FloodNet event-level discrimination "
+            "was NOT established (AUC can be < 0.5). Reported honestly."
         ),
         "pilots": pilots,
     }
@@ -218,6 +309,8 @@ def main() -> None:
             p.get("n_study_cells_with_event"),
             "ROC",
             p.get("roc_auc"),
+            "AP",
+            p.get("average_precision"),
         )
 
 

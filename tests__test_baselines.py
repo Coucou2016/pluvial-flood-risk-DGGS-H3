@@ -13,7 +13,7 @@ def test_rule_score_in_unit_interval():
 
 def test_compare_baselines_keys():
     df = build_demo_dataset(bbox=(10.70, 59.90, 10.80, 59.96), resolution=9)
-    metrics = compare_baselines(df, spatial_cv_k=2, spatial_cv_folds=3)
+    metrics = compare_baselines(df, parent_resolution_offset=2, spatial_cv_folds=3)
     assert 0.0 <= metrics["baseline_rule_accuracy"] <= 1.0
     assert 0.0 <= metrics["baseline_logistic_accuracy"] <= 1.0
     assert "baseline_logistic_spatial_cv_accuracy_mean" in metrics

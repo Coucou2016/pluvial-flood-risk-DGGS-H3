@@ -41,6 +41,8 @@ from pluvial_flood_risk.config import (  # noqa: E402
     OPERATING_THRESHOLD_DEFAULT,
     OUTPUTS_DIR,
     PROCESSED_DIR,
+    TARGET_CLASS_COLUMN,
+    TARGET_COLUMN,
 )
 from pluvial_flood_risk.estimators import build_classifier, build_regressor  # noqa: E402
 from pluvial_flood_risk.features import feature_matrix  # noqa: E402
@@ -138,8 +140,8 @@ def operating_threshold_sensitivity(table_path: Path, pilot: str) -> dict:
 
     df = pd.read_parquet(table_path)
     X = feature_matrix(df)
-    y = df["flood_class"].to_numpy(dtype=int)
-    y_risk = df["flood_risk"].to_numpy(dtype=float)
+    y = df[TARGET_CLASS_COLUMN].to_numpy(dtype=int)
+    y_risk = df[TARGET_COLUMN].to_numpy(dtype=float)
     cells = df["h3_index"].astype(str).tolist()
     groups = block_ids_for_cells(cells, 2)
     gkf = GroupKFold(n_splits=min(5, len(np.unique(groups))))
@@ -234,7 +236,7 @@ def land_mask_sensitivity() -> dict:
     rows = []
     for name, mask in masks.items():
         sub = df.loc[mask].copy()
-        if len(sub) < 20 or sub["flood_class"].nunique() < 2:
+        if len(sub) < 20 or sub[TARGET_CLASS_COLUMN].nunique() < 2:
             rows.append(
                 {
                     "mask": name,
@@ -244,8 +246,8 @@ def land_mask_sensitivity() -> dict:
             )
             continue
         X = feature_matrix(sub)
-        y_class = sub["flood_class"].to_numpy(dtype=int)
-        y_risk = sub["flood_risk"].to_numpy(dtype=float)
+        y_class = sub[TARGET_CLASS_COLUMN].to_numpy(dtype=int)
+        y_risk = sub[TARGET_COLUMN].to_numpy(dtype=float)
         m = spatial_block_cv_metrics(
             X,
             y_class,
@@ -263,6 +265,7 @@ def land_mask_sensitivity() -> dict:
                 "prevalence": float(y_class.mean()),
                 "mean_land_frac": float(land_frac[mask].mean()),
                 "roc_auc_pooled": m["land_roc_auc_pooled"],
+                "average_precision_pooled": m["land_average_precision_pooled"],
                 "accuracy_mean": m["land_accuracy_mean"],
                 "f1_mean": m["land_f1_mean"],
                 "note": "",
@@ -292,20 +295,17 @@ def polygon_area_thresholds() -> dict:
     hwm = df["ida_hwm_presence"].to_numpy(dtype=int)
     rows = []
     for thr in (0.0, 0.01, 0.05, 0.10):
+        # P0-1: the target is the binary union, with the DEP polygon term swept
+        # over an area threshold. It is never a cross-source continuous max.
         dep_pos = (dep > thr).astype(int) if thr > 0 else (dep > 1e-9).astype(int)
-        flood_risk = np.maximum.reduce(
-            [
-                np.where(dep > thr, dep, 0.0) if thr > 0 else dep,
-                complaint.astype(float),
-                hwm.astype(float),
-            ]
-        )
-        flood_class = (flood_risk > 1e-9).astype(int)
+        flood_class = ((dep_pos + complaint + hwm) > 0).astype(int)
+        # Continuous companion is DEP-area coverage only (never a cross-source max).
+        dep_proxy = np.where(dep > thr, dep, 0.0) if thr > 0 else dep
         if len(np.unique(flood_class)) < 2:
             rows.append({"threshold": thr, "note": "single-class", "n_positive": int(flood_class.sum())})
             continue
         m = spatial_block_cv_metrics(
-            X, flood_class, flood_risk, groups, n_splits=5, metric_prefix="athr", cells=cells
+            X, flood_class, dep_proxy, groups, n_splits=5, metric_prefix="athr", cells=cells
         )
         rows.append(
             {
@@ -314,15 +314,84 @@ def polygon_area_thresholds() -> dict:
                 "n_dep_positive": int(dep_pos.sum()),
                 "prevalence": float(flood_class.mean()),
                 "roc_auc_pooled": m["athr_roc_auc_pooled"],
+                "roc_auc_mean": m["athr_roc_auc_mean"],
+                "average_precision_pooled": m["athr_average_precision_pooled"],
                 "accuracy_mean": m["athr_accuracy_mean"],
                 "f1_mean": m["athr_f1_mean"],
                 "note": "",
             }
         )
     return {
-        "note": "Composite rebuilt with DEP area-fraction thresholds 0 / 1% / 5% / 10% (post-urban-drop features).",
+        "note": (
+            "Binary union target with the DEP polygon term swept over area-fraction "
+            "thresholds 0 / 1% / 5% / 10%; 311 and Ida HWM presence unchanged. The "
+            "continuous companion is the DEP-only coverage proxy, never a cross-source max."
+        ),
         "feature_columns": list(FEATURE_COLUMNS),
         "rows": rows,
+    }
+
+
+def _hwm_quality_rank_table() -> dict:
+    """Per-point HWM quality ranks (P1-8): n=6 is a diagnostic, not a validator.
+
+    Every raw USGS Ida HWM point is ranked Excellent > Good > Fair > Poor, with
+    the count per rank and the best/worst/median rank. Reported so the tiny
+    in-domain HWM overlap is never presented as a quantitative validation set.
+    """
+    if not HWM_RAW.exists():
+        return {"available": False}
+    payload = json.loads(HWM_RAW.read_text(encoding="utf-8"))
+    rank_of = {"excellent": 4, "good": 3, "fair": 2, "poor": 1}
+    rows: list[dict] = []
+    for feat in payload.get("features", []):
+        props = feat.get("properties") or {}
+        geom = feat.get("geometry") or {}
+        coords = geom.get("coordinates")
+        raw_q = str(props.get("hwm_quality", ""))
+        # Multi-quality cells concatenate labels; take the best (highest) rank.
+        best_rank = 0
+        best_label = ""
+        for label, rank in rank_of.items():
+            if label in raw_q.lower() and rank > best_rank:
+                best_rank, best_label = rank, label.capitalize()
+        rows.append(
+            {
+                "hwm_quality": raw_q,
+                "quality_rank": best_rank if best_rank else None,
+                "quality_label": best_label or None,
+                "height_above_gnd_ft": props.get("height_above_gnd"),
+                "lon": float(coords[0]) if coords and len(coords) >= 2 else None,
+                "lat": float(coords[1]) if coords and len(coords) >= 2 else None,
+            }
+        )
+    ranks = [r["quality_rank"] for r in rows if r["quality_rank"]]
+    counts: dict[str, int] = {}
+    for r in rows:
+        key = r["quality_label"] or "unknown"
+        counts[key] = counts.get(key, 0) + 1
+    import statistics
+
+    return {
+        "available": True,
+        "n_raw_points": int(len(rows)),
+        "n_points_with_rank": int(len(ranks)),
+        "n_hwm_good_or_better": int(sum(1 for v in ranks if v >= 3)),
+        "best_quality": max(ranks) if ranks else None,
+        "worst_quality": min(ranks) if ranks else None,
+        "median_quality": float(statistics.median(ranks)) if ranks else None,
+        "quality_counts": counts,
+        "quality_definition": {
+            "excellent": "+/- 0.05 ft",
+            "good": "+/- 0.10 ft",
+            "fair": "+/- 0.20 ft",
+            "poor": "+/- 0.40 ft",
+        },
+        "note": (
+            "Diagnostic only. Only a handful of raw HWM points fall inside the "
+            "modelling domain, so per-point quality ranks characterise the layer; "
+            "they are not a quantitative validation of the model."
+        ),
     }
 
 
@@ -406,7 +475,8 @@ def hwm_validation() -> dict:
     out = {
         "note": (
             "Quality-filtered OOF score validation on expanded-pilot HWM cells "
-            "(Excellent/Good in ida_hwm_quality), plus USGS height_above_gnd diagnostic."
+            "(Excellent/Good in ida_hwm_quality), plus USGS height_above_gnd diagnostic "
+            "and per-point HWM quality ranks. n is very small: diagnostic only."
         ),
         "n_hwm_cells": int(len(hwm)),
         "n_quality_filtered": int(len(filt)),
@@ -418,6 +488,7 @@ def hwm_validation() -> dict:
         "quality_values": hwm["ida_hwm_quality"].value_counts().to_dict()
         if "ida_hwm_quality" in hwm.columns
         else {},
+        "hwm_quality_ranks": _hwm_quality_rank_table(),
         "height_above_gnd_diagnostic": depth_diag,
         "feature_columns_used_in_model": list(FEATURE_COLUMNS),
     }

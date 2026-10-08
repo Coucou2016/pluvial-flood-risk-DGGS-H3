@@ -29,33 +29,38 @@ the same JSON for quick scanning.
 | Claim in the paper | Evidence file(s) |
 |---|---|
 | Lower Manhattan n=262, 63.7% positive | `data__processed__nyc_h3_cells.csv`, `outputs__paper_results.json` |
-| Expanded n=956, 48.2% positive | `data__processed__nyc_h3_cells_expanded.csv` |
-| Spatial-CV ROC/PR-AUC, accuracy/F1 | `outputs__paper_results.json` → `*.spatial_cv`, `outputs__oof_extended_metrics.json` |
+| Expanded n=956, 47.9% positive | `data__processed__nyc_h3_cells_expanded.csv` |
+| Spatial-CV ROC-AUC/AP + spatial-block bootstrap CI, accuracy/F1 | `outputs__paper_results.json` → `*.spatial_cv`, `block_bootstrap_ci`, `outputs__oof_extended_metrics.json` |
 | Per-fold OOF predictions & folds | `models__nyc_smoke__evaluation__spatial_cv_oof_predictions.csv`, `..._folds.csv`, and the `models__nyc_expanded__evaluation__*` twins |
-| Construct validity of the composite target | `outputs__source_ablation.csv` / `.json` |
-| Scale loss (soft Jaccard R10→R9/R8) | `outputs__jaccard_by_resolution.csv` / `.json` |
-| Block-size sensitivity (R6/R7/R8) + LOBO | `outputs__block_sensitivity.csv`, `outputs__lobo_r7_*.csv` |
+| Construct validity of the union target (+ physics/reporting/full) | `outputs__source_ablation.csv` / `.json` |
+| Buffer sensitivity (0/250/500/1000 m + grid_disk) | `outputs__buffer_sensitivity.csv`, `outputs__paper_results.json` → `buffer_sensitivity` |
+| Scale loss (soft Jaccard + true reconstruction MAE/RMSE) | `outputs__jaccard_by_resolution.csv` / `.json` |
+| Block-size sensitivity (offset 1/2/3) + LOBO | `outputs__block_sensitivity.csv`, `outputs__lobo_r7_*.csv` |
 | Moran's I (target + OOF residual) | `outputs__block_sensitivity.json` |
 | Sea-level-rise sensitivity | `outputs__slr_sensitivity.csv` / `.json` |
 | Coastal vs pluvial negative control | `outputs__negative_control.json` |
-| FloodNet strict held-out diagnostic | `outputs__floodnet_heldout_validation.json` |
+| FloodNet strict held-out **external validation** (negative result) + freeze audit | `outputs__floodnet_heldout_validation.json` |
 | Land-mask / DEP-threshold / threshold sensitivities | `outputs__land_mask_sensitivity.json`, `outputs__polygon_area_threshold_sensitivity.json`, `outputs__operating_threshold_sensitivity.json` |
-| Adaptive refinement cell-count accounting | `outputs__adaptive_vs_fixed_ablation.csv`, `outputs__adaptive_r11_hotspot_retention.json` |
+| Adaptive refinement recall/precision/enrichment/cost-recall | `outputs__adaptive_vs_fixed_ablation.csv`, `outputs__adaptive_r11_hotspot_retention.json`, `outputs__adaptive_cost_recall.csv` |
 | Figures | `docs__paper__figures__*.pdf` (vector) / `.png` (raster) |
 | Figure generation code | `src__pluvial_flood_risk__figures.py`, `scripts__make_figures.py` |
 | Data provenance / integrity | `data__raw__nyc__DOWNLOAD_MANIFEST.json`, `审查输出__evidence__file_sha256_inventory.csv` |
+| Submission hard gates (8) | `tests__test_submission_hard_gates.py` (run with `PAPER_RELEASE_STRICT=1`) |
 
 ## 3. Method in one paragraph (for orientation)
 
-Features per H3 R9 cell: elevation, slope, flow-accumulation proxy, impervious
-fraction, building density, distance-to-mapped-water, rainfall. Target: a
-binary `evidence-positive` / `evidence-unrecorded` label assembled as
-`max(dep_area_frac, complaint_presence, ida_hwm_presence)` from open sources.
-Evaluation is 5-fold **spatial** CV grouping cells by H3 R7 parent block
-(`GroupKFold`), reporting **pooled OOF** ROC-AUC/AP and fold-mean accuracy/F1.
-A separate `deployment_full` model is then fitted on all cells purely for
-mapping and adaptive-screening illustration. The `urban` flag is removed
-(`urban_flag_removed: true`) because it is near-constant and leaked.
+Features per H3 R9 cell: elevation, slope, DEM D8 accumulation proxy, impervious
+fraction, building density (land-area denominator), building footprint area
+fraction, and EPSG:2263 nearest mapped-water distance. Target: the binary union
+`evidence_positive = (dep_area_frac>0) | (complaint_count>0) | (ida_hwm_count>0)`
+from open sources. Evaluation is 5-fold **spatial** CV grouping cells by H3 R7
+parent block (`GroupKFold`, parent-resolution offset = 2), reporting **pooled
+OOF** ROC-AUC/AP with spatial-block bootstrap 95% CIs and fold-mean accuracy/F1;
+0/250/500/1000 m metre guard bands plus an H3 `grid_disk` purge test the block
+separation. A separate `deployment_full` model is then fitted on all cells purely
+for mapping and adaptive-screening illustration. The `urban` flag is removed
+(`urban_flag_removed: true`) because it duplicates impervious fraction, and
+`rainfall_mm_h` is removed from the estimator features as zero-variance.
 
 ## 4. Data semantics you must not miss
 
@@ -64,11 +69,16 @@ mapping and adaptive-screening illustration. The `urban` flag is removed
   points are **observed** water marks. The target mixes these *evidence types*
   on purpose; the paper therefore says `evidence-positive`, **not** "verified
   flood".
-- **`sandy_*` columns are a negative control**, never a training label.
-- **`rainfall_mm_h` is a constant synthetic hook** (75 mm/h), not radar; the
-  paper makes no rainfall-discrimination claim.
-- **`dist_stream_m`** is a distance-to-mapped-water proxy (NHDPlus HR), tidal /
-  shoreline-heavy in Lower Manhattan — *not* classic inland stream proximity.
+- **`sandy_*` columns are a `negative_control`**, never a training label; FloodNet
+  is `external_validation`, also never a training label (gate-enforced).
+- **`rainfall_mm_h` is a constant synthetic hook** (75 mm/h), not radar; it is
+  excluded from the estimator features as zero-variance, and the paper makes no
+  rainfall-discrimination claim.
+- **`dist_mapped_water_m`** is an EPSG:2263 distance-to-mapped-water proxy
+  (NHDPlus HR; legacy alias `dist_stream_m`), tidal / shoreline-heavy in Lower
+  Manhattan — *not* classic inland stream proximity.
+- **FloodNet result is a core negative finding.** The strict held-out ROC-AUC is
+  0.451 (LM) / 0.479 (Expanded) — no event-level external skill is claimed.
 - **Fail-closed assembly.** Production rejects missing files/columns; synthetic
   fallbacks require an explicit flag. `outputs__paper_results.json` records
   `fail_closed: true`.
@@ -97,5 +107,10 @@ Small, text-readable provenance layers **are** in the root
    `deployment_full` model is *not* the one used for reported CV metrics.
 4. **Baseline sanity.** Model accuracy/F1 must beat always-positive; check
    `outputs__paper_results.json` → `*.baselines`.
-5. **Claim discipline.** Grep the manuscript for `citywide`, `radar`, `PFIb` to
+5. **Negative-result honesty.** Confirm the FloodNet failure (ROC-AUC < 0.5) is
+   present in the abstract/conclusion and the claim is limited to blocked-CV
+   open-evidence discrimination.
+6. **Claim discipline.** Grep the manuscript for `citywide`, `radar`, `PFIb` to
    confirm all such mentions are explicit *dis*claimers.
+7. **Hard gates.** Run `PAPER_RELEASE_STRICT=1 pytest tests/test_submission_hard_gates.py`
+   — a missing critical artifact must FAIL, not skip.

@@ -1,4 +1,15 @@
-"""Raster → H3 zonal statistics (optional rasterio)."""
+"""Raster → H3 zonal statistics (optional rasterio).
+
+Major Revision 2026-10-08
+-------------------------
+- P1-5: ``flow_accum_proxy`` renamed to ``dem_d8_accum_proxy`` — it is a DEM-derived
+  D8 accumulation *proxy*, never claimed to be real drainage accumulation. Raw /
+  filled / breached DEM variants are exposed for sensitivity.
+- P1-6: slope no longer uses ``np.nan_to_num(dem, nan=0.0)`` (which invents a
+  steep fake gradient at every nodata edge). Nodata is nearest-filled, the
+  gradient is computed, then the nodata ring (dilated by one cell) is restored so
+  no fabricated gradient survives.
+"""
 
 from __future__ import annotations
 
@@ -106,25 +117,166 @@ def zonal_mean_array_to_h3(
             return _zonal_mean_from_src(cells, dataset, nodata=nodata)
 
 
+def nearest_fill_nodata(
+    array: np.ndarray,
+    mask: np.ndarray,
+    *,
+    max_iter: int = 64,
+) -> np.ndarray:
+    """Iteratively fill ``mask`` cells from the nearest valid neighbour.
+
+    Returns a float array where originally-valid cells are unchanged and masked
+    cells are filled by 8-neighbour averaging of the growing valid frontier.
+    Unreachable cells (fully masked) stay NaN.
+    """
+    z = np.array(array, dtype=np.float64, copy=True)
+    invalid = np.array(mask, dtype=bool, copy=True)
+    if not invalid.any():
+        return z
+    if invalid.all():
+        return np.full_like(z, np.nan)
+    offsets = ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1))
+    height, width = z.shape
+    for _ in range(int(max_iter)):
+        if not invalid.any():
+            break
+        prev = z.copy()
+        prev_valid = ~invalid
+        filled_any = False
+        for i in range(height):
+            for j in range(width):
+                if not invalid[i, j]:
+                    continue
+                neigh = []
+                for di, dj in offsets:
+                    ni, nj = i + di, j + dj
+                    if 0 <= ni < height and 0 <= nj < width and prev_valid[ni, nj]:
+                        neigh.append(prev[ni, nj])
+                if neigh:
+                    z[i, j] = float(np.mean(neigh))
+                    filled_any = True
+        invalid_after = invalid.copy()
+        for i in range(height):
+            for j in range(width):
+                if invalid[i, j] and np.isfinite(z[i, j]):
+                    invalid_after[i, j] = False
+        invalid = invalid_after
+        if not filled_any:
+            break
+    z[invalid] = np.nan
+    return z
+
+
+def dilate_mask(mask: np.ndarray, iterations: int = 1) -> np.ndarray:
+    """Binary dilation of a boolean mask by ``iterations`` (8-connectivity)."""
+    out = np.array(mask, dtype=bool, copy=True)
+    height, width = out.shape
+    offsets = ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1))
+    for _ in range(max(0, int(iterations))):
+        grown = out.copy()
+        for i in range(height):
+            for j in range(width):
+                if out[i, j]:
+                    continue
+                for di, dj in offsets:
+                    ni, nj = i + di, j + dj
+                    if 0 <= ni < height and 0 <= nj < width and out[ni, nj]:
+                        grown[i, j] = True
+                        break
+        out = grown
+    return out
+
+
 def slope_degrees_from_dem_array(dem: np.ndarray, transform, center_lat: float) -> np.ndarray:
-    """Approximate slope in degrees from a DEM (EPSG:4326 pixel sizes → metres)."""
+    """Approximate slope in degrees from a DEM (EPSG:4326 pixel sizes → metres).
+
+    Nodata (NaN) cells are nearest-filled before the gradient, then the original
+    nodata mask is **dilated by one cell** and restored to NaN, so the fabricated
+    gradient at the nodata frontier is removed (P1-6).
+    """
+    z = np.asarray(dem, dtype=np.float64)
+    nodata_mask = ~np.isfinite(z)
+    if nodata_mask.any():
+        filled = nearest_fill_nodata(z, nodata_mask)
+        fill_mask = dilate_mask(nodata_mask, iterations=1)
+    else:
+        filled = z
+        fill_mask = np.zeros_like(z, dtype=bool)
+
     px_w = float(transform.a)
     px_h = abs(float(transform.e))
     dx_m = max(abs(px_w) * 111_320.0 * np.cos(np.radians(center_lat)), 1e-6)
     dy_m = max(px_h * 110_540.0, 1e-6)
-    gy, gx = np.gradient(np.asarray(dem, dtype=np.float64))
+    safe = np.where(np.isfinite(filled), filled, 0.0)
+    gy, gx = np.gradient(safe)
     slope_rad = np.arctan(np.sqrt((gx / dx_m) ** 2 + (gy / dy_m) ** 2))
-    return np.degrees(slope_rad)
+    slope = np.degrees(slope_rad)
+    slope = np.where(fill_mask, np.nan, slope)
+    return slope
 
 
-def d8_flow_accumulation(dem: np.ndarray) -> np.ndarray:
+def _depression_fill(z: np.ndarray) -> np.ndarray:
+    """Priority-flood depression fill (simple: raise sinks to the max neighbour)."""
+    out = np.array(z, dtype=np.float64, copy=True)
+    height, width = out.shape
+    offsets = ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1))
+    for _ in range(200):
+        changed = False
+        prev = out.copy()
+        for i in range(height):
+            for j in range(width):
+                if not np.isfinite(prev[i, j]):
+                    continue
+                neigh = []
+                for di, dj in offsets:
+                    ni, nj = i + di, j + dj
+                    if 0 <= ni < height and 0 <= nj < width and np.isfinite(prev[ni, nj]):
+                        neigh.append(prev[ni, nj])
+                if neigh and out[i, j] < min(neigh):
+                    out[i, j] = float(min(neigh))
+                    changed = True
+        if not changed:
+            break
+    return out
+
+
+def _breach_depressions(z: np.ndarray) -> np.ndarray:
+    """Cheap 'filled minus original' drainage breach proxy: lower filled sinks."""
+    filled = _depression_fill(z)
+    out = z.copy()
+    sinks = np.isfinite(z) & np.isfinite(filled) & (filled > z)
+    # Breaching lowers each sink toward the regional minimum along its escape;
+    # approximate by meeting the fill halfway (a transparent proxy only).
+    out[sinks] = z[sinks] + 0.5 * (filled[sinks] - z[sinks])
+    return out
+
+
+def d8_flow_accumulation(dem: np.ndarray, *, variant: str = "raw") -> np.ndarray:
     """
-    Single-flow D8 accumulation: each cell starts at 1 and drains to the lowest
-    of its 8 neighbours. A cheap HAND/TWI-like proxy when a hydro raster is absent.
+    Single-flow D8 accumulation proxy. Each cell starts at 1 and drains to the
+    lowest of its 8 neighbours (DEM-derived proxy, **not** real drainage).
+
+    ``variant``:
+    - ``raw``      — DEM as given (nodata set to the array max so sinks route out);
+    - ``filled``   — depression-filled DEM (removes spurious internal sinks);
+    - ``breached`` — mild sink breaching, a lower-bound drainage proxy.
     """
+    require_rasterio()
     z = np.asarray(dem, dtype=np.float64)
-    height, width = z.shape
-    filled = np.nan_to_num(z, nan=np.nanmax(z) if np.isfinite(z).any() else 0.0)
+    valid = np.isfinite(z)
+    base = np.where(valid, z, np.nan)
+    if variant == "filled":
+        working = _depression_fill(base)
+    elif variant == "breached":
+        working = _breach_depressions(base)
+    elif variant == "raw":
+        working = base
+    else:
+        raise ValueError(f"unknown D8 variant: {variant!r}")
+
+    zmax = float(np.nanmax(working)) if np.isfinite(working).any() else 0.0
+    filled = np.where(np.isfinite(working), working, zmax)
+    height, width = filled.shape
     offsets = ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1))
     receiver_i = np.full((height, width), -1, dtype=np.int32)
     receiver_j = np.full((height, width), -1, dtype=np.int32)
@@ -147,7 +299,7 @@ def d8_flow_accumulation(dem: np.ndarray) -> np.ndarray:
         ri, rj = int(receiver_i[i, j]), int(receiver_j[i, j])
         if ri >= 0:
             accum[ri, rj] += accum[i, j]
-    accum = np.where(np.isfinite(z), accum, np.nan)
+    accum = np.where(valid, accum, np.nan)
     return accum
 
 
@@ -155,8 +307,10 @@ def zonal_flow_accum_from_dem(
     cells: list[str],
     dem_path: Path | str,
     band: int = 1,
+    *,
+    variant: str = "raw",
 ) -> pd.DataFrame:
-    """Mean D8 flow-accumulation proxy per H3 cell from a DEM GeoTIFF."""
+    """Mean D8 flow-accumulation **proxy** per H3 cell from a DEM GeoTIFF."""
     require_rasterio()
     import rasterio
 
@@ -166,7 +320,7 @@ def zonal_flow_accum_from_dem(
         nodata = src.nodata
         if nodata is not None:
             dem = np.where(dem == nodata, np.nan, dem)
-        accum = d8_flow_accumulation(dem)
+        accum = d8_flow_accumulation(dem, variant=variant)
         accum = np.where(np.isfinite(accum), accum, -9999.0)
         zonal = zonal_mean_array_to_h3(
             cells,
@@ -175,7 +329,7 @@ def zonal_flow_accum_from_dem(
             src.crs,
             nodata=-9999.0,
         )
-    return zonal.rename(columns={"zonal_mean": "flow_accum_proxy"})
+    return zonal.rename(columns={"zonal_mean": "dem_d8_accum_proxy"})
 
 
 def zonal_slope_deg_from_dem(
@@ -183,7 +337,7 @@ def zonal_slope_deg_from_dem(
     dem_path: Path | str,
     band: int = 1,
 ) -> pd.DataFrame:
-    """Mean slope (degrees) per H3 cell, derived from a DEM GeoTIFF."""
+    """Mean slope (degrees) per H3 cell, derived from a DEM GeoTIFF (nodata-safe)."""
     require_rasterio()
     import rasterio
 
@@ -194,12 +348,11 @@ def zonal_slope_deg_from_dem(
         if nodata is not None:
             dem = np.where(dem == nodata, np.nan, dem)
         center_lat = (src.bounds.top + src.bounds.bottom) / 2.0
-        slope = slope_degrees_from_dem_array(np.nan_to_num(dem, nan=0.0), src.transform, center_lat)
-        if nodata is not None:
-            slope = np.where(np.isnan(dem), -9999.0, slope)
+        slope = slope_degrees_from_dem_array(dem, src.transform, center_lat)
+        slope_out = np.where(np.isfinite(slope), slope, -9999.0)
         zonal = zonal_mean_array_to_h3(
             cells,
-            slope.astype(np.float32),
+            slope_out.astype(np.float32),
             src.transform,
             src.crs,
             nodata=-9999.0,

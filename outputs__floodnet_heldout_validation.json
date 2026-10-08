@@ -1,14 +1,15 @@
 {
-  "generated_utc": "2026-09-21T03:35:50.830195+00:00",
+  "generated_utc": "2026-10-08T05:32:39.831909+00:00",
   "analysis_freeze_utc": "2026-08-30T00:00:00+00:00",
-  "role": "strict_held_out_external_validation_diagnostic",
+  "role": "external_validation",
   "used_in_training_or_evaluation_labels": false,
   "events_dataset_id": "aq7i-eu5q",
   "events_landing_page": "https://data.cityofnewyork.us/Environment/FloodNet-Street-Flooding-Events-Measured-by-FloodN/aq7i-eu5q",
   "sensors_dataset_id": "kb2e-tjy3",
   "sensors_landing_page": "https://data.cityofnewyork.us/Environment/FloodNet-Sensor-Deployment-Metadata/kb2e-tjy3",
   "published": "2026-03-03",
-  "outcome_definition": "Study R9 cell is positive if it contains \u22651 FloodNet sensor with \u22651 QC street-flooding event in aq7i-eu5q; scores are spatial-CV OOF probabilities from the composite open-evidence model (FloodNet excluded).",
+  "outcome_definition": "Study R9 cell is positive if it contains >=1 FloodNet sensor with >=1 pre-freeze QC street-flooding event in aq7i-eu5q; scores are spatial-CV OOF susceptibility ranks from the open-evidence model (FloodNet excluded from training).",
+  "interpretation": "NEGATIVE external result: independent FloodNet event-level discrimination was NOT established (AUC can be < 0.5). Reported honestly.",
   "pilots": [
     {
       "pilot": "lower_manhattan",
@@ -27,10 +28,74 @@
       "n_study_cells_with_event": 17,
       "n_tidally_influenced_sensors": 0,
       "positive_prevalence_sensor_cells": 0.7391304347826086,
-      "roc_auc": 0.3137254901960784,
-      "average_precision": 0.6318946447429419,
-      "mean_score_event_cells": 0.8879602174162011,
-      "mean_score_no_event_cells": 0.8130844716427421,
+      "roc_auc": 0.45098039215686275,
+      "average_precision": 0.7264435598800923,
+      "mean_score_event_cells": 0.8911117338665796,
+      "mean_score_no_event_cells": 0.8078824225419275,
+      "exposure_sensitivity": {
+        "all_sensors": {
+          "exposure_min_days": null,
+          "n_cells": 23,
+          "n_positive": 17,
+          "positive_prevalence": 0.7391304347826086,
+          "roc_auc": 0.45098039215686275,
+          "average_precision": 0.7264435598800923,
+          "mean_score_event_cells": 0.8911117338665796,
+          "mean_score_no_event_cells": 0.8078824225419275
+        },
+        "min_exposure_30d": {
+          "exposure_min_days": 30.0,
+          "n_cells": 23,
+          "n_positive": 17,
+          "positive_prevalence": 0.7391304347826086,
+          "roc_auc": 0.45098039215686275,
+          "average_precision": 0.7264435598800923,
+          "mean_score_event_cells": 0.8911117338665796,
+          "mean_score_no_event_cells": 0.8078824225419275
+        },
+        "min_exposure_90d": {
+          "exposure_min_days": 90.0,
+          "n_cells": 20,
+          "n_positive": 15,
+          "positive_prevalence": 0.75,
+          "roc_auc": 0.4666666666666667,
+          "average_precision": 0.7396751671674272,
+          "mean_score_event_cells": 0.9177781720454165,
+          "mean_score_no_event_cells": 0.7832043178245353
+        },
+        "min_exposure_180d": {
+          "exposure_min_days": 180.0,
+          "n_cells": 19,
+          "n_positive": 15,
+          "positive_prevalence": 0.7894736842105263,
+          "roc_auc": 0.33333333333333337,
+          "average_precision": 0.7396751671674273,
+          "mean_score_event_cells": 0.9177781720454165,
+          "mean_score_no_event_cells": 0.9520453510891782
+        },
+        "min_exposure_365d": {
+          "exposure_min_days": 365.0,
+          "n_cells": 9,
+          "n_positive": 6,
+          "positive_prevalence": 0.6666666666666666,
+          "roc_auc": 0.4444444444444445,
+          "average_precision": 0.7051587301587301,
+          "mean_score_event_cells": 0.9479949161890993,
+          "mean_score_no_event_cells": 0.9491212499110612
+        }
+      },
+      "freeze_audit": {
+        "n_events_downloaded": 3213,
+        "n_events_before_freeze": 3213,
+        "n_events_after_freeze_dropped": 0,
+        "n_events_unparseable_timestamp": 0,
+        "events_max_timestamp_after_filter": "2026-08-29T00:28:09+00:00",
+        "analysis_freeze_utc": "2026-08-30T00:00:00+00:00",
+        "n_sensors_downloaded": 26,
+        "n_sensors_before_freeze": 26,
+        "n_sensors_after_freeze_dropped": 0,
+        "n_sensors_missing_date_installed": 0
+      },
       "held_out": true,
       "used_in_training_labels": false
     },
@@ -51,10 +116,74 @@
       "n_study_cells_with_event": 40,
       "n_tidally_influenced_sensors": 0,
       "positive_prevalence_sensor_cells": 0.7017543859649122,
-      "roc_auc": 0.4632352941176471,
-      "average_precision": 0.685705170458648,
-      "mean_score_event_cells": 0.7310681901850297,
-      "mean_score_no_event_cells": 0.7613395924099392,
+      "roc_auc": 0.47941176470588237,
+      "average_precision": 0.7543221836373463,
+      "mean_score_event_cells": 0.7280671417450041,
+      "mean_score_no_event_cells": 0.7478462569074602,
+      "exposure_sensitivity": {
+        "all_sensors": {
+          "exposure_min_days": null,
+          "n_cells": 57,
+          "n_positive": 40,
+          "positive_prevalence": 0.7017543859649122,
+          "roc_auc": 0.47941176470588237,
+          "average_precision": 0.7543221836373463,
+          "mean_score_event_cells": 0.7280671417450041,
+          "mean_score_no_event_cells": 0.7478462569074602
+        },
+        "min_exposure_30d": {
+          "exposure_min_days": 30.0,
+          "n_cells": 57,
+          "n_positive": 40,
+          "positive_prevalence": 0.7017543859649122,
+          "roc_auc": 0.47941176470588237,
+          "average_precision": 0.7543221836373463,
+          "mean_score_event_cells": 0.7280671417450041,
+          "mean_score_no_event_cells": 0.7478462569074602
+        },
+        "min_exposure_90d": {
+          "exposure_min_days": 90.0,
+          "n_cells": 48,
+          "n_positive": 36,
+          "positive_prevalence": 0.75,
+          "roc_auc": 0.5208333333333334,
+          "average_precision": 0.8073546464790798,
+          "mean_score_event_cells": 0.7483122463834164,
+          "mean_score_no_event_cells": 0.704392903172415
+        },
+        "min_exposure_180d": {
+          "exposure_min_days": 180.0,
+          "n_cells": 46,
+          "n_positive": 36,
+          "positive_prevalence": 0.782608695652174,
+          "roc_auc": 0.5138888888888888,
+          "average_precision": 0.8364522503204209,
+          "mean_score_event_cells": 0.7483122463834164,
+          "mean_score_no_event_cells": 0.7141154410545093
+        },
+        "min_exposure_365d": {
+          "exposure_min_days": 365.0,
+          "n_cells": 32,
+          "n_positive": 25,
+          "positive_prevalence": 0.78125,
+          "roc_auc": 0.6171428571428571,
+          "average_precision": 0.8816988456383545,
+          "mean_score_event_cells": 0.7937508551254919,
+          "mean_score_no_event_cells": 0.6647594517926991
+        }
+      },
+      "freeze_audit": {
+        "n_events_downloaded": 3213,
+        "n_events_before_freeze": 3213,
+        "n_events_after_freeze_dropped": 0,
+        "n_events_unparseable_timestamp": 0,
+        "events_max_timestamp_after_filter": "2026-08-29T00:28:09+00:00",
+        "analysis_freeze_utc": "2026-08-30T00:00:00+00:00",
+        "n_sensors_downloaded": 69,
+        "n_sensors_before_freeze": 69,
+        "n_sensors_after_freeze_dropped": 0,
+        "n_sensors_missing_date_installed": 0
+      },
       "held_out": true,
       "used_in_training_labels": false
     }

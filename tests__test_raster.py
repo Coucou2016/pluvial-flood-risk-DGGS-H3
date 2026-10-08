@@ -87,5 +87,16 @@ def test_zonal_flow_accum_from_dem(demo_dem_path):
     cells = bbox_to_cells(10.72, 59.91, 10.78, 59.96, 9)[:8]
     flow = zonal_flow_accum_from_dem(cells, demo_dem_path)
     assert len(flow) == len(cells)
-    assert flow["flow_accum_proxy"].notna().all()
-    assert (flow["flow_accum_proxy"] > 0).all()
+    assert flow["dem_d8_accum_proxy"].notna().all()
+    assert (flow["dem_d8_accum_proxy"] > 0).all()
+
+
+def test_d8_fill_breach_variants(demo_dem_path):
+    from pluvial_flood_risk.raster import zonal_flow_accum_from_dem
+
+    cells = bbox_to_cells(10.72, 59.91, 10.78, 59.96, 9)[:8]
+    raw = zonal_flow_accum_from_dem(cells, demo_dem_path, variant="raw")
+    filled = zonal_flow_accum_from_dem(cells, demo_dem_path, variant="filled")
+    breached = zonal_flow_accum_from_dem(cells, demo_dem_path, variant="breached")
+    for frame in (raw, filled, breached):
+        assert frame["dem_d8_accum_proxy"].notna().all()

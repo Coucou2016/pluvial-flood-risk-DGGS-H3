@@ -9,7 +9,7 @@ def test_load_demo_oslo_config():
     assert cfg["name"] == "demo_oslo"
     assert cfg["data_provenance"] == "synthetic"
     assert len(cfg["bbox"]) == 4
-    assert cfg["spatial_cv"]["k_ring"] == 2
+    assert cfg["spatial_cv"]["parent_resolution_offset"] == 2
 
 
 def test_load_nyc_config():

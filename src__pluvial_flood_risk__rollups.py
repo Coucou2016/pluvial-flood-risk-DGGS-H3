@@ -768,6 +768,35 @@ def resolution_ladder_topk_diagnostics(
             fine_parent_vals = merged["fine_parent_mean"].to_numpy(dtype=np.float64)
             coarse_vals = merged[col].to_numpy(dtype=np.float64)
             rho = spearman_rank_corr(fine_parent_vals, coarse_vals)
+
+            # P0-9: true fine-vs-coarse *reconstruction* error. Expand the coarse
+            # aggregated score back onto every fine cell (its parent's value) and
+            # compare to the fine truth, area-weighted. This is NOT the identity
+            # "parent mean vs its own parent mean" comparison (mae=0/rmse=0 for
+            # mean aggregation); for mean aggregation it is the within-parent
+            # spread the coarsening destroys.
+            rolled_lookup = rolled.set_index("h3_index")[col].to_dict()
+            recon_scores = np.array(
+                [float(rolled_lookup.get(h3.cell_to_parent(c, coarse), np.nan)) for c in fine_ids],
+                dtype=np.float64,
+            )
+            valid = np.isfinite(recon_scores) & np.isfinite(fine_scores)
+            if valid.any():
+                w = fine_area_arr[valid]
+                diff = np.abs(fine_scores[valid] - recon_scores[valid])
+                reconstruction_mae = float(np.sum(w * diff) / np.sum(w)) if np.sum(w) > 0 else float("nan")
+                reconstruction_rmse = float(
+                    np.sqrt(np.sum(w * diff**2) / np.sum(w))
+                ) if np.sum(w) > 0 else float("nan")
+                reconstruction_rank_corr = spearman_rank_corr(
+                    fine_scores[valid], recon_scores[valid]
+                )
+            else:
+                reconstruction_mae = float("nan")
+                reconstruction_rmse = float("nan")
+                reconstruction_rank_corr = float("nan")
+
+            # Deprecated identity diagnostics (QA only; NOT paper metrics).
             continuous_mae = float(np.mean(np.abs(fine_parent_vals - coarse_vals)))
             continuous_rmse = float(np.sqrt(np.mean((fine_parent_vals - coarse_vals) ** 2)))
 
@@ -805,6 +834,9 @@ def resolution_ladder_topk_diagnostics(
                     "jaccard_hard_ci_high": hard["jaccard_hard_ci_high"],
                     "jaccard_hard_n_boot": hard["n_boot"],
                     "area_weighted_overlap": jac,
+                    "reconstruction_mae": reconstruction_mae,
+                    "reconstruction_rmse": reconstruction_rmse,
+                    "reconstruction_rank_corr": reconstruction_rank_corr,
                     "spearman_rank_corr": rho,
                     "continuous_mae": continuous_mae,
                     "continuous_rmse": continuous_rmse,

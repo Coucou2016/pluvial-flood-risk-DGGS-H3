@@ -1,13 +1,13 @@
 {
-  "note": "Composite rebuilt with DEP area-fraction thresholds 0 / 1% / 5% / 10% (post-urban-drop features).",
+  "note": "Binary union target with the DEP polygon term swept over area-fraction thresholds 0 / 1% / 5% / 10%; 311 and Ida HWM presence unchanged. The continuous companion is the DEP-only coverage proxy, never a cross-source max.",
   "feature_columns": [
     "elevation_m",
     "slope_deg",
-    "flow_accum_proxy",
+    "dem_d8_accum_proxy",
     "impervious_frac",
     "building_density",
-    "dist_stream_m",
-    "rainfall_mm_h"
+    "building_area_fraction",
+    "dist_mapped_water_m"
   ],
   "rows": [
     {
@@ -15,9 +15,11 @@
       "n_positive": 167,
       "n_dep_positive": 74,
       "prevalence": 0.6374045801526718,
-      "roc_auc_pooled": 0.8502678852820673,
-      "accuracy_mean": 0.8240615839949912,
-      "f1_mean": 0.8613633699914501,
+      "roc_auc_pooled": 0.8494484714780964,
+      "roc_auc_mean": 0.8303927910455758,
+      "average_precision_pooled": 0.8504859523449224,
+      "accuracy_mean": 0.8279077378411452,
+      "f1_mean": 0.8676681924632744,
       "note": ""
     },
     {
@@ -25,9 +27,11 @@
       "n_positive": 163,
       "n_dep_positive": 63,
       "prevalence": 0.6221374045801527,
-      "roc_auc_pooled": 0.8225196752804115,
-      "accuracy_mean": 0.8091180739349442,
-      "f1_mean": 0.8487043576800393,
+      "roc_auc_pooled": 0.8409245832558716,
+      "roc_auc_mean": 0.8295435258114432,
+      "average_precision_pooled": 0.8324849642051221,
+      "accuracy_mean": 0.828131136344233,
+      "f1_mean": 0.8655524106567031,
       "note": ""
     },
     {
@@ -35,9 +39,11 @@
       "n_positive": 152,
       "n_dep_positive": 23,
       "prevalence": 0.5801526717557252,
-      "roc_auc_pooled": 0.841267942583732,
-      "accuracy_mean": 0.7633185349611542,
-      "f1_mean": 0.7968761459189964,
+      "roc_auc_pooled": 0.8474282296650718,
+      "roc_auc_mean": 0.8303818240661804,
+      "average_precision_pooled": 0.8163605631169912,
+      "accuracy_mean": 0.8052690742479867,
+      "f1_mean": 0.8258083304051805,
       "note": ""
     },
     {
@@ -45,9 +51,11 @@
       "n_positive": 145,
       "n_dep_positive": 4,
       "prevalence": 0.5534351145038168,
-      "roc_auc_pooled": 0.8414382552313586,
-      "accuracy_mean": 0.7405290418054014,
-      "f1_mean": 0.7525844211558498,
+      "roc_auc_pooled": 0.8427939876215738,
+      "roc_auc_mean": 0.8062068127571724,
+      "average_precision_pooled": 0.8341185202974377,
+      "accuracy_mean": 0.7898061982412704,
+      "f1_mean": 0.7997529228809783,
       "note": ""
     }
   ]

@@ -1,4 +1,4 @@
-"""NYC adaptive screen must use trained PFI_h after model fit."""
+"""NYC adaptive screen must use the trained susceptibility score after model fit."""
 
 from __future__ import annotations
 
@@ -11,8 +11,8 @@ from pluvial_flood_risk.pipeline import run_inference, run_training
 from pluvial_flood_risk.synthetic import write_demo_data
 
 
-def test_adaptive_uses_trained_pfi_h_columns(tmp_path: Path):
-    """After training, inference yields PFI_h; adaptive metrics tag score_source."""
+def test_adaptive_uses_trained_susceptibility_columns(tmp_path: Path):
+    """After training, inference yields susceptibility_score; adaptive tags score_source."""
     table = write_demo_data(output_dir=tmp_path / "processed")
     model_dir = tmp_path / "models"
     run_training(table, model_dir=model_dir, allow_synthetic=True)
@@ -25,28 +25,27 @@ def test_adaptive_uses_trained_pfi_h_columns(tmp_path: Path):
         output_dir=tmp_path / "out",
         fallback_synthetic=True,
     )
-    assert "PFI_h" in pred.columns
-    assert "flood_probability" in pred.columns
-    assert pred["PFI_h"].notna().all()
+    assert "susceptibility_score" in pred.columns
+    assert "predicted_evidence_susceptibility" in pred.columns
+    assert pred["susceptibility_score"].notna().all()
 
     mixed, metrics = run_adaptive_refinement(
         pred,
         fine_res=10,
-        score_col="PFI_h",
-        proba_col="flood_probability",
+        score_col="susceptibility_score",
+        proba_col="susceptibility_score",
         score_quantile=0.8,
         expand_k=0,
     )
     assert metrics["n_adaptive"] == len(mixed)
     assert metrics["n_parents_refined"] >= 1
-    # Honest tag expected from nyc_smoke_test; unit test mirrors the contract.
-    tagged = {**metrics, "score_source": "trained_PFI_h", "adaptive_rainfall_mm_h": 75.0}
-    assert tagged["score_source"] == "trained_PFI_h"
+    tagged = {**metrics, "score_source": "trained_susceptibility_score", "adaptive_rainfall_mm_h": 75.0}
+    assert tagged["score_source"] == "trained_susceptibility_score"
     assert tagged["adaptive_rainfall_mm_h"] == 75.0
 
 
 def test_nyc_smoke_adaptive_block_order_in_source():
-    """Guard: nyc_smoke_test must train before adaptive and score on PFI_h."""
+    """Guard: nyc_smoke_test must train before adaptive and score on susceptibility_score."""
     src = Path(__file__).resolve().parents[1] / "src" / "pluvial_flood_risk" / "pipeline.py"
     text = src.read_text(encoding="utf-8")
     fn_start = text.index("def nyc_smoke_test")
@@ -60,6 +59,6 @@ def test_nyc_smoke_adaptive_block_order_in_source():
     train_call = body.index("train_metrics = run_training(")
     adaptive_call = body.index("mixed_cells, adaptive_metrics = run_adaptive_refinement(")
     assert train_call < adaptive_call
-    assert 'score_col="PFI_h"' in body
-    assert '"score_source": "trained_PFI_h"' in body
+    assert 'score_col="susceptibility_score"' in body
+    assert '"score_source": "trained_susceptibility_score"' in body
     assert "synthetic_risk_score" not in body

@@ -74,22 +74,29 @@ def main() -> None:
                 "budget": float(r["hotspot_budget"]),
                 "coarse_res": int(r["coarse_res"]),
                 "aggregation": r["aggregation"],
-                "k_fine": int(r["k_fine"]),
-                "k_coarse": int(r["k_coarse"]),
-                "n_fine_parents": int(r["n_hotspot_fine_parents"]),
-                "n_coarse_hot": int(r["n_hotspot_coarse"]),
+                "n_fine": int(r["n_fine"]),
+                "n_coarse": int(r["n_coarse"]),
+                "n_hotspot_fine": int(r["n_hotspot_fine"]),
+                "n_hotspot_fine_parents": int(r["n_hotspot_fine_parents"]),
+                "n_hotspot_coarse": int(r["n_hotspot_coarse"]),
                 "jaccard": float(r["jaccard"]),
                 "f1": float(r["f1"]),
                 "fine_parent_recall": float(r["fine_parent_recall"]),
                 "coarse_precision": float(r["coarse_precision"]),
+                "reconstruction_mae": float(r["reconstruction_mae"]),
+                "reconstruction_rmse": float(r["reconstruction_rmse"]),
+                "reconstruction_rank_corr": float(r["reconstruction_rank_corr"]),
             }
         )
     payload = {
         "note": (
-            "Exact-top-k hotspot budget sensitivity on the natively assembled R10 label "
-            "table. k = round(budget * n) with H3-index tie-break; matched budgets on the "
-            "fine and coarse grids. Retention metrics (fine_parent_recall, coarse_precision) "
-            "separate aggregation smoothing / parent collapse / re-thresholding."
+            "Strict area-budget hotspot sensitivity on the natively assembled R10 label "
+            "table. The hotspot budget is a fixed AREA fraction (5/10/15/20% of fine cell "
+            "area) with tie-aware fractional membership, matched on fine and coarse grids; "
+            "H3 index is never used to break ties. Retention metrics (fine_parent_recall, "
+            "coarse_precision) separate aggregation smoothing / parent collapse / "
+            "re-thresholding, and reconstruction_* is the true fine-vs-coarse "
+            "reconstruction error (area-weighted), not the mean-aggregation identity."
         ),
         "value_col": value_col,
         "n_fine": int(out["n_fine"].iloc[0]) if len(out) else None,

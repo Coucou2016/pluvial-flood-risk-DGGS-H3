@@ -11,14 +11,14 @@
   "assembly_mode": "opendata",
   "note": "coastal overlay is a negative control, not a training label; metrics are on the live open-data stack (still Lower Manhattan / stated bbox, not citywide; not PFIb)",
   "score_col": "oof_model_score",
-  "mean_score_coastal_only": 0.42477463769660734,
-  "mean_score_pluvial_only": 0.8823574987230289,
-  "mean_score_both": 0.7975639714936213,
-  "mean_score_neither": 0.27053532413701153,
+  "mean_score_coastal_only": 0.418159919316663,
+  "mean_score_pluvial_only": 0.8853877465082545,
+  "mean_score_both": 0.813370259616771,
+  "mean_score_neither": 0.27989978236922836,
   "high_score_quantile": 0.8,
-  "high_score_threshold": 0.9691908282750593,
+  "high_score_threshold": 0.974900005533108,
   "n_high_score": 53.0,
-  "coastal_only_among_high_score": 0.03773584905660377,
-  "pluvial_among_high_score": 0.8490566037735849,
-  "pluvial_minus_coastal_mean_score": 0.4575828610264216
+  "coastal_only_among_high_score": 0.018867924528301886,
+  "pluvial_among_high_score": 0.9056603773584906,
+  "pluvial_minus_coastal_mean_score": 0.46722782719159145
 }

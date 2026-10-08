@@ -1,14 +1,36 @@
 {
-  "note": "Quality-filtered OOF score validation on expanded-pilot HWM cells (Excellent/Good in ida_hwm_quality), plus USGS height_above_gnd diagnostic.",
+  "note": "Quality-filtered OOF score validation on expanded-pilot HWM cells (Excellent/Good in ida_hwm_quality), plus USGS height_above_gnd diagnostic and per-point HWM quality ranks. n is very small: diagnostic only.",
   "n_hwm_cells": 6,
   "n_quality_filtered": 3,
-  "mean_oof_score_all_hwm": 0.7067036153368228,
-  "mean_oof_score_quality_filtered": 0.8816934610297539,
+  "mean_oof_score_all_hwm": 0.6757881605726364,
+  "mean_oof_score_quality_filtered": 0.8793661850762601,
   "fraction_oof_ge_0.5_quality_filtered": 1.0,
   "quality_values": {
     "Fair: +/- 0.20 ft": 3,
     "Good: +/- 0.10 ft": 2,
     "Excellent: +/- 0.05 ft; Fair: +/- 0.20 ft; Poor: +/- 0.40 ft; Good: +/- 0.10 ft; Fair: +/- 0.20 ft": 1
+  },
+  "hwm_quality_ranks": {
+    "available": true,
+    "n_raw_points": 159,
+    "n_points_with_rank": 159,
+    "n_hwm_good_or_better": 86,
+    "best_quality": 4,
+    "worst_quality": 1,
+    "median_quality": 3.0,
+    "quality_counts": {
+      "Fair": 58,
+      "Good": 54,
+      "Excellent": 32,
+      "Poor": 15
+    },
+    "quality_definition": {
+      "excellent": "+/- 0.05 ft",
+      "good": "+/- 0.10 ft",
+      "fair": "+/- 0.20 ft",
+      "poor": "+/- 0.40 ft"
+    },
+    "note": "Diagnostic only. Only a handful of raw HWM points fall inside the modelling domain, so per-point quality ranks characterise the layer; they are not a quantitative validation of the model."
   },
   "height_above_gnd_diagnostic": {
     "available": true,
@@ -17,16 +39,16 @@
     "n_raw_points_with_height": 159,
     "n_hwm_cells_with_height": 6,
     "mean_height_above_gnd_ft": 4.481006289308176,
-    "spearman_height_vs_oof": 0.3714285714285715,
+    "spearman_height_vs_oof": 0.3142857142857143,
     "note": "Diagnostic only: USGS HWM height_above_gnd vs expanded-pilot OOF probability; not used as a training target."
   },
   "feature_columns_used_in_model": [
     "elevation_m",
     "slope_deg",
-    "flow_accum_proxy",
+    "dem_d8_accum_proxy",
     "impervious_frac",
     "building_density",
-    "dist_stream_m",
-    "rainfall_mm_h"
+    "building_area_fraction",
+    "dist_mapped_water_m"
   ]
 }

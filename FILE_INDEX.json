@@ -177,37 +177,37 @@
     "flat_name": "src__pluvial_flood_risk__ablation.py",
     "original_path": "src/pluvial_flood_risk/ablation.py",
     "category": "code",
-    "size_bytes": 2171
+    "size_bytes": 2390
   },
   {
     "flat_name": "src__pluvial_flood_risk__adaptive.py",
     "original_path": "src/pluvial_flood_risk/adaptive.py",
     "category": "code",
-    "size_bytes": 6169
+    "size_bytes": 12783
   },
   {
     "flat_name": "src__pluvial_flood_risk__assemble.py",
     "original_path": "src/pluvial_flood_risk/assemble.py",
     "category": "code",
-    "size_bytes": 21442
+    "size_bytes": 23008
   },
   {
     "flat_name": "src__pluvial_flood_risk__baselines.py",
     "original_path": "src/pluvial_flood_risk/baselines.py",
     "category": "code",
-    "size_bytes": 7961
+    "size_bytes": 8143
   },
   {
     "flat_name": "src__pluvial_flood_risk__cli.py",
     "original_path": "src/pluvial_flood_risk/cli.py",
     "category": "code",
-    "size_bytes": 12087
+    "size_bytes": 12202
   },
   {
     "flat_name": "src__pluvial_flood_risk__config.py",
     "original_path": "src/pluvial_flood_risk/config.py",
     "category": "code",
-    "size_bytes": 2082
+    "size_bytes": 6110
   },
   {
     "flat_name": "src__pluvial_flood_risk__config_loader.py",
@@ -219,7 +219,7 @@
     "flat_name": "src__pluvial_flood_risk__crs_warp.py",
     "original_path": "src/pluvial_flood_risk/crs_warp.py",
     "category": "code",
-    "size_bytes": 8309
+    "size_bytes": 8494
   },
   {
     "flat_name": "src__pluvial_flood_risk__download_nyc.py",
@@ -231,7 +231,7 @@
     "flat_name": "src__pluvial_flood_risk__estimators.py",
     "original_path": "src/pluvial_flood_risk/estimators.py",
     "category": "code",
-    "size_bytes": 2008
+    "size_bytes": 2234
   },
   {
     "flat_name": "src__pluvial_flood_risk__event_rainfall.py",
@@ -243,7 +243,7 @@
     "flat_name": "src__pluvial_flood_risk__features.py",
     "original_path": "src/pluvial_flood_risk/features.py",
     "category": "code",
-    "size_bytes": 8590
+    "size_bytes": 12732
   },
   {
     "flat_name": "src__pluvial_flood_risk__figures.py",
@@ -255,7 +255,7 @@
     "flat_name": "src__pluvial_flood_risk__floodnet.py",
     "original_path": "src/pluvial_flood_risk/floodnet.py",
     "category": "code",
-    "size_bytes": 8844
+    "size_bytes": 15644
   },
   {
     "flat_name": "src__pluvial_flood_risk__h3_grid.py",
@@ -273,7 +273,7 @@
     "flat_name": "src__pluvial_flood_risk__labels.py",
     "original_path": "src/pluvial_flood_risk/labels.py",
     "category": "code",
-    "size_bytes": 15693
+    "size_bytes": 20169
   },
   {
     "flat_name": "src__pluvial_flood_risk__land_mask.py",
@@ -297,7 +297,7 @@
     "flat_name": "src__pluvial_flood_risk__model.py",
     "original_path": "src/pluvial_flood_risk/model.py",
     "category": "code",
-    "size_bytes": 10836
+    "size_bytes": 11128
   },
   {
     "flat_name": "src__pluvial_flood_risk__negative_control.py",
@@ -309,19 +309,19 @@
     "flat_name": "src__pluvial_flood_risk__pipeline.py",
     "original_path": "src/pluvial_flood_risk/pipeline.py",
     "category": "code",
-    "size_bytes": 28159
+    "size_bytes": 30642
   },
   {
     "flat_name": "src__pluvial_flood_risk__raster.py",
     "original_path": "src/pluvial_flood_risk/raster.py",
     "category": "code",
-    "size_bytes": 7272
+    "size_bytes": 13237
   },
   {
     "flat_name": "src__pluvial_flood_risk__rollups.py",
     "original_path": "src/pluvial_flood_risk/rollups.py",
     "category": "code",
-    "size_bytes": 32119
+    "size_bytes": 33932
   },
   {
     "flat_name": "src__pluvial_flood_risk__schema_fixtures.py",
@@ -333,7 +333,7 @@
     "flat_name": "src__pluvial_flood_risk__spatial_cv.py",
     "original_path": "src/pluvial_flood_risk/spatial_cv.py",
     "category": "code",
-    "size_bytes": 7766
+    "size_bytes": 21175
   },
   {
     "flat_name": "src__pluvial_flood_risk__synthetic.py",
@@ -357,13 +357,13 @@
     "flat_name": "configs__demo_oslo.yaml",
     "original_path": "configs/demo_oslo.yaml",
     "category": "config",
-    "size_bytes": 462
+    "size_bytes": 622
   },
   {
     "flat_name": "configs__nyc.yaml",
     "original_path": "configs/nyc.yaml",
     "category": "config",
-    "size_bytes": 3118
+    "size_bytes": 3739
   },
   {
     "flat_name": "data__processed__.gitkeep",
@@ -375,55 +375,61 @@
     "flat_name": "data__processed__demo_h3_cells.parquet",
     "original_path": "data/processed/demo_h3_cells.parquet",
     "category": "data",
-    "size_bytes": 54237
+    "size_bytes": 71829
   },
   {
     "flat_name": "data__processed__nyc_h3_cells.parquet",
     "original_path": "data/processed/nyc_h3_cells.parquet",
     "category": "data",
-    "size_bytes": 50958
+    "size_bytes": 67572
   },
   {
     "flat_name": "data__processed__nyc_h3_cells_expanded.parquet",
     "original_path": "data/processed/nyc_h3_cells_expanded.parquet",
     "category": "data",
-    "size_bytes": 113820
+    "size_bytes": 156444
   },
   {
     "flat_name": "data__processed__nyc_h3_cells_r10_labels.parquet",
     "original_path": "data/processed/nyc_h3_cells_r10_labels.parquet",
     "category": "data",
-    "size_bytes": 75536
+    "size_bytes": 76781
   },
   {
     "flat_name": "data__processed__demo_h3_cells.csv",
     "original_path": "(CSV mirror of data__processed__demo_h3_cells.parquet)",
     "category": "data_mirror",
-    "size_bytes": 215226
+    "size_bytes": 292225
   },
   {
     "flat_name": "data__processed__nyc_h3_cells.csv",
     "original_path": "(CSV mirror of data__processed__nyc_h3_cells.parquet)",
     "category": "data_mirror",
-    "size_bytes": 106413
+    "size_bytes": 140366
   },
   {
     "flat_name": "data__processed__nyc_h3_cells_expanded.csv",
     "original_path": "(CSV mirror of data__processed__nyc_h3_cells_expanded.parquet)",
     "category": "data_mirror",
-    "size_bytes": 379273
+    "size_bytes": 495906
   },
   {
     "flat_name": "data__processed__nyc_h3_cells_r10_labels.csv",
     "original_path": "(CSV mirror of data__processed__nyc_h3_cells_r10_labels.parquet)",
     "category": "data_mirror",
-    "size_bytes": 331504
+    "size_bytes": 348597
   },
   {
     "flat_name": "outputs__risk_cells.csv",
     "original_path": "(CSV mirror of outputs__risk_cells.parquet)",
     "category": "data_mirror",
-    "size_bytes": 245005
+    "size_bytes": 320016
+  },
+  {
+    "flat_name": "outputs__susceptibility_cells.csv",
+    "original_path": "(CSV mirror of outputs__susceptibility_cells.parquet)",
+    "category": "data_mirror",
+    "size_bytes": 320016
   },
   {
     "flat_name": "artifacts__figures__adaptive_ablation.png",
@@ -453,61 +459,61 @@
     "flat_name": "docs__paper__figures__multi_resolution_spatial.pdf",
     "original_path": "docs/paper/figures/multi_resolution_spatial.pdf",
     "category": "figure",
-    "size_bytes": 188904
+    "size_bytes": 186139
   },
   {
     "flat_name": "docs__paper__figures__multi_resolution_spatial.png",
     "original_path": "docs/paper/figures/multi_resolution_spatial.png",
     "category": "figure",
-    "size_bytes": 556172
+    "size_bytes": 564254
   },
   {
     "flat_name": "docs__paper__figures__resolution_effects.pdf",
     "original_path": "docs/paper/figures/resolution_effects.pdf",
     "category": "figure",
-    "size_bytes": 56605
+    "size_bytes": 54685
   },
   {
     "flat_name": "docs__paper__figures__resolution_effects.png",
     "original_path": "docs/paper/figures/resolution_effects.png",
     "category": "figure",
-    "size_bytes": 166784
+    "size_bytes": 161331
   },
   {
     "flat_name": "docs__paper__figures__source_evidence_maps.pdf",
     "original_path": "docs/paper/figures/source_evidence_maps.pdf",
     "category": "figure",
-    "size_bytes": 183047
+    "size_bytes": 182686
   },
   {
     "flat_name": "docs__paper__figures__source_evidence_maps.png",
     "original_path": "docs/paper/figures/source_evidence_maps.png",
     "category": "figure",
-    "size_bytes": 657162
+    "size_bytes": 658806
   },
   {
     "flat_name": "docs__paper__figures__spatial_cv_folds.pdf",
     "original_path": "docs/paper/figures/spatial_cv_folds.pdf",
     "category": "figure",
-    "size_bytes": 40473
+    "size_bytes": 40464
   },
   {
     "flat_name": "docs__paper__figures__spatial_cv_folds.png",
     "original_path": "docs/paper/figures/spatial_cv_folds.png",
     "category": "figure",
-    "size_bytes": 101094
+    "size_bytes": 99932
   },
   {
     "flat_name": "docs__paper__figures__spatial_maps.pdf",
     "original_path": "docs/paper/figures/spatial_maps.pdf",
     "category": "figure",
-    "size_bytes": 137663
+    "size_bytes": 137261
   },
   {
     "flat_name": "docs__paper__figures__spatial_maps.png",
     "original_path": "docs/paper/figures/spatial_maps.png",
     "category": "figure",
-    "size_bytes": 463129
+    "size_bytes": 464547
   },
   {
     "flat_name": "docs__paper__figures__supplementary__adaptive_ablation.pdf",
@@ -525,13 +531,13 @@
     "flat_name": "docs__paper__figures__supplementary__jaccard_by_resolution.pdf",
     "original_path": "docs/paper/figures/supplementary/jaccard_by_resolution.pdf",
     "category": "figure",
-    "size_bytes": 35984
+    "size_bytes": 35987
   },
   {
     "flat_name": "docs__paper__figures__supplementary__jaccard_by_resolution.png",
     "original_path": "docs/paper/figures/supplementary/jaccard_by_resolution.png",
     "category": "figure",
-    "size_bytes": 99347
+    "size_bytes": 99408
   },
   {
     "flat_name": "docs__paper__figures__workflow_schematic.pdf",
@@ -564,10 +570,28 @@
     "size_bytes": 5799723
   },
   {
+    "flat_name": "CITATION.cff",
+    "original_path": "CITATION.cff",
+    "category": "meta",
+    "size_bytes": 2573
+  },
+  {
+    "flat_name": "LICENSE",
+    "original_path": "LICENSE",
+    "category": "meta",
+    "size_bytes": 2412
+  },
+  {
     "flat_name": "README_PROJECT_ORIGINAL.md",
     "original_path": "README.md",
     "category": "meta",
-    "size_bytes": 5218
+    "size_bytes": 5631
+  },
+  {
+    "flat_name": "THIRD_PARTY_NOTICE.md",
+    "original_path": "THIRD_PARTY_NOTICE.md",
+    "category": "meta",
+    "size_bytes": 1942
   },
   {
     "flat_name": "pyproject.toml",
@@ -579,13 +603,13 @@
     "flat_name": "report.html",
     "original_path": "report.html",
     "category": "meta",
-    "size_bytes": 3156564
+    "size_bytes": 3168566
   },
   {
     "flat_name": "report.md",
     "original_path": "report.md",
     "category": "meta",
-    "size_bytes": 19804
+    "size_bytes": 24196
   },
   {
     "flat_name": "report.pdf",
@@ -615,91 +639,91 @@
     "flat_name": "models__classifier.joblib",
     "original_path": "models/classifier.joblib",
     "category": "model",
-    "size_bytes": 159665
+    "size_bytes": 158984
   },
   {
     "flat_name": "models__classifier_full.joblib",
     "original_path": "models/classifier_full.joblib",
     "category": "model",
-    "size_bytes": 160673
+    "size_bytes": 159992
   },
   {
     "flat_name": "models__deployment__classifier_full.joblib",
     "original_path": "models/deployment/classifier_full.joblib",
     "category": "model",
-    "size_bytes": 160673
+    "size_bytes": 159992
   },
   {
     "flat_name": "models__deployment__feature_columns.joblib",
     "original_path": "models/deployment/feature_columns.joblib",
     "category": "model",
-    "size_bytes": 149
+    "size_bytes": 147
   },
   {
     "flat_name": "models__deployment__regressor_full.joblib",
     "original_path": "models/deployment/regressor_full.joblib",
     "category": "model",
-    "size_bytes": 185505
+    "size_bytes": 184840
   },
   {
     "flat_name": "models__evaluation__feature_columns.joblib",
     "original_path": "models/evaluation/feature_columns.joblib",
     "category": "model",
-    "size_bytes": 149
+    "size_bytes": 147
   },
   {
     "flat_name": "models__evaluation__split_diagnostic_classifier.joblib",
     "original_path": "models/evaluation/split_diagnostic_classifier.joblib",
     "category": "model",
-    "size_bytes": 159665
+    "size_bytes": 158984
   },
   {
     "flat_name": "models__evaluation__split_diagnostic_regressor.joblib",
     "original_path": "models/evaluation/split_diagnostic_regressor.joblib",
     "category": "model",
-    "size_bytes": 176577
+    "size_bytes": 175912
   },
   {
     "flat_name": "models__evaluation__train_metrics.joblib",
     "original_path": "models/evaluation/train_metrics.joblib",
     "category": "model",
-    "size_bytes": 839
+    "size_bytes": 1332
   },
   {
     "flat_name": "models__feature_columns.joblib",
     "original_path": "models/feature_columns.joblib",
     "category": "model",
-    "size_bytes": 149
+    "size_bytes": 147
   },
   {
     "flat_name": "models__nyc_expanded__classifier.joblib",
     "original_path": "models/nyc_expanded/classifier.joblib",
     "category": "model",
-    "size_bytes": 182961
+    "size_bytes": 192680
   },
   {
     "flat_name": "models__nyc_expanded__classifier_full.joblib",
     "original_path": "models/nyc_expanded/classifier_full.joblib",
     "category": "model",
-    "size_bytes": 189297
+    "size_bytes": 182744
   },
   {
     "flat_name": "models__nyc_expanded__deployment__classifier_full.joblib",
     "original_path": "models/nyc_expanded/deployment/classifier_full.joblib",
     "category": "model",
-    "size_bytes": 189297
+    "size_bytes": 182744
   },
   {
     "flat_name": "models__nyc_expanded__deployment__feature_columns.joblib",
     "original_path": "models/nyc_expanded/deployment/feature_columns.joblib",
     "category": "model",
-    "size_bytes": 130
+    "size_bytes": 147
   },
   {
     "flat_name": "models__nyc_expanded__deployment__feature_columns.json",
     "original_path": "models/nyc_expanded/deployment/feature_columns.json",
     "category": "model",
-    "size_bytes": 145
+    "size_bytes": 162
   },
   {
     "flat_name": "models__nyc_expanded__deployment__manifest.json",
@@ -711,13 +735,13 @@
     "flat_name": "models__nyc_expanded__deployment__regressor_full.joblib",
     "original_path": "models/nyc_expanded/deployment/regressor_full.joblib",
     "category": "model",
-    "size_bytes": 184177
+    "size_bytes": 189880
   },
   {
     "flat_name": "models__nyc_expanded__evaluation__feature_columns.joblib",
     "original_path": "models/nyc_expanded/evaluation/feature_columns.joblib",
     "category": "model",
-    "size_bytes": 130
+    "size_bytes": 147
   },
   {
     "flat_name": "models__nyc_expanded__evaluation__role.json",
@@ -729,109 +753,109 @@
     "flat_name": "models__nyc_expanded__evaluation__spatial_cv_folds.csv",
     "original_path": "models/nyc_expanded/evaluation/spatial_cv_folds.csv",
     "category": "model",
-    "size_bytes": 1233
+    "size_bytes": 1371
   },
   {
     "flat_name": "models__nyc_expanded__evaluation__spatial_cv_oof_predictions.csv",
     "original_path": "models/nyc_expanded/evaluation/spatial_cv_oof_predictions.csv",
     "category": "model",
-    "size_bytes": 56045
+    "size_bytes": 56046
   },
   {
     "flat_name": "models__nyc_expanded__evaluation__split_diagnostic_classifier.joblib",
     "original_path": "models/nyc_expanded/evaluation/split_diagnostic_classifier.joblib",
     "category": "model",
-    "size_bytes": 182961
+    "size_bytes": 192680
   },
   {
     "flat_name": "models__nyc_expanded__evaluation__split_diagnostic_regressor.joblib",
     "original_path": "models/nyc_expanded/evaluation/split_diagnostic_regressor.joblib",
     "category": "model",
-    "size_bytes": 172369
+    "size_bytes": 189880
   },
   {
     "flat_name": "models__nyc_expanded__evaluation__train_metrics.joblib",
     "original_path": "models/nyc_expanded/evaluation/train_metrics.joblib",
     "category": "model",
-    "size_bytes": 863
+    "size_bytes": 1308
   },
   {
     "flat_name": "models__nyc_expanded__feature_columns.joblib",
     "original_path": "models/nyc_expanded/feature_columns.joblib",
     "category": "model",
-    "size_bytes": 130
+    "size_bytes": 147
   },
   {
     "flat_name": "models__nyc_expanded__regressor.joblib",
     "original_path": "models/nyc_expanded/regressor.joblib",
     "category": "model",
-    "size_bytes": 172369
+    "size_bytes": 189880
   },
   {
     "flat_name": "models__nyc_expanded__regressor_full.joblib",
     "original_path": "models/nyc_expanded/regressor_full.joblib",
     "category": "model",
-    "size_bytes": 184177
+    "size_bytes": 189880
   },
   {
     "flat_name": "models__nyc_expanded__run_manifest.json",
     "original_path": "models/nyc_expanded/run_manifest.json",
     "category": "model",
-    "size_bytes": 1771
+    "size_bytes": 2378
   },
   {
     "flat_name": "models__nyc_expanded__run_metadata.json",
     "original_path": "models/nyc_expanded/run_metadata.json",
     "category": "model",
-    "size_bytes": 1771
+    "size_bytes": 2378
   },
   {
     "flat_name": "models__nyc_expanded__spatial_cv_folds.csv",
     "original_path": "models/nyc_expanded/spatial_cv_folds.csv",
     "category": "model",
-    "size_bytes": 1233
+    "size_bytes": 1371
   },
   {
     "flat_name": "models__nyc_expanded__spatial_cv_oof_predictions.csv",
     "original_path": "models/nyc_expanded/spatial_cv_oof_predictions.csv",
     "category": "model",
-    "size_bytes": 56045
+    "size_bytes": 56046
   },
   {
     "flat_name": "models__nyc_expanded__train_metrics.joblib",
     "original_path": "models/nyc_expanded/train_metrics.joblib",
     "category": "model",
-    "size_bytes": 863
+    "size_bytes": 1308
   },
   {
     "flat_name": "models__nyc_smoke__classifier.joblib",
     "original_path": "models/nyc_smoke/classifier.joblib",
     "category": "model",
-    "size_bytes": 173025
+    "size_bytes": 174104
   },
   {
     "flat_name": "models__nyc_smoke__classifier_full.joblib",
     "original_path": "models/nyc_smoke/classifier_full.joblib",
     "category": "model",
-    "size_bytes": 170865
+    "size_bytes": 165320
   },
   {
     "flat_name": "models__nyc_smoke__deployment__classifier_full.joblib",
     "original_path": "models/nyc_smoke/deployment/classifier_full.joblib",
     "category": "model",
-    "size_bytes": 170865
+    "size_bytes": 165320
   },
   {
     "flat_name": "models__nyc_smoke__deployment__feature_columns.joblib",
     "original_path": "models/nyc_smoke/deployment/feature_columns.joblib",
     "category": "model",
-    "size_bytes": 130
+    "size_bytes": 147
   },
   {
     "flat_name": "models__nyc_smoke__deployment__feature_columns.json",
     "original_path": "models/nyc_smoke/deployment/feature_columns.json",
     "category": "model",
-    "size_bytes": 145
+    "size_bytes": 162
   },
   {
     "flat_name": "models__nyc_smoke__deployment__manifest.json",
@@ -843,13 +867,13 @@
     "flat_name": "models__nyc_smoke__deployment__regressor_full.joblib",
     "original_path": "models/nyc_smoke/deployment/regressor_full.joblib",
     "category": "model",
-    "size_bytes": 180577
+    "size_bytes": 167992
   },
   {
     "flat_name": "models__nyc_smoke__evaluation__feature_columns.joblib",
     "original_path": "models/nyc_smoke/evaluation/feature_columns.joblib",
     "category": "model",
-    "size_bytes": 130
+    "size_bytes": 147
   },
   {
     "flat_name": "models__nyc_smoke__evaluation__role.json",
@@ -861,103 +885,103 @@
     "flat_name": "models__nyc_smoke__evaluation__spatial_cv_folds.csv",
     "original_path": "models/nyc_smoke/evaluation/spatial_cv_folds.csv",
     "category": "model",
-    "size_bytes": 984
+    "size_bytes": 1099
   },
   {
     "flat_name": "models__nyc_smoke__evaluation__spatial_cv_oof_predictions.csv",
     "original_path": "models/nyc_smoke/evaluation/spatial_cv_oof_predictions.csv",
     "category": "model",
-    "size_bytes": 15334
+    "size_bytes": 15369
   },
   {
     "flat_name": "models__nyc_smoke__evaluation__split_diagnostic_classifier.joblib",
     "original_path": "models/nyc_smoke/evaluation/split_diagnostic_classifier.joblib",
     "category": "model",
-    "size_bytes": 173025
+    "size_bytes": 174104
   },
   {
     "flat_name": "models__nyc_smoke__evaluation__split_diagnostic_regressor.joblib",
     "original_path": "models/nyc_smoke/evaluation/split_diagnostic_regressor.joblib",
     "category": "model",
-    "size_bytes": 175393
+    "size_bytes": 170728
   },
   {
     "flat_name": "models__nyc_smoke__evaluation__train_metrics.joblib",
     "original_path": "models/nyc_smoke/evaluation/train_metrics.joblib",
     "category": "model",
-    "size_bytes": 856
+    "size_bytes": 1301
   },
   {
     "flat_name": "models__nyc_smoke__feature_columns.joblib",
     "original_path": "models/nyc_smoke/feature_columns.joblib",
     "category": "model",
-    "size_bytes": 130
+    "size_bytes": 147
   },
   {
     "flat_name": "models__nyc_smoke__regressor.joblib",
     "original_path": "models/nyc_smoke/regressor.joblib",
     "category": "model",
-    "size_bytes": 175393
+    "size_bytes": 170728
   },
   {
     "flat_name": "models__nyc_smoke__regressor_full.joblib",
     "original_path": "models/nyc_smoke/regressor_full.joblib",
     "category": "model",
-    "size_bytes": 180577
+    "size_bytes": 167992
   },
   {
     "flat_name": "models__nyc_smoke__run_manifest.json",
     "original_path": "models/nyc_smoke/run_manifest.json",
     "category": "model",
-    "size_bytes": 1761
+    "size_bytes": 2396
   },
   {
     "flat_name": "models__nyc_smoke__run_metadata.json",
     "original_path": "models/nyc_smoke/run_metadata.json",
     "category": "model",
-    "size_bytes": 1761
+    "size_bytes": 2396
   },
   {
     "flat_name": "models__nyc_smoke__spatial_cv_folds.csv",
     "original_path": "models/nyc_smoke/spatial_cv_folds.csv",
     "category": "model",
-    "size_bytes": 984
+    "size_bytes": 1099
   },
   {
     "flat_name": "models__nyc_smoke__spatial_cv_oof_predictions.csv",
     "original_path": "models/nyc_smoke/spatial_cv_oof_predictions.csv",
     "category": "model",
-    "size_bytes": 15334
+    "size_bytes": 15369
   },
   {
     "flat_name": "models__nyc_smoke__train_metrics.joblib",
     "original_path": "models/nyc_smoke/train_metrics.joblib",
     "category": "model",
-    "size_bytes": 856
+    "size_bytes": 1301
   },
   {
     "flat_name": "models__regressor.joblib",
     "original_path": "models/regressor.joblib",
     "category": "model",
-    "size_bytes": 176577
+    "size_bytes": 175912
   },
   {
     "flat_name": "models__regressor_full.joblib",
     "original_path": "models/regressor_full.joblib",
     "category": "model",
-    "size_bytes": 185505
+    "size_bytes": 184840
   },
   {
     "flat_name": "models__train_metrics.joblib",
     "original_path": "models/train_metrics.joblib",
     "category": "model",
-    "size_bytes": 839
+    "size_bytes": 1332
   },
   {
     "flat_name": "docs__paper__audit.md",
     "original_path": "docs/paper/audit.md",
     "category": "paper",
-    "size_bytes": 97739
+    "size_bytes": 104198
   },
   {
     "flat_name": "docs__paper__framework_note.md",
@@ -981,19 +1005,19 @@
     "flat_name": "docs__paper__manuscript.html",
     "original_path": "docs/paper/manuscript.html",
     "category": "paper",
-    "size_bytes": 2951203
+    "size_bytes": 2969732
   },
   {
     "flat_name": "docs__paper__manuscript.md",
     "original_path": "docs/paper/manuscript.md",
     "category": "paper",
-    "size_bytes": 57598
+    "size_bytes": 68445
   },
   {
     "flat_name": "docs__paper__manuscript.pdf",
     "original_path": "docs/paper/manuscript.pdf",
     "category": "paper",
-    "size_bytes": 2225015
+    "size_bytes": 2316121
   },
   {
     "flat_name": "docs__paper__manuscript_skeleton.md",
@@ -1005,19 +1029,19 @@
     "flat_name": "docs__paper__report.html",
     "original_path": "docs/paper/report.html",
     "category": "paper",
-    "size_bytes": 3156564
+    "size_bytes": 3168566
   },
   {
     "flat_name": "docs__paper__report.md",
     "original_path": "docs/paper/report.md",
     "category": "paper",
-    "size_bytes": 19804
+    "size_bytes": 24196
   },
   {
     "flat_name": "docs__paper__report.pdf",
     "original_path": "docs/paper/report.pdf",
     "category": "paper",
-    "size_bytes": 2873661
+    "size_bytes": 2968164
   },
   {
     "flat_name": "data__raw__.gitkeep",
@@ -1047,13 +1071,13 @@
     "flat_name": "data__raw__nyc__DOWNLOAD_MANIFEST.json",
     "original_path": "data/raw/nyc/DOWNLOAD_MANIFEST.json",
     "category": "provenance",
-    "size_bytes": 3912
+    "size_bytes": 6999
   },
   {
     "flat_name": "data__raw__nyc__FLOODNET_STUB.txt",
     "original_path": "data/raw/nyc/FLOODNET_STUB.txt",
     "category": "provenance",
-    "size_bytes": 826
+    "size_bytes": 970
   },
   {
     "flat_name": "data__raw__nyc__README.md",
@@ -1077,7 +1101,7 @@
     "flat_name": "data__raw__nyc__floodnet_query.json",
     "original_path": "data/raw/nyc/floodnet_query.json",
     "category": "provenance",
-    "size_bytes": 989
+    "size_bytes": 1352
   },
   {
     "flat_name": "data__raw__nyc__hydro_streams.geojson",
@@ -1095,13 +1119,13 @@
     "flat_name": "data__raw__nyc_expanded__DOWNLOAD_MANIFEST.json",
     "original_path": "data/raw/nyc_expanded/DOWNLOAD_MANIFEST.json",
     "category": "provenance",
-    "size_bytes": 3572
+    "size_bytes": 7131
   },
   {
     "flat_name": "data__raw__nyc_expanded__FLOODNET_STUB.txt",
     "original_path": "data/raw/nyc_expanded/FLOODNET_STUB.txt",
     "category": "provenance",
-    "size_bytes": 826
+    "size_bytes": 970
   },
   {
     "flat_name": "data__raw__nyc_expanded__flooding_311.geojson",
@@ -1119,13 +1143,13 @@
     "flat_name": "data__raw__nyc_expanded__floodnet_query.json",
     "original_path": "data/raw/nyc_expanded/floodnet_query.json",
     "category": "provenance",
-    "size_bytes": 1007
+    "size_bytes": 1370
   },
   {
     "flat_name": "data__raw__nyc_expanded__floodnet_sensors.geojson",
     "original_path": "data/raw/nyc_expanded/floodnet_sensors.geojson",
     "category": "provenance",
-    "size_bytes": 31099
+    "size_bytes": 35769
   },
   {
     "flat_name": "data__raw__nyc_expanded__hydro_streams.geojson",
@@ -1146,34 +1170,46 @@
     "size_bytes": 0
   },
   {
+    "flat_name": "outputs__adaptive_cost_recall.csv",
+    "original_path": "outputs/adaptive_cost_recall.csv",
+    "category": "result",
+    "size_bytes": 1350
+  },
+  {
     "flat_name": "outputs__adaptive_r11_hotspot_retention.json",
     "original_path": "outputs/adaptive_r11_hotspot_retention.json",
     "category": "result",
-    "size_bytes": 1142
+    "size_bytes": 6283
   },
   {
     "flat_name": "outputs__adaptive_vs_fixed_ablation.csv",
     "original_path": "outputs/adaptive_vs_fixed_ablation.csv",
     "category": "result",
-    "size_bytes": 485
+    "size_bytes": 777
   },
   {
     "flat_name": "outputs__block_sensitivity.csv",
     "original_path": "outputs/block_sensitivity.csv",
     "category": "result",
-    "size_bytes": 1090
+    "size_bytes": 1527
   },
   {
     "flat_name": "outputs__block_sensitivity.json",
     "original_path": "outputs/block_sensitivity.json",
     "category": "result",
-    "size_bytes": 4688
+    "size_bytes": 15042
+  },
+  {
+    "flat_name": "outputs__buffer_sensitivity.csv",
+    "original_path": "outputs/buffer_sensitivity.csv",
+    "category": "result",
+    "size_bytes": 2831
   },
   {
     "flat_name": "outputs__classification_baselines.csv",
     "original_path": "outputs/classification_baselines.csv",
     "category": "result",
-    "size_bytes": 807
+    "size_bytes": 794
   },
   {
     "flat_name": "outputs__classification_baselines.json",
@@ -1185,67 +1221,67 @@
     "flat_name": "outputs__classification_baselines_expanded.csv",
     "original_path": "outputs/classification_baselines_expanded.csv",
     "category": "result",
-    "size_bytes": 727
+    "size_bytes": 726
   },
   {
     "flat_name": "outputs__classification_baselines_expanded.json",
     "original_path": "outputs/classification_baselines_expanded.json",
     "category": "result",
-    "size_bytes": 884
+    "size_bytes": 883
   },
   {
     "flat_name": "outputs__expanded_primary_table.json",
     "original_path": "outputs/expanded_primary_table.json",
     "category": "result",
-    "size_bytes": 3134
+    "size_bytes": 3705
   },
   {
     "flat_name": "outputs__floodnet_heldout_validation.json",
     "original_path": "outputs/floodnet_heldout_validation.json",
     "category": "result",
-    "size_bytes": 2348
+    "size_bytes": 7561
   },
   {
     "flat_name": "outputs__hotspot_budget_sensitivity.csv",
     "original_path": "outputs/hotspot_budget_sensitivity.csv",
     "category": "result",
-    "size_bytes": 6276
+    "size_bytes": 12443
   },
   {
     "flat_name": "outputs__hotspot_budget_sensitivity.json",
     "original_path": "outputs/hotspot_budget_sensitivity.json",
     "category": "result",
-    "size_bytes": 8401
+    "size_bytes": 14039
   },
   {
     "flat_name": "outputs__hwm_quality_oof_validation.json",
     "original_path": "outputs/hwm_quality_oof_validation.json",
     "category": "result",
-    "size_bytes": 1178
+    "size_bytes": 1962
   },
   {
     "flat_name": "outputs__hwm_validation.json",
     "original_path": "outputs/hwm_validation.json",
     "category": "result",
-    "size_bytes": 1178
+    "size_bytes": 1962
   },
   {
     "flat_name": "outputs__jaccard_by_resolution.csv",
     "original_path": "outputs/jaccard_by_resolution.csv",
     "category": "result",
-    "size_bytes": 3358
+    "size_bytes": 3646
   },
   {
     "flat_name": "outputs__jaccard_by_resolution.json",
     "original_path": "outputs/jaccard_by_resolution.json",
     "category": "result",
-    "size_bytes": 8598
+    "size_bytes": 9368
   },
   {
     "flat_name": "outputs__jaccard_by_resolution.png",
     "original_path": "outputs/jaccard_by_resolution.png",
     "category": "result",
-    "size_bytes": 99087
+    "size_bytes": 98984
   },
   {
     "flat_name": "outputs__jaccard_demo.csv",
@@ -1257,43 +1293,43 @@
     "flat_name": "outputs__land_mask_sensitivity.json",
     "original_path": "outputs/land_mask_sensitivity.json",
     "category": "result",
-    "size_bytes": 1755
+    "size_bytes": 1976
   },
   {
     "flat_name": "outputs__lobo_r7_lower_manhattan.csv",
     "original_path": "outputs/lobo_r7_lower_manhattan.csv",
     "category": "result",
-    "size_bytes": 873
+    "size_bytes": 928
   },
   {
     "flat_name": "outputs__lobo_r7_manhattan_expanded.csv",
     "original_path": "outputs/lobo_r7_manhattan_expanded.csv",
     "category": "result",
-    "size_bytes": 2204
+    "size_bytes": 2136
   },
   {
     "flat_name": "outputs__negative_control.json",
     "original_path": "outputs/negative_control.json",
     "category": "result",
-    "size_bytes": 958
+    "size_bytes": 956
   },
   {
     "flat_name": "outputs__oof_extended_metrics.json",
     "original_path": "outputs/oof_extended_metrics.json",
     "category": "result",
-    "size_bytes": 6461
+    "size_bytes": 6536
   },
   {
     "flat_name": "outputs__operating_threshold_sensitivity.json",
     "original_path": "outputs/operating_threshold_sensitivity.json",
     "category": "result",
-    "size_bytes": 5158
+    "size_bytes": 5056
   },
   {
     "flat_name": "outputs__paper_results.json",
     "original_path": "outputs/paper_results.json",
     "category": "result",
-    "size_bytes": 57852
+    "size_bytes": 102511
   },
   {
     "flat_name": "outputs__pfi_h_scenarios.csv",
@@ -1311,7 +1347,7 @@
     "flat_name": "outputs__polygon_area_threshold_sensitivity.json",
     "original_path": "outputs/polygon_area_threshold_sensitivity.json",
     "category": "result",
-    "size_bytes": 1442
+    "size_bytes": 1973
   },
   {
     "flat_name": "outputs__resolution_effects.png",
@@ -1323,7 +1359,7 @@
     "flat_name": "outputs__risk_cells.parquet",
     "original_path": "outputs/risk_cells.parquet",
     "category": "result",
-    "size_bytes": 49800
+    "size_bytes": 59343
   },
   {
     "flat_name": "outputs__sandy_311_window_sensitivity.json",
@@ -1353,55 +1389,73 @@
     "flat_name": "outputs__source_ablation.csv",
     "original_path": "outputs/source_ablation.csv",
     "category": "result",
-    "size_bytes": 2906
+    "size_bytes": 6119
   },
   {
     "flat_name": "outputs__source_ablation.json",
     "original_path": "outputs/source_ablation.json",
     "category": "result",
-    "size_bytes": 8077
+    "size_bytes": 15425
   },
   {
     "flat_name": "outputs__spatial_cv_folds.csv",
     "original_path": "outputs/spatial_cv_folds.csv",
     "category": "result",
-    "size_bytes": 1257
+    "size_bytes": 1496
   },
   {
     "flat_name": "outputs__spatial_cv_folds_eval.csv",
     "original_path": "outputs/spatial_cv_folds_eval.csv",
     "category": "result",
-    "size_bytes": 984
+    "size_bytes": 1496
   },
   {
     "flat_name": "outputs__spatial_cv_folds_models.csv",
     "original_path": "outputs/spatial_cv_folds_models.csv",
     "category": "result",
-    "size_bytes": 958
+    "size_bytes": 1198
   },
   {
     "flat_name": "outputs__spatial_cv_folds_nyc_expanded.csv",
     "original_path": "outputs/spatial_cv_folds_nyc_expanded.csv",
     "category": "result",
-    "size_bytes": 1233
+    "size_bytes": 1371
   },
   {
     "flat_name": "outputs__spatial_cv_folds_nyc_smoke.csv",
     "original_path": "outputs/spatial_cv_folds_nyc_smoke.csv",
     "category": "result",
-    "size_bytes": 984
+    "size_bytes": 1099
   },
   {
     "flat_name": "outputs__spatial_cv_oof_predictions.csv",
     "original_path": "outputs/spatial_cv_oof_predictions.csv",
     "category": "result",
-    "size_bytes": 58463
+    "size_bytes": 58473
   },
   {
     "flat_name": "outputs__spatial_cv_oof_predictions_eval.csv",
     "original_path": "outputs/spatial_cv_oof_predictions_eval.csv",
     "category": "result",
-    "size_bytes": 15334
+    "size_bytes": 58473
+  },
+  {
+    "flat_name": "outputs__susceptibility_cells.parquet",
+    "original_path": "outputs/susceptibility_cells.parquet",
+    "category": "result",
+    "size_bytes": 59343
+  },
+  {
+    "flat_name": "outputs__susceptibility_scenarios.csv",
+    "original_path": "outputs/susceptibility_scenarios.csv",
+    "category": "result",
+    "size_bytes": 542629
+  },
+  {
+    "flat_name": "outputs__susceptibility_scenarios.parquet",
+    "original_path": "outputs/susceptibility_scenarios.parquet",
+    "category": "result",
+    "size_bytes": 67468
   },
   {
     "flat_name": ".gitignore",
@@ -1413,25 +1467,25 @@
     "flat_name": "AI_REVIEW_READING_GUIDE.md",
     "original_path": "(flat-review doc: 5-minute reviewer/agent reading guide)",
     "category": "review_doc",
-    "size_bytes": 6300
+    "size_bytes": 7737
   },
   {
     "flat_name": "DATA_DICTIONARY.md",
     "original_path": "(flat-review doc: Column-level data dictionary)",
     "category": "review_doc",
-    "size_bytes": 6406
+    "size_bytes": 8691
   },
   {
     "flat_name": "FILE_INDEX.csv",
     "original_path": "(flat-review doc: flat_name -> original_path index)",
     "category": "review_doc",
-    "size_bytes": 28532
+    "size_bytes": 29470
   },
   {
     "flat_name": "FILE_INDEX.json",
     "original_path": "(flat-review doc: FILE_INDEX.csv as JSON)",
     "category": "review_doc",
-    "size_bytes": 58510
+    "size_bytes": 60588
   },
   {
     "flat_name": "FLAT_LAYOUT_EXPLAINED.md",
@@ -1443,7 +1497,7 @@
     "flat_name": "README.md",
     "original_path": "(flat-review doc: Flat-repository review README)",
     "category": "review_doc",
-    "size_bytes": 7427
+    "size_bytes": 9248
   },
   {
     "flat_name": "RESTORE_STRUCTURE.ps1",
@@ -1461,7 +1515,7 @@
     "flat_name": "RESULTS_QUICK_TABLE.csv",
     "original_path": "(flat-review doc: Headline frozen numbers (from paper_results.json))",
     "category": "review_doc",
-    "size_bytes": 3184
+    "size_bytes": 6659
   },
   {
     "flat_name": "artifacts__acceptance_R6_R10.md",
@@ -1611,7 +1665,7 @@
     "flat_name": "scripts__build_manuscript_html.py",
     "original_path": "scripts/build_manuscript_html.py",
     "category": "script",
-    "size_bytes": 7470
+    "size_bytes": 7464
   },
   {
     "flat_name": "scripts__build_nyc_h3.py",
@@ -1704,22 +1758,28 @@
     "size_bytes": 23759
   },
   {
+    "flat_name": "scripts__regenerate_download_manifest.py",
+    "original_path": "scripts/regenerate_download_manifest.py",
+    "category": "script",
+    "size_bytes": 9027
+  },
+  {
     "flat_name": "scripts__run_adaptive_r11_reextract.py",
     "original_path": "scripts/run_adaptive_r11_reextract.py",
     "category": "script",
-    "size_bytes": 9429
+    "size_bytes": 13454
   },
   {
     "flat_name": "scripts__run_additional_sensitivities.py",
     "original_path": "scripts/run_additional_sensitivities.py",
     "category": "script",
-    "size_bytes": 19879
+    "size_bytes": 23305
   },
   {
     "flat_name": "scripts__run_block_sensitivity.py",
     "original_path": "scripts/run_block_sensitivity.py",
     "category": "script",
-    "size_bytes": 10229
+    "size_bytes": 15223
   },
   {
     "flat_name": "scripts__run_demo.py",
@@ -1737,13 +1797,13 @@
     "flat_name": "scripts__run_floodnet_heldout.py",
     "original_path": "scripts/run_floodnet_heldout.py",
     "category": "script",
-    "size_bytes": 8282
+    "size_bytes": 12257
   },
   {
     "flat_name": "scripts__run_hotspot_budget_sensitivity.py",
     "original_path": "scripts/run_hotspot_budget_sensitivity.py",
     "category": "script",
-    "size_bytes": 4015
+    "size_bytes": 4577
   },
   {
     "flat_name": "scripts__run_nyc_smoke.py",
@@ -1767,7 +1827,7 @@
     "flat_name": "scripts__run_source_ablation.py",
     "original_path": "scripts/run_source_ablation.py",
     "category": "script",
-    "size_bytes": 8589
+    "size_bytes": 10225
   },
   {
     "flat_name": "scripts__serve_files_for_upload.py",
@@ -1779,7 +1839,7 @@
     "flat_name": "scripts__sync_paper_results.py",
     "original_path": "scripts/sync_paper_results.py",
     "category": "script",
-    "size_bytes": 7685
+    "size_bytes": 15219
   },
   {
     "flat_name": "scripts__update_manuscript_from_registry.py",
@@ -1821,13 +1881,13 @@
     "flat_name": "tests__test_ablation_and_cv_folds.py",
     "original_path": "tests/test_ablation_and_cv_folds.py",
     "category": "test",
-    "size_bytes": 1914
+    "size_bytes": 1883
   },
   {
     "flat_name": "tests__test_adaptive.py",
     "original_path": "tests/test_adaptive.py",
     "category": "test",
-    "size_bytes": 1884
+    "size_bytes": 2664
   },
   {
     "flat_name": "tests__test_assemble.py",
@@ -1839,19 +1899,19 @@
     "flat_name": "tests__test_baselines.py",
     "original_path": "tests/test_baselines.py",
     "category": "test",
-    "size_bytes": 858
+    "size_bytes": 870
   },
   {
     "flat_name": "tests__test_bbox_profiles_and_floodnet.py",
     "original_path": "tests/test_bbox_profiles_and_floodnet.py",
     "category": "test",
-    "size_bytes": 5007
+    "size_bytes": 5851
   },
   {
     "flat_name": "tests__test_config_loader.py",
     "original_path": "tests/test_config_loader.py",
     "category": "test",
-    "size_bytes": 890
+    "size_bytes": 908
   },
   {
     "flat_name": "tests__test_crs_warp.py",
@@ -1887,7 +1947,7 @@
     "flat_name": "tests__test_major_revision_gates.py",
     "original_path": "tests/test_major_revision_gates.py",
     "category": "test",
-    "size_bytes": 12121
+    "size_bytes": 12445
   },
   {
     "flat_name": "tests__test_model_artifacts.py",
@@ -1905,7 +1965,7 @@
     "flat_name": "tests__test_nyc_adaptive_pfi.py",
     "original_path": "tests/test_nyc_adaptive_pfi.py",
     "category": "test",
-    "size_bytes": 2529
+    "size_bytes": 2624
   },
   {
     "flat_name": "tests__test_pipeline_smoke.py",
@@ -1917,7 +1977,7 @@
     "flat_name": "tests__test_raster.py",
     "original_path": "tests/test_raster.py",
     "category": "test",
-    "size_bytes": 3041
+    "size_bytes": 3571
   },
   {
     "flat_name": "tests__test_reproducibility.py",
@@ -1935,13 +1995,19 @@
     "flat_name": "tests__test_scenarios.py",
     "original_path": "tests/test_scenarios.py",
     "category": "test",
-    "size_bytes": 1255
+    "size_bytes": 1981
   },
   {
     "flat_name": "tests__test_spatial_cv.py",
     "original_path": "tests/test_spatial_cv.py",
     "category": "test",
-    "size_bytes": 1065
+    "size_bytes": 1811
+  },
+  {
+    "flat_name": "tests__test_submission_hard_gates.py",
+    "original_path": "tests/test_submission_hard_gates.py",
+    "category": "test",
+    "size_bytes": 18850
   },
   {
     "flat_name": "tests__test_validation.py",
