@@ -1,100 +1,168 @@
 {
+  "schema": "raw_download_manifest/v2",
   "bbox": [
     -74.03,
     40.68,
     -73.94,
     40.8
   ],
-  "out_dir": "data\\raw\\nyc_expanded",
-  "started_at": "2026-08-17T15:23:31.196758+00:00",
-  "finished_at": "2026-08-17T15:29:11.796950+00:00",
-  "assembly_ready": true,
+  "generated_from": "scripts/regenerate_download_manifest.py",
   "notes": [
-    "Lower Manhattan bbox subset (configs/nyc.yaml). Not citywide 1ft DEM.",
-    "Socrata may be blocked; ArcGIS/USGS/CDN mirrors used when needed.",
-    "Not 7Analytics PFIb.",
-    "Live core + optional layers present (311/Sandy/impervious/hydro when downloaded). Hydro in Lower Manhattan is mostly tidal river/waterbody \u2014 dist_stream_m is a distance-to-water proxy. event_rainfall constant grid is a scenario hook, not gauge/radar observations."
+    "Paths are relative to the project root (no absolute Windows paths).",
+    "sha256 / bytes / n_records are recomputed from the files on disk.",
+    "DEP stormwater polygons are a public ArcGIS mirror attributed to NYC DEP; official portal identity is not verified.",
+    "event_rainfall.tif is a constant scenario hook, not gauge/radar rainfall."
   ],
-  "layers": [
+  "files": [
     {
       "name": "dem",
-      "path": "data\\raw\\nyc_expanded\\dem.tif",
-      "status": "downloaded",
-      "source": "USGS 3DEP ImageServer",
-      "n_features": null,
-      "detail": "EPSG:4326 GeoTIFF"
-    },
-    {
-      "name": "dep_stormwater_flood",
-      "path": "data\\raw\\nyc_expanded\\dep_stormwater_flood.geojson",
-      "status": "downloaded",
-      "source": "ArcGIS Hub DEP moderate+2050 SLR",
-      "n_features": 3,
-      "detail": null
-    },
-    {
-      "name": "building_footprints",
-      "path": "data\\raw\\nyc_expanded\\building_footprints.geojson",
-      "status": "downloaded",
-      "source": "NYC MapHub BUILDING_view",
-      "n_features": 69718,
-      "detail": null
-    },
-    {
-      "name": "usgs_ida_hwm",
-      "path": "data\\raw\\nyc_expanded\\usgs_ida_hwm.geojson",
-      "status": "downloaded",
-      "source": "USGS ScienceBase P9OMBJPQ",
-      "n_features": 159,
-      "detail": null
-    },
-    {
-      "name": "flooding_311",
-      "path": "data\\raw\\nyc_expanded\\flooding_311.geojson",
-      "status": "downloaded",
-      "source": "arcgis_streetfloodtime",
-      "n_features": 1134,
-      "detail": null
-    },
-    {
-      "name": "fema_sandy",
-      "path": "data\\raw\\nyc_expanded\\fema_sandy.geojson",
-      "status": "downloaded",
-      "source": "arcgis_sandy_jzHs",
-      "n_features": 45,
-      "detail": null
+      "path": "data/raw/nyc_expanded/dem.tif",
+      "bytes": 5245782,
+      "sha256": "103370ee8d0667402f208e5773a3a11a634888b67154f6a2362261afd198db59",
+      "n_records": null,
+      "dataset_id": "usgs_3dep_elevation",
+      "landing_page": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
+      "type": "raster"
     },
     {
       "name": "impervious",
-      "path": "data\\raw\\nyc_expanded\\impervious.tif",
-      "status": "downloaded",
-      "source": "Esri Annual NLCD Fractional Impervious ImageServer",
-      "n_features": null,
-      "detail": "EPSG:4326 GeoTIFF, values scaled to fraction 0\u20131"
+      "path": "data/raw/nyc_expanded/impervious.tif",
+      "bytes": 2816752,
+      "sha256": "eb976a12db38861f74bd160c933a8ef2b278d6a5f5f726b2118d4af98a2d0676",
+      "n_records": null,
+      "dataset_id": "nlcd_annual_fractional_impervious",
+      "landing_page": "https://di-nlcd.img.arcgis.com/arcgis/rest/services/USA_NLCD_Annual_LandCover_Fractional_Impervious_Surface/ImageServer",
+      "type": "raster"
     },
     {
-      "name": "event_rainfall",
-      "path": "data\\raw\\nyc_expanded\\event_rainfall.tif",
-      "status": "downloaded",
-      "source": "synthetic_constant_grid",
-      "n_features": null,
-      "detail": "Uniform 75.0 mm/h over bbox (Ida-like scenario hook; not gauge radar)"
+      "name": "building_footprints",
+      "path": "data/raw/nyc_expanded/building_footprints.geojson",
+      "bytes": 64021806,
+      "sha256": "5ee3badb7a7a0d1c2b888b55bc94217126c9a7efef07dcf5214859b096e7e5e8",
+      "n_records": 69718,
+      "dataset_id": "nyc_maphub_building_view",
+      "landing_page": "https://services6.arcgis.com/yG5s3afENB5iO9fj/arcgis/rest/services/BUILDING_view/FeatureServer/0",
+      "type": "vector"
     },
     {
       "name": "hydro_streams",
-      "path": "data\\raw\\nyc_expanded\\hydro_streams.geojson",
-      "status": "downloaded",
-      "source": "usgs_nhdplus_hr",
-      "n_features": 117,
-      "detail": "NHDPlus HR flowlines+areas+waterbodies; NetworkNHDFlowline=36, NonNetworkNHDFlowline=9, NHDArea=4, NHDWaterbody=69; wrote 117 after bbox clip. Honesty: mostly tidal rivers/waterbodies for LM \u2014 dist_stream_m is distance-to-water, not classic stream proximity."
+      "path": "data/raw/nyc_expanded/hydro_streams.geojson",
+      "bytes": 88192,
+      "sha256": "5b0d02627209f5fa007ce7f35fde6d818b8b0ae22838fa51f2296d20d9f66919",
+      "n_records": 117,
+      "dataset_id": "usgs_nhdplus_hr",
+      "landing_page": "https://hydro.nationalmap.gov/arcgis/rest/services/NHDPlus_HR/MapServer",
+      "type": "vector"
     },
     {
-      "name": "floodnet",
-      "path": null,
-      "status": "skipped",
-      "source": "FloodNet",
-      "n_features": null,
-      "detail": "stub unreachable: HTTP 404 for https://api.floodnet.nyc/status\u2026 b'{\"error\":\"resource does not exist\",\"path\":\"$\",\"code\":\"not-found\"}'"
+      "name": "dep_stormwater_flood",
+      "path": "data/raw/nyc_expanded/dep_stormwater_flood.geojson",
+      "bytes": 24601038,
+      "sha256": "175c7b31edeabab8a2cd6fb32d68b2faf59f02874ce7ffde6bd1b7e5632881b8",
+      "n_records": 2,
+      "dataset_id": "nyc_dep_stormwater_flood_current_slr",
+      "landing_page": "https://data.cityofnewyork.us/Environment/NYC-Stormwater-Flood-Maps/9i7c-xyvv",
+      "attribution": "public ArcGIS mirror attributed to NYC DEP",
+      "official_identity_verified": "false",
+      "type": "vector"
+    },
+    {
+      "name": "dep_stormwater_flood_2050slr",
+      "path": "data/raw/nyc_expanded/dep_stormwater_flood_2050slr.geojson",
+      "bytes": 27170031,
+      "sha256": "f2943e366c15df66972b2be06070640ead3fcddeca304ca4c9314fd447940187",
+      "n_records": 2,
+      "dataset_id": "nyc_dep_stormwater_flood_2050_slr",
+      "landing_page": "https://data.cityofnewyork.us/Environment/NYC-Stormwater-Flood-Maps/9i7c-xyvv",
+      "attribution": "public ArcGIS mirror attributed to NYC DEP",
+      "official_identity_verified": "false",
+      "type": "vector"
+    },
+    {
+      "name": "flooding_311",
+      "path": "data/raw/nyc_expanded/flooding_311.geojson",
+      "bytes": 498356,
+      "sha256": "a275d4540e268acea81ccb3fb50589b21f8d16ea19fb15d291c2f2340d1052b8",
+      "n_records": 1164,
+      "dataset_id": "nyc311_76ig_c548_street_flooding",
+      "landing_page": "https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-2019/76ig-c548",
+      "time_window": "2010-01-01 <= created_date < 2015-01-01",
+      "type": "vector"
+    },
+    {
+      "name": "flooding_311_query",
+      "path": "data/raw/nyc_expanded/flooding_311_query.json",
+      "bytes": 1381,
+      "sha256": "c8c129859619707f6f45c6be8e7032f4c7d1e09c4d8ab676ed84cc0b2ee84f08",
+      "n_records": null,
+      "dataset_id": "nyc311_76ig_c548_street_flooding",
+      "landing_page": "https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-2019/76ig-c548",
+      "time_window": "2010-01-01 <= created_date < 2015-01-01",
+      "type": "json"
+    },
+    {
+      "name": "usgs_ida_hwm",
+      "path": "data/raw/nyc_expanded/usgs_ida_hwm.geojson",
+      "bytes": 43209,
+      "sha256": "2ca3f65a7c9ba3655efa7236fe795acc04e374038945a196ab206240188517af",
+      "n_records": 159,
+      "dataset_id": "usgs_sciencebase_P9OMBJPQ_ida_hwm",
+      "landing_page": "https://www.sciencebase.gov/catalog/item/618975c8d34ec04fc9c5a049",
+      "type": "vector"
+    },
+    {
+      "name": "fema_sandy",
+      "path": "data/raw/nyc_expanded/fema_sandy.geojson",
+      "bytes": 11422173,
+      "sha256": "457be2e3b0ddcfba4eeaa5f95753ca28c917527acdbf5e7b2d9f64b6da945801",
+      "n_records": 45,
+      "dataset_id": "sandy_inundation_zone_public_mirror",
+      "landing_page": "https://data.cityofnewyork.us/Environment/Hurricane-Sandy-Inundation-Zone/uyj8-7rv5",
+      "role": "negative_control",
+      "type": "vector"
+    },
+    {
+      "name": "event_rainfall",
+      "path": "data/raw/nyc_expanded/event_rainfall.tif",
+      "bytes": 24996,
+      "sha256": "391feaa67c0ef9d87f45fd5cd5173c0a3384ebff5ba604078207bc19cd5fde6a",
+      "n_records": null,
+      "dataset_id": "synthetic_constant_rainfall_hook",
+      "note": "Uniform constant mm/h scenario hook; NOT gauge/radar observations.",
+      "type": "raster"
+    },
+    {
+      "name": "floodnet_sensors",
+      "path": "data/raw/nyc_expanded/floodnet_sensors.geojson",
+      "bytes": 35769,
+      "sha256": "0470c5bc7048247277b47ba991fc87c328a5c510133ad64e97e7ce925be82cad",
+      "n_records": 69,
+      "dataset_id": "kb2e-tjy3",
+      "landing_page": "https://data.cityofnewyork.us/Environment/FloodNet-Sensor-Deployment-Metadata/kb2e-tjy3",
+      "role": "external_validation",
+      "type": "vector"
+    },
+    {
+      "name": "floodnet_events",
+      "path": "data/raw/nyc_expanded/floodnet_events.json",
+      "bytes": 6498329,
+      "sha256": "73e75ae308085fc3afe973dbfbe28dc9543489da70da8b2bbc3de92204bebda2",
+      "n_records": 3213,
+      "dataset_id": "aq7i-eu5q",
+      "landing_page": "https://data.cityofnewyork.us/Environment/FloodNet-Street-Flooding-Events-Measured-by-FloodN/aq7i-eu5q",
+      "role": "external_validation",
+      "type": "json"
+    },
+    {
+      "name": "floodnet_query",
+      "path": "data/raw/nyc_expanded/floodnet_query.json",
+      "bytes": 1370,
+      "sha256": "604f7590b8aacd648f76eec1ff87d5123ae8b968e9e3dae160c1bc6d33dd010f",
+      "n_records": null,
+      "dataset_id": "aq7i-eu5q+kb2e-tjy3",
+      "landing_page": "https://data.cityofnewyork.us/Environment/FloodNet-Street-Flooding-Events-Measured-by-FloodN/aq7i-eu5q",
+      "role": "external_validation",
+      "type": "json"
     }
   ]
 }

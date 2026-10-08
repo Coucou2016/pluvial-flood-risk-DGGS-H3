@@ -9,8 +9,8 @@ from pathlib import Path
 import pandas as pd
 
 from pluvial_flood_risk.config import (
+    DEFAULT_PARENT_RESOLUTION_OFFSET,
     DEFAULT_SPATIAL_CV_FOLDS,
-    DEFAULT_SPATIAL_CV_K,
     MODELS_DIR,
     OUTPUTS_DIR,
     PROCESSED_DIR,
@@ -18,6 +18,7 @@ from pluvial_flood_risk.config import (
     PROVENANCE_SYNTHETIC,
     TARGET_CLASS_COLUMN,
     TARGET_COLUMN,
+    assert_feature_is_trained_for_scenario,
 )
 from pluvial_flood_risk.features import engineer_features_for_cells, feature_matrix
 from pluvial_flood_risk.h3_grid import bbox_to_cells, cell_centers, cell_resolution
@@ -70,14 +71,18 @@ def _data_provenance(df: pd.DataFrame) -> str:
 def run_training(
     data_path: Path | None = None,
     model_dir: Path | None = None,
-    spatial_cv_k: int = DEFAULT_SPATIAL_CV_K,
+    parent_resolution_offset: int = DEFAULT_PARENT_RESOLUTION_OFFSET,
     spatial_cv_folds: int = DEFAULT_SPATIAL_CV_FOLDS,
     random_seed: int | None = None,
     allow_synthetic: bool = False,
     refuse_synthetic: bool = False,
+    spatial_cv_k: int | None = None,
 ) -> dict:
     from pluvial_flood_risk.config import RANDOM_SEED
 
+    # Deprecated kwarg alias (``k_ring``/``k`` was a parent-resolution offset).
+    if spatial_cv_k is not None:
+        parent_resolution_offset = int(spatial_cv_k)
     seed = int(RANDOM_SEED if random_seed is None else random_seed)
     df = load_training_table(data_path, allow_synthetic=allow_synthetic)
     if refuse_synthetic or not allow_synthetic:
@@ -95,7 +100,7 @@ def run_training(
         y_class,
         y_risk,
         cells=cells,
-        spatial_cv_k=spatial_cv_k,
+        parent_resolution_offset=parent_resolution_offset,
         spatial_cv_folds=spatial_cv_folds,
         random_seed=seed,
     )
@@ -145,7 +150,8 @@ def run_training(
         extra={
             "n_cells": int(len(df)),
             "metrics": metrics,
-            "spatial_cv_k": spatial_cv_k,
+            "parent_resolution_offset": parent_resolution_offset,
+            "spatial_cv_k": parent_resolution_offset,
             "spatial_cv_folds": spatial_cv_folds,
             "random_seed": seed,
             "evaluation": {
@@ -247,13 +253,20 @@ def run_inference(
     X = df[feature_cols].to_numpy(dtype=float)
 
     risk, proba, pred_class = predict(clf, reg, X)
-    df["predicted_risk"] = risk
-    df["flood_probability"] = proba
-    df["PFI_h"] = proba
+    # Terminology (P0-10): uncalibrated rank scores, not probabilities.
+    df["predicted_evidence_susceptibility"] = risk
+    df["susceptibility_score"] = proba
     df["predicted_class"] = pred_class
     df["rainfall_mm_h"] = rainfall_mm_h
+    # Deprecated aliases (kept only so old downstream scripts keep resolving;
+    # NOT the paper-facing terminology — see P0-10).
+    df["predicted_risk"] = risk
+    df["flood_probability"] = proba
 
     output_dir = output_dir or OUTPUTS_DIR
+    to_parquet(df, output_dir / "susceptibility_cells.parquet")
+    to_geojson(df, output_dir / "susceptibility_cells.geojson")
+    # Backward-compatible filenames (deprecated).
     to_parquet(df, output_dir / "risk_cells.parquet")
     to_geojson(df, output_dir / "risk_cells.geojson")
     return df
@@ -268,13 +281,30 @@ def run_inference_scenarios(
     sources=None,
     fallback_synthetic: bool = False,
     use_deployment: bool = True,
+    train_df: pd.DataFrame | None = None,
+    allow_unsupported: bool = False,
 ) -> pd.DataFrame:
     """
-    Event-conditioned PFI_h(c, r): static features once, rainfall r varies.
+    Event-conditioned susceptibility: static features once, rainfall ``r`` varies.
 
-    Writes ``pfi_h_scenarios.parquet`` and ``.csv`` under ``output_dir``.
-    Maps always use the deployment_full model when available.
+    P0-11: ``rainfall_mm_h`` is **not** a trained model input (it is constant in
+    the frozen table), so the model cannot respond to a rainfall scenario. This
+    interface is therefore refused unless the caller passes a training frame in
+    which the scenario feature is actually learned
+    (:func:`config.assert_feature_is_trained_for_scenario`, ``min_unique=3``) or
+    explicitly opts in to the unsupported diagnostic via ``allow_unsupported``.
+    Future event models should populate ``config.EVENT_FEATURE_COLUMNS``.
     """
+    if not allow_unsupported:
+        if train_df is None:
+            raise ValueError(
+                "run_inference_scenarios requires train_df to verify that the rainfall "
+                "scenario feature is a learned input. rainfall_mm_h is NOT in "
+                "FEATURE_COLUMNS (zero training variance, P0-11). Provide train_df or "
+                "pass allow_unsupported=True for a documented non-physical diagnostic."
+            )
+        assert_feature_is_trained_for_scenario(train_df, "rainfall_mm_h", min_unique=3)
+
     model_dir = model_dir or MODELS_DIR
     output_dir = output_dir or OUTPUTS_DIR
     role = ROLE_DEPLOYMENT if use_deployment else None
@@ -302,26 +332,33 @@ def run_inference_scenarios(
         df["scenario"] = name
         X = df[feature_cols].to_numpy(dtype=float)
         risk, proba, pred_class = predict(clf, reg, X)
+        df["predicted_evidence_susceptibility"] = risk
+        df["susceptibility_score"] = proba
+        df["predicted_class"] = pred_class
         df["predicted_risk"] = risk
         df["flood_probability"] = proba
-        df["PFI_h"] = proba
-        df["predicted_class"] = pred_class
+        # Mark whether rainfall is actually a model input (it is not, by default).
+        df["rainfall_is_model_input"] = "rainfall_mm_h" in feature_cols
         frames.append(df)
 
     out = pd.concat(frames, ignore_index=True) if frames else base
     output_dir.mkdir(parents=True, exist_ok=True)
-    to_parquet(out, output_dir / "pfi_h_scenarios.parquet")
-    out.to_csv(output_dir / "pfi_h_scenarios.csv", index=False)
+    to_parquet(out, output_dir / "susceptibility_scenarios.parquet")
+    out.to_csv(output_dir / "susceptibility_scenarios.csv", index=False)
     return out
 
 
 def run_evaluation(
     data_path: Path | None = None,
     model_dir: Path | None = None,
-    spatial_cv_k: int = DEFAULT_SPATIAL_CV_K,
+    parent_resolution_offset: int = DEFAULT_PARENT_RESOLUTION_OFFSET,
     spatial_cv_folds: int = DEFAULT_SPATIAL_CV_FOLDS,
     allow_synthetic: bool = False,
+    spatial_cv_k: int | None = None,
+    cv_buffer_m: float = 0.0,
 ) -> dict:
+    if spatial_cv_k is not None:
+        parent_resolution_offset = int(spatial_cv_k)
     df = load_training_table(data_path, allow_synthetic=allow_synthetic)
     model_dir = model_dir or MODELS_DIR
     # Evaluation metrics on held-out OOF are preferred; in-sample full-table
@@ -347,7 +384,7 @@ def run_evaluation(
 
     if "h3_index" in df.columns:
         cell_list = df["h3_index"].astype(str).tolist()
-        groups = block_ids_for_cells(cell_list, spatial_cv_k)
+        groups = block_ids_for_cells(cell_list, parent_resolution_offset)
         metrics.update(
             spatial_block_cv_metrics(
                 X,
@@ -356,6 +393,7 @@ def run_evaluation(
                 groups,
                 n_splits=spatial_cv_folds,
                 cells=cell_list,
+                buffer_m=cv_buffer_m,
             )
         )
         fold_rows = metrics.pop("spatial_cv_fold_table", None)
@@ -384,7 +422,7 @@ def run_evaluation(
         metrics.update(
             compare_baselines(
                 df,
-                spatial_cv_k=spatial_cv_k,
+                parent_resolution_offset=parent_resolution_offset,
                 spatial_cv_folds=spatial_cv_folds,
                 feature_cols=feature_cols,
             )
@@ -486,22 +524,19 @@ def nyc_smoke_test(
             raw_dir / "flooding_311.geojson",
             raw_dir / "usgs_ida_hwm.geojson",
         ]
-        # Optional FloodNet stays config-driven (absent → no-op).
-        from pluvial_flood_risk.floodnet import usable_floodnet_path
-
-        fn = usable_floodnet_path((cfg.get("paths") or {}).get("floodnet"))
-        if fn is not None:
-            sources.flood_points_paths = list(sources.flood_points_paths) + [fn]
+        # FloodNet is never a training label (P0-3); it is read only by the
+        # held-out external-validation diagnostic.
         sandy = raw_dir / "fema_sandy.geojson"
         if sandy.exists():
             sources.coastal_path = sandy
 
     labels_cfg = cfg.get("labels") or {}
-    include_floodnet = bool(labels_cfg.get("include_floodnet", False))
-    floodnet_status = floodnet_join_status(
-        (cfg.get("paths") or {}).get("floodnet"),
-        include=include_floodnet,
-    )
+    if "include_floodnet" in labels_cfg:
+        raise ValueError(
+            "labels.include_floodnet was removed (P0-3); FloodNet is external "
+            "validation only. See the external_validation: config block."
+        )
+    floodnet_status = "disabled_external_validation_only"
 
     df = assemble_h3_table(
         bbox,
@@ -517,7 +552,9 @@ def nyc_smoke_test(
     table_path = processed / "nyc_h3_cells.parquet"
     df.to_parquet(table_path, index=False)
 
-    value_col = "flood_risk" if "flood_risk" in df.columns else "predicted_risk"
+    value_col = "evidence_score" if "evidence_score" in df.columns else (
+        "flood_risk" if "flood_risk" in df.columns else "susceptibility_score"
+    )
     diag_cfg = cfg.get("diagnostics") or {}
     diag_res = [int(r) for r in (diag_cfg.get("resolutions") or [8, 9, 10])]
     # Paper-facing ladder needs fine_res >= 10 (Svellingen-style design, open labels).
@@ -541,7 +578,7 @@ def nyc_smoke_test(
     # in figures.py; Table 4 / Fig. 6 / Fig. S1 all read this CSV.
     jaccard_df = resolution_ladder_topk_diagnostics(
         jaccard_source,
-        value_col=value_col if value_col in jaccard_source.columns else "flood_risk",
+        value_col=value_col if value_col in jaccard_source.columns else "evidence_score",
         resolutions=diag_res_use,
         hotspot_budget=float(diag_cfg.get("hotspot_budget", 0.10)),
         n_hard_boot=HARD_TIE_BOOTSTRAP_PAPER,
@@ -627,9 +664,10 @@ def nyc_smoke_test(
         sources=sources,
         fallback_synthetic=used_fixtures,
         use_deployment=True,
+        allow_unsupported=True,  # rainfall is NOT a model input (P0-11); diagnostic only
     )
 
-    # Adaptive screen after training: use ML PFI_h / flood_probability (not pre-train synthetic scores).
+    # Adaptive screen after training: use the ML susceptibility score, not pre-train synthetic.
     adaptive_cfg = cfg.get("adaptive") or {}
     adaptive_rain = float(cfg.get("rainfall_mm_h", rainfall))
     if scenarios:
@@ -648,15 +686,15 @@ def nyc_smoke_test(
     mixed_cells, adaptive_metrics = run_adaptive_refinement(
         coarse_pred,
         fine_res=int(adaptive_cfg.get("fine_res", resolution + 1)),
-        score_col="PFI_h",
-        proba_col="flood_probability",
+        score_col="susceptibility_score",
+        proba_col="susceptibility_score",
         score_quantile=float(adaptive_cfg.get("risk_quantile", 0.8)),
         uncertainty_min=float(adaptive_cfg.get("uncertainty_min", 0.7)),
         expand_k=int(adaptive_cfg.get("expand_neighbors", 1)),
     )
     adaptive_metrics = {
         **adaptive_metrics,
-        "score_source": "trained_PFI_h",
+        "score_source": "trained_susceptibility_score",
         "adaptive_rainfall_mm_h": adaptive_rain,
     }
 
@@ -665,8 +703,8 @@ def nyc_smoke_test(
     ablation = adaptive_vs_fixed_ablation(
         coarse_pred,
         fine_res=int(adaptive_cfg.get("fine_res", resolution + 1)),
-        score_col="PFI_h",
-        proba_col="flood_probability",
+        score_col="susceptibility_score",
+        proba_col="susceptibility_score",
         score_quantile=float(adaptive_cfg.get("risk_quantile", 0.8)),
         expand_k=int(adaptive_cfg.get("expand_neighbors", 1)),
     )

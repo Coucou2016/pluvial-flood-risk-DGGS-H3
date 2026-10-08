@@ -1,25 +1,32 @@
 #!/usr/bin/env python
-"""Source-ablation for the composite open-evidence target (reviewer M2).
+"""Source-ablation and physics/reporting/full models for the open-evidence target.
 
-The composite target ``flood_risk = max(dep_area_frac, complaint_presence,
-ida_hwm_presence)`` mixes three heterogeneous sources. To test construct
-validity we re-run the *same* spatial H3-block cross-validation (GBM, k=2 parent
-blocks, 5 folds) against seven target definitions and report discrimination
-(ROC-AUC / average precision) and thresholded accuracy/F1 plus prevalence:
+Major Revision 2026-10-08
+-------------------------
+The MAIN target is now the binary union
+``evidence_positive = (dep_area_frac>0) | (complaint_count>0) | (ida_hwm_count>0)``.
+This script tests construct validity by re-running the *same* spatial H3-block
+cross-validation (GBM, parent-resolution offset = 2 → R7 blocks, 5 folds) against
+several target definitions and feature subsets:
 
-- ``dep_only``                 DEP stormwater polygon area fraction (categories 1-2)
-- ``complaint_only``           311 crowd-report presence
-- ``hwm_only``                 USGS Ida high-water-mark presence
-- ``complaint_hwm``            311 OR HWM presence (observational evidence)
-- ``composite``                the current max() target (baseline)
-- ``composite_no_diststream``  composite target, with dist_stream_m dropped from X
-- ``complaint_no_building_density``  311-only target, building_density dropped from X
+Target definitions
+- ``dep_only``        DEP stormwater polygon presence (categories 1-2)
+- ``complaint_only``  311 crowd-report presence
+- ``hwm_only``        USGS Ida high-water-mark presence
+- ``complaint_hwm``   311 OR HWM presence (observational evidence)
+- ``evidence_union``  the main binary union target (baseline)
+- ``evidence_union_no_distwater``  union, with dist_mapped_water_m dropped
+- ``complaint_no_building_density``  311-only, building_density dropped
 
-The headline question is whether the observed ranking ability is dominated by a
+Feature-subset models (P1-1), all on the main union target
+- ``union_physics_only``    terrain / hydrology predictors only
+- ``union_reporting_only``  exposure / reporting-opportunity predictors only
+- ``union_full``            all physics + reporting predictors
+
+The headline question is whether observed ranking ability is dominated by a
 single source (notably DEP, whose H&H model outputs share drivers with the
 topographic/impervious predictors) or is reproduced across source definitions.
-Single-class targets (e.g. HWM in the Lower Manhattan extent, where 0 HWM points
-fall) are recorded with prevalence only and not fitted.
+Single-class targets are recorded with prevalence only and not fitted.
 
 Outputs:
 - outputs/source_ablation.json  (nested by pilot)
@@ -41,8 +48,12 @@ sys.path.insert(0, str(ROOT / "src"))
 from pluvial_flood_risk.config import FEATURE_COLUMNS, OUTPUTS_DIR, PROCESSED_DIR  # noqa: E402
 from pluvial_flood_risk.spatial_cv import block_ids_for_cells, spatial_block_cv_metrics  # noqa: E402
 
-SPATIAL_CV_K = 2
+PARENT_RESOLUTION_OFFSET = 2
 SPATIAL_CV_FOLDS = 5
+
+# P1-1: split the production feature set into physics vs reporting/exposure.
+PHYSICS_FEATURES = ["elevation_m", "slope_deg", "dem_d8_accum_proxy", "dist_mapped_water_m"]
+REPORTING_FEATURES = ["impervious_frac", "building_density", "building_area_fraction"]
 
 PILOTS = [
     ("lower_manhattan", PROCESSED_DIR / "nyc_h3_cells.parquet"),
@@ -56,88 +67,81 @@ def _require_cols(df: pd.DataFrame, *cols: str) -> None:
         raise KeyError(f"table missing source columns {missing}")
 
 
-def target_variants(df: pd.DataFrame) -> dict[str, tuple[np.ndarray, np.ndarray, str]]:
-    """Return {name: (y_class, y_risk, feature_drop)} for each source definition.
+def target_variants(
+    df: pd.DataFrame,
+) -> dict[str, tuple[np.ndarray, np.ndarray, list[str] | None]]:
+    """Return {name: (y_class, y_risk, feature_columns_or_None)}.
 
-    ``feature_drop`` is a column name to remove from the feature matrix ('' means
-    keep all FEATURE_COLUMNS). The composite target is read from the assembled
-    ``flood_class`` / ``flood_risk`` columns so it matches the primary pipeline
-    exactly.
+    ``feature_columns_or_None`` is a subset of ``FEATURE_COLUMNS`` (``None`` keeps
+    all). The union target is read from the assembled ``evidence_positive`` /
+    ``evidence_score`` columns so it matches the primary pipeline exactly.
     """
     _require_cols(
         df,
         "dep_area_frac",
         "complaint_presence",
         "ida_hwm_presence",
-        "flood_class",
-        "flood_risk",
+        "evidence_positive",
+        "evidence_score",
     )
     dep_pos = (df["dep_area_frac"].to_numpy(dtype=float) > 1e-9).astype(int)
-    complaint_pos = df["complaint_presence"].to_numpy(dtype=int)
+    complaint_pos = df["complaint_count"].to_numpy(dtype=int)
+    complaint_pos = (complaint_pos > 0).astype(int) if "complaint_count" in df.columns else df[
+        "complaint_presence"
+    ].to_numpy(dtype=int)
     hwm_pos = df["ida_hwm_presence"].to_numpy(dtype=int)
     complaint_hwm_pos = ((complaint_pos + hwm_pos) > 0).astype(int)
+    union_class = df["evidence_positive"].to_numpy(dtype=int)
+    union_score = df["evidence_score"].to_numpy(dtype=float)
+
+    physics = [c for c in PHYSICS_FEATURES if c in FEATURE_COLUMNS]
+    reporting = [c for c in REPORTING_FEATURES if c in FEATURE_COLUMNS]
 
     return {
-        "dep_only": (
-            dep_pos,
-            df["dep_area_frac"].to_numpy(dtype=float),
-            "",
-        ),
-        "complaint_only": (
-            complaint_pos,
-            complaint_pos.astype(float),
-            "",
-        ),
-        "hwm_only": (
-            hwm_pos,
-            hwm_pos.astype(float),
-            "",
-        ),
-        "complaint_hwm": (
-            complaint_hwm_pos,
-            np.maximum(complaint_pos, hwm_pos).astype(float),
-            "",
-        ),
-        "composite": (
-            df["flood_class"].to_numpy(dtype=int),
-            df["flood_risk"].to_numpy(dtype=float),
-            "",
-        ),
-        "composite_no_diststream": (
-            df["flood_class"].to_numpy(dtype=int),
-            df["flood_risk"].to_numpy(dtype=float),
-            "dist_stream_m",
+        "dep_only": (dep_pos, df["dep_area_frac"].to_numpy(dtype=float), None),
+        "complaint_only": (complaint_pos, complaint_pos.astype(float), None),
+        "hwm_only": (hwm_pos, hwm_pos.astype(float), None),
+        "complaint_hwm": (complaint_hwm_pos, np.maximum(complaint_pos, hwm_pos).astype(float), None),
+        "evidence_union": (union_class, union_score, None),
+        "evidence_union_no_distwater": (
+            union_class,
+            union_score,
+            [c for c in FEATURE_COLUMNS if c != "dist_mapped_water_m"],
         ),
         "complaint_no_building_density": (
             complaint_pos,
             complaint_pos.astype(float),
-            "building_density",
+            [c for c in FEATURE_COLUMNS if c != "building_density"],
         ),
+        # P1-1 physics / reporting / full feature-subset models on the union target.
+        "union_physics_only": (union_class, union_score, physics),
+        "union_reporting_only": (union_class, union_score, reporting),
+        "union_full": (union_class, union_score, list(FEATURE_COLUMNS)),
     }
 
 
-def _feature_matrix(df: pd.DataFrame, drop: str) -> np.ndarray:
-    cols = [c for c in FEATURE_COLUMNS if c != drop]
-    missing = [c for c in cols if c not in df.columns]
+def _feature_matrix(df: pd.DataFrame, cols: list[str] | None) -> np.ndarray:
+    use = list(FEATURE_COLUMNS) if cols is None else list(cols)
+    missing = [c for c in use if c not in df.columns]
     if missing:
         raise KeyError(f"feature table missing columns {missing}")
-    return df[cols].to_numpy(dtype=np.float64)
+    return df[use].to_numpy(dtype=np.float64)
 
 
 def run_one_pilot(name: str, table_path: Path) -> list[dict]:
     df = pd.read_parquet(table_path)
     cells = df["h3_index"].astype(str).tolist()
-    groups = block_ids_for_cells(cells, SPATIAL_CV_K)
+    groups = block_ids_for_cells(cells, PARENT_RESOLUTION_OFFSET)
     variants = target_variants(df)
 
     rows: list[dict] = []
-    for target_name, (y_class, y_risk, drop) in variants.items():
+    for target_name, (y_class, y_risk, cols) in variants.items():
         base = {
             "pilot": name,
             "target": target_name,
             "n_cells": int(len(df)),
             "n_blocks": int(len(np.unique(groups))),
-            "feature_drop": drop or None,
+            "feature_subset": ",".join(cols) if cols is not None else "all",
         }
         if len(np.unique(y_class)) < 2:
             base.update(
@@ -147,7 +151,7 @@ def run_one_pilot(name: str, table_path: Path) -> list[dict]:
                     "roc_auc_pooled": None,
                     "roc_auc_mean": None,
                     "roc_auc_std": None,
-                    "pr_auc_pooled": None,
+                    "average_precision_pooled": None,
                     "accuracy_mean": None,
                     "f1_mean": None,
                     "note": "single-class target (not fitted)",
@@ -156,7 +160,7 @@ def run_one_pilot(name: str, table_path: Path) -> list[dict]:
             rows.append(base)
             continue
 
-        X = _feature_matrix(df, drop)
+        X = _feature_matrix(df, cols)
         m = spatial_block_cv_metrics(
             X,
             y_class,
@@ -173,10 +177,15 @@ def run_one_pilot(name: str, table_path: Path) -> list[dict]:
                 "roc_auc_pooled": _clean(m[f"ablation_{target_name}_roc_auc_pooled"]),
                 "roc_auc_mean": _clean(m[f"ablation_{target_name}_roc_auc_mean"]),
                 "roc_auc_std": _clean(m[f"ablation_{target_name}_roc_auc_std"]),
+                "average_precision_pooled": _clean(
+                    m[f"ablation_{target_name}_average_precision_pooled"]
+                ),
                 "pr_auc_pooled": _clean(m[f"ablation_{target_name}_pr_auc_pooled"]),
                 "accuracy_mean": _clean(m[f"ablation_{target_name}_accuracy_mean"]),
                 "accuracy_std": _clean(m[f"ablation_{target_name}_accuracy_std"]),
                 "f1_mean": _clean(m[f"ablation_{target_name}_f1_mean"]),
+                "roc_auc_ci_low": _clean(m[f"ablation_{target_name}_roc_auc_ci_low"]),
+                "roc_auc_ci_high": _clean(m[f"ablation_{target_name}_roc_auc_ci_high"]),
                 "note": "",
             }
         )
@@ -211,15 +220,19 @@ def main() -> None:
         ]
     payload = {
         "note": (
-            "Source-ablation (M2): same spatial H3-block CV (k=2 parent blocks, 5 folds, "
-            "GBM) refit to seven target definitions to test construct validity of the "
-            "composite max(dep_area_frac, complaint_presence, ida_hwm_presence) target; "
-            "includes complaint_no_building_density. "
-            "ROC-AUC is the headline ranking-discrimination metric; accuracy/F1 are "
-            "threshold-dependent. Single-class targets are not fitted."
+            "Source-ablation (M2): same spatial H3-block CV (parent-resolution offset = 2 "
+            "→ R7 blocks, 5 folds, GBM) refit to multiple target definitions and feature "
+            "subsets to test construct validity of the binary union evidence target "
+            "((dep_area_frac>0)|(complaint>0)|(hwm>0)); includes physics-only vs "
+            "reporting-only vs full models (P1-1). ROC-AUC is the headline "
+            "ranking-discrimination metric; accuracy/F1 are threshold-dependent. "
+            "Single-class targets are not fitted."
         ),
-        "spatial_cv_k": SPATIAL_CV_K,
+        "parent_resolution_offset": PARENT_RESOLUTION_OFFSET,
+        "spatial_cv_k": PARENT_RESOLUTION_OFFSET,
         "spatial_cv_folds": SPATIAL_CV_FOLDS,
+        "physics_features": [c for c in PHYSICS_FEATURES if c in FEATURE_COLUMNS],
+        "reporting_features": [c for c in REPORTING_FEATURES if c in FEATURE_COLUMNS],
         "pilots": nested,
     }
     (outputs / "source_ablation.json").write_text(

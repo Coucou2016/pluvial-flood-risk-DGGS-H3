@@ -1,0 +1,45 @@
+MIT License
+
+Copyright (c) 2026 The pluvial-flood-risk-DGGS-H3 authors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+Third-party data and documents
+------------------------------
+
+This MIT license covers the original source code, documentation, and derived
+artifacts authored for this repository. It does NOT re-license any third-party
+data or documents that are redistributed or referenced here. In particular:
+
+* Public geospatial layers (USGS 3DEP DEM, Esri NLCD fractional imperviousness,
+  NHDPlus HR hydrography, NYC DEP stormwater polygons, NYC 311 complaints,
+  USGS Hurricane Ida high-water marks, FEMA Sandy surge inundation, NYC
+  FloodNet events and sensor metadata) remain under the terms of their
+  respective publishers and Open Data licenses. See `data/raw/DATA_SOURCES.md`
+  and the per-directory `DOWNLOAD_MANIFEST.json` files for source URLs,
+  retrieval dates, and license notes.
+* The files `1-s2.0-S2212420926001032-main.pdf` and
+  `1-s2.0-S2212420926001032-main.md` are a copy of a third-party published
+  journal article (Elsevier / IJDRR) included for offline literature-review
+  and citation-caveat reference only. They are NOT covered by the MIT license,
+  are NOT redistributed with any claim of ownership, and should be replaced by
+  a DOI link (or removed) before any further redistribution. Copyright remains
+  with the original publisher and authors.

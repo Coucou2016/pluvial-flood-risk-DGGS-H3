@@ -1,0 +1,59 @@
+cff-version: 1.2.0
+message: "If you use this software or its derived artifacts, please cite it as below."
+title: "Spatially blocked pluvial-flood susceptibility learning on the H3 DGGS using heterogeneous open public data"
+type: software
+version: 0.1.0
+date-released: "2026-10-08"
+license: MIT
+repository-code: "https://github.com/Coucou2016/pluvial-flood-risk-DGGS-H3"
+abstract: >-
+  An open-evidence H3 discrete-global-grid protocol for urban pluvial-flood
+  susceptibility screening. The main target is a binary union of heterogeneous
+  public evidence (DEP stormwater polygons, NYC 311 street-flooding complaints,
+  USGS Hurricane Ida high-water marks); evaluation uses H3 parent-block spatial
+  cross-validation with metre guard bands and spatial-block bootstrap confidence
+  intervals. A strict, never-trained FloodNet external check did not establish
+  event-level skill and is reported as a core negative result. This is a
+  screening/susceptibility study, not a calibrated depth, probability, or
+  flood-event product, and it does not reproduce any proprietary index.
+keywords:
+  - pluvial flood
+  - flood susceptibility
+  - H3
+  - discrete global grid system
+  - spatial cross-validation
+  - machine learning
+  - open data
+authors:
+  - name: "Authors (confirm names, affiliations, ORCID before submission)"
+    # Placeholder: replace with real author list, affiliations, ORCID, and CRediT roles.
+preferred-citation:
+  type: article
+  title: "Spatially blocked pluvial-flood susceptibility learning on the H3 grid using heterogeneous open public data"
+  year: 2026
+  # Journal, volume, pages, and DOI are pending submission; do not invent them.
+  authors:
+    - name: "Authors (confirm names, affiliations, ORCID before submission)"
+references:
+  - type: software
+    title: "H3: A hexagonal hierarchical geospatial indexing system"
+    authors:
+      - name: "Uber Technologies, Inc."
+    year: 2026
+    url: "https://h3geo.org"
+  - type: article
+    title: "Scalable pluvial flood risk assessment: a data-driven framework integrating machine learning (ML) and discrete global grid systems (DGGS H3)"
+    authors:
+      - family-names: "Svellingen"
+        given-names: "W."
+      - family-names: "Torgersen"
+        given-names: "G."
+      - family-names: "Bruland"
+        given-names: "O."
+      - family-names: "Muthanna"
+        given-names: "T."
+    year: 2026
+    journal: "International Journal of Disaster Risk Reduction"
+    volume: 137
+    start: 106091
+    doi: "10.1016/j.ijdrr.2026.106091"

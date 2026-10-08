@@ -1,9 +1,11 @@
-"""Tests for bbox profiles and optional FloodNet join."""
+"""Tests for bbox profiles and FloodNet external-validation isolation (P0-3)."""
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
+
+import pytest
 
 from pluvial_flood_risk.assemble import sources_from_config
 from pluvial_flood_risk.config_loader import load_study_config, resolve_bbox
@@ -23,7 +25,6 @@ def test_nyc_bbox_profiles_resolve():
     assert smoke == cfg["smoke_bbox"]
     assert study == cfg["bbox"]
     assert expanded[2] - expanded[0] > study[2] - study[0]
-    # Option B: paper smoke path uses lower_manhattan (~262 R9)
     assert cfg["default_smoke_profile"] == "lower_manhattan"
     assert cfg["default_build_profile"] == "lower_manhattan"
     assert resolve_bbox(cfg, default=cfg["default_smoke_profile"]) == study
@@ -33,19 +34,47 @@ def test_nyc_bbox_profiles_resolve():
 def test_floodnet_absent_is_noop(tmp_path: Path):
     missing = tmp_path / "floodnet_sensors.geojson"
     assert usable_floodnet_path(missing) is None
-    assert floodnet_join_status(missing, include=True) == "absent"
-    assert floodnet_join_status(missing, include=False) == "disabled_by_config"
+    # FloodNet is external validation only — the status is never a training join.
+    assert floodnet_join_status(missing, include=True) == "external_validation_only"
+    assert floodnet_join_status(missing, include=False) == "external_validation_only"
 
+
+def test_floodnet_never_enters_training_points(tmp_path: Path):
+    """P0-3: even a non-empty FloodNet file must NOT be appended to training points."""
+    geo = tmp_path / "floodnet_sensors.geojson"
+    geo.write_text(
+        json.dumps(
+            {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "geometry": {"type": "Point", "coordinates": [-74.01, 40.71]},
+                        "properties": {"sensor_id": "demo"},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
     cfg = load_study_config(ROOT / "configs" / "nyc.yaml")
     cfg = dict(cfg)
     cfg["paths"] = dict(cfg["paths"])
-    cfg["paths"]["floodnet"] = missing
-    # Isolate from live data/raw/nyc/floodnet_sensors.geojson fallback.
     cfg["paths"]["raw_dir"] = tmp_path
-    cfg["labels"] = {"include_floodnet": True}
+    cfg["paths"]["flood_points"] = []
+    cfg["paths"]["floodnet"] = geo
     src = sources_from_config(cfg)
-    assert all(Path(p).name != "floodnet_sensors.geojson" or not Path(p).exists() for p in src.flood_points_paths)
-    assert missing not in src.flood_points_paths
+    assert geo not in src.flood_points_paths
+
+
+def test_include_floodnet_config_key_removed():
+    """The legacy labels.include_floodnet switch must raise (P0-3)."""
+    cfg = load_study_config(ROOT / "configs" / "nyc.yaml")
+    cfg = dict(cfg)
+    cfg["paths"] = dict(cfg["paths"])
+    cfg["labels"] = {"include_floodnet": True}
+    with pytest.raises(ValueError, match="include_floodnet"):
+        sources_from_config(cfg)
 
 
 def test_floodnet_official_dataset_ids():
@@ -63,9 +92,36 @@ def test_floodnet_official_dataset_ids():
     assert dn._FLOODNET_SENSORS_DATASET == "kb2e-tjy3"
 
 
-def test_floodnet_disabled_by_default_config():
+def test_config_uses_role_typed_blocks():
     cfg = load_study_config(ROOT / "configs" / "nyc.yaml")
-    assert cfg.get("labels", {}).get("include_floodnet") is False
+    assert "external_validation" in cfg
+    assert cfg["external_validation"]["floodnet"]["role"] == "external_validation"
+    assert cfg["negative_control"]["sandy"]["role"] == "negative_control"
+    assert "include_floodnet" not in (cfg.get("labels") or {})
+
+
+def test_floodnet_freeze_filters_events_and_sensors():
+    from datetime import datetime, timezone
+
+    from pluvial_flood_risk.floodnet import (
+        filter_events_before_freeze,
+        filter_sensors_before_freeze,
+    )
+
+    freeze = datetime(2026, 8, 30, tzinfo=timezone.utc)
+    events = [
+        {"flood_start_time": "2026-01-01T00:00:00Z"},
+        {"flood_start_time": "2026-09-15T00:00:00Z"},  # after freeze → dropped
+    ]
+    kept, audit = filter_events_before_freeze(events, freeze)
+    assert len(kept) == 1
+    assert audit["n_events_after_freeze_dropped"] == 1
+    assert audit["events_max_timestamp_after_filter"].startswith("2026-01-01")
+
+    sensors = [{"date_installed": "2026-05-01T00:00:00Z"}, {"date_installed": "2026-12-01T00:00:00Z"}]
+    s_kept, s_audit = filter_sensors_before_freeze(sensors, freeze)
+    assert len(s_kept) == 1
+    assert s_audit["n_sensors_after_freeze_dropped"] == 1
 
 
 def test_floodnet_heldout_artifact_if_present():
@@ -95,38 +151,3 @@ def test_311_official_query_freeze():
     assert "2015-01-01" in where
     assert "Sewer" not in where
     assert "$limit" not in where
-
-
-def test_floodnet_nonempty_appended_to_points(tmp_path: Path):
-    geo = tmp_path / "floodnet_sensors.geojson"
-    geo.write_text(
-        json.dumps(
-            {
-                "type": "FeatureCollection",
-                "features": [
-                    {
-                        "type": "Feature",
-                        "geometry": {"type": "Point", "coordinates": [-74.01, 40.71]},
-                        "properties": {"sensor_id": "demo"},
-                    }
-                ],
-            }
-        ),
-        encoding="utf-8",
-    )
-    assert usable_floodnet_path(geo) == geo
-    assert floodnet_join_status(geo, include=True) == "joined"
-
-    cfg = load_study_config(ROOT / "configs" / "nyc.yaml")
-    cfg = dict(cfg)
-    cfg["paths"] = dict(cfg["paths"])
-    cfg["paths"]["flood_points"] = []
-    cfg["paths"]["floodnet"] = geo
-    cfg["labels"] = {"include_floodnet": True}
-    src = sources_from_config(cfg)
-    assert geo in src.flood_points_paths
-
-    cfg["labels"] = {"include_floodnet": False}
-    src_off = sources_from_config(cfg)
-    assert geo not in src_off.flood_points_paths
-    assert floodnet_join_status(geo, include=False) == "disabled_by_config"

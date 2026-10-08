@@ -144,8 +144,10 @@ def predict(
         if cfg is None:
             raise click.UsageError("--scenarios requires --config with rainfall_scenarios")
         scen = rainfall_scenarios_from_config(cfg)
-        df = run_inference_scenarios(bbox, resolution, scen, model_dir, output_dir)
-        click.echo(f"PFI_h scenarios: {len(df)} rows ({len(scen)} rainfall rates) -> {output_dir}")
+        df = run_inference_scenarios(
+            bbox, resolution, scen, model_dir, output_dir, allow_unsupported=True
+        )
+        click.echo(f"susceptibility scenarios: {len(df)} rows ({len(scen)} rainfall rates) -> {output_dir}")
         return
 
     df = run_inference(bbox, resolution, model_dir, rainfall, output_dir)
@@ -175,8 +177,10 @@ def predict_scenarios(
     bbox = cfg["bbox"]
     resolution = cfg.get("resolution", resolution)
     scen = rainfall_scenarios_from_config(cfg)
-    df = run_inference_scenarios(bbox, resolution, scen, model_dir, output_dir)
-    click.echo(f"Wrote {len(df)} PFI_h rows -> {output_dir / 'pfi_h_scenarios.csv'}")
+    df = run_inference_scenarios(
+        bbox, resolution, scen, model_dir, output_dir, allow_unsupported=True
+    )
+    click.echo(f"Wrote {len(df)} susceptibility rows -> {output_dir / 'susceptibility_scenarios.csv'}")
 
 
 @main.command()

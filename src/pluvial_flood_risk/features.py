@@ -1,4 +1,15 @@
-"""Per-H3-cell feature engineering (terrain, hydrology proxies, exposure)."""
+"""Per-H3-cell feature engineering (terrain, hydrology proxies, exposure).
+
+Major Revision 2026-10-08
+-------------------------
+- P1-2: ``building_density`` uses a **land-area denominator** (cell area minus
+  mapped-water intersection) and ``building_area_fraction`` is added, so exposure
+  is not diluted by water cells and is not carried by count density alone.
+- P1-3: ``dist_stream_m`` renamed to ``dist_mapped_water_m`` (temporary alias kept).
+- P1-4: nearest-water distance is computed in **EPSG:2263 metres** (projected),
+  not WGS84 + haversine.
+- P1-5: ``flow_accum_proxy`` renamed to ``dem_d8_accum_proxy`` (see raster.py).
+"""
 
 from __future__ import annotations
 
@@ -24,10 +35,12 @@ def engineer_features_for_cells(
     rng: np.random.Generator | None = None,
 ) -> pd.DataFrame:
     """
-    Build feature matrix for H3 cells.
+    Build the demo feature matrix for H3 cells.
 
-    Demo mode: deterministic pseudo-random features from cell ID so runs are reproducible.
-    Replace with raster zonal stats (DEM, land use, buildings) in production.
+    Demo mode: deterministic pseudo-random features from cell ID so runs are
+    reproducible. Replace with raster zonal stats (DEM, land use, buildings) in
+    production. ``rainfall_mm_h`` is retained as a *scenario* column only; it is
+    not a trained model input (``config.FEATURE_COLUMNS``).
     """
     if not cells:
         return pd.DataFrame(columns=["h3_index", *FEATURE_COLUMNS])
@@ -43,25 +56,31 @@ def engineer_features_for_cells(
 
     elevation = 5.0 + 80.0 * u0 + 20.0 * lat_factor
     slope = 0.5 + 12.0 * u1
-    flow_accum = -np.log1p(-np.clip(u2, 1e-9, 1 - 1e-9)) * 2.0  # exponential-like
+    d8_accum = -np.log1p(-np.clip(u2, 1e-9, 1 - 1e-9)) * 2.0  # exponential-like
     impervious = np.clip(0.1 + 0.7 * _seeded_uniform(seeds, 4), 0, 1)
     building_density = impervious * (50 + 200 * _seeded_uniform(seeds, 5))
-    dist_stream = 20.0 + 800.0 * _seeded_uniform(seeds, 6)
+    building_area_fraction = np.clip(0.05 + 0.5 * impervious, 0, 1)
+    dist_water = 20.0 + 800.0 * _seeded_uniform(seeds, 6)
     land_cover_urban = (impervious > 0.45).astype(np.float64)
 
-    return pd.DataFrame(
+    df = pd.DataFrame(
         {
             "h3_index": cells,
             "elevation_m": elevation,
             "slope_deg": slope,
-            "flow_accum_proxy": flow_accum,
+            "dem_d8_accum_proxy": d8_accum,
             "impervious_frac": impervious,
             "building_density": building_density,
-            "dist_stream_m": dist_stream,
+            "building_area_fraction": building_area_fraction,
+            "dist_mapped_water_m": dist_water,
             "rainfall_mm_h": rainfall_mm_h,
             "land_cover_urban": land_cover_urban,
         }
     )
+    # Deprecated aliases so pre-rename call sites keep resolving.
+    df["flow_accum_proxy"] = d8_accum
+    df["dist_stream_m"] = dist_water
+    return df
 
 
 def aggregate_point_features_to_h3(
@@ -110,7 +129,11 @@ def count_points_to_h3(
 
 
 def haversine_m(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
-    """Great-circle distance in metres (WGS84 sphere)."""
+    """Great-circle distance in metres (WGS84 sphere).
+
+    Kept for the EPSG:2263-vs-haversine comparison test (P1-4); **not** the
+    production distance path.
+    """
     r = 6_371_000.0
     p1, p2 = np.radians(lat1), np.radians(lat2)
     dphi = np.radians(lat2 - lat1)
@@ -119,21 +142,55 @@ def haversine_m(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
     return float(2.0 * r * np.arcsin(np.sqrt(np.clip(a, 0.0, 1.0))))
 
 
+def _cell_land_area_km2(cells: list[str], hydro_path=None) -> dict[str, float]:
+    """Cell area (km²) on land, i.e. minus mapped-water intersection when known."""
+    from pluvial_flood_risk.h3_grid import cell_area_km2
+
+    land: dict[str, float] = {c: float(cell_area_km2(c)) for c in cells}
+    if hydro_path is None or not cells:
+        return land
+    try:
+        from pluvial_flood_risk.land_mask import cell_land_metrics
+
+        metrics = cell_land_metrics(cells, hydro_path)
+        frac = dict(zip(metrics["h3_index"], metrics["land_frac"]))
+        for c in cells:
+            lf = float(frac.get(c, 1.0))
+            if np.isfinite(lf):
+                land[c] = max(land[c] * float(np.clip(lf, 0.0, 1.0)), 1e-12)
+    except Exception:
+        # A non-GeoJSON hydro source (e.g. GPKG) or a read error: fall back to the
+        # full cell area rather than crashing the assembly.
+        pass
+    return land
+
+
 def building_density_from_vector(
     cells: list[str],
     buildings_path,
+    hydro_path=None,
 ) -> pd.DataFrame:
     """
-    Buildings per km² from footprints (centroids) or points.
+    Building count per **land** km² and footprint area fraction.
 
-    Uses ``count_points_to_h3`` / ``aggregate_point_features_to_h3`` so the
-    production path shares the same H3 point join as other layers.
+    Uses ``count_points_to_h3`` so the production path shares the same H3 point
+    join as other layers. The denominator is the cell land area (cell area minus
+    mapped-water intersection) so density is not diluted by water cells. Also
+    returns ``building_area_fraction`` (footprint ∩ cell / land area) and the
+    explicit ``building_count_per_land_km2`` alias.
     """
-    from pluvial_flood_risk.h3_grid import cell_area_km2, cell_resolution
+    from pluvial_flood_risk.h3_grid import cell_resolution
     from pluvial_flood_risk.vector_io import load_vector_records
 
     if not cells:
-        return pd.DataFrame(columns=["h3_index", "building_density", "building_area_frac"])
+        return pd.DataFrame(
+            columns=[
+                "h3_index",
+                "building_density",
+                "building_count_per_land_km2",
+                "building_area_fraction",
+            ]
+        )
 
     records = load_vector_records(buildings_path)
     res = cell_resolution(cells[0])
@@ -151,9 +208,10 @@ def building_density_from_vector(
     )
     count_map = dict(zip(counts["h3_index"], counts["point_count"])) if len(counts) else {}
 
+    import shapely
+
     from pluvial_flood_risk.crs_warp import project_geometry_for_area
     from pluvial_flood_risk.h3_grid import cell_boundary_polygon, geometry_to_candidate_cells
-    import shapely
 
     polys = [g for g, _ in records if g.geom_type in ("Polygon", "MultiPolygon")]
     area_frac = {c: 0.0 for c in cells}
@@ -173,26 +231,46 @@ def building_density_from_vector(
             except Exception:
                 area_frac[cell] = 0.0
 
+    land_area = _cell_land_area_km2(cells, hydro_path)
     density = []
     fracs = []
     for cell in cells:
-        km2 = max(cell_area_km2(cell), 1e-12)
+        km2 = max(land_area.get(cell, 1e-12), 1e-12)
         density.append(float(count_map.get(cell, 0)) / km2)
         fracs.append(area_frac[cell])
     return pd.DataFrame(
         {
             "h3_index": cells,
             "building_density": density,
-            "building_area_frac": fracs,
+            "building_count_per_land_km2": density,
+            "building_area_fraction": fracs,
         }
     )
 
 
-def dist_stream_from_vector(cells: list[str], hydro_path) -> pd.DataFrame:
+def _project_hydro(geoms: list):
+    """Union water geometries and reproject to EPSG:2263 (metres); fallback WGS84."""
+    import shapely
+
+    from pluvial_flood_risk.crs_warp import project_geometry_for_area
+
+    hydro = shapely.union_all(geoms) if len(geoms) > 1 else geoms[0]
+    try:
+        hydro_proj = project_geometry_for_area(hydro)
+        if hydro_proj is not None and not hydro_proj.is_empty:
+            return hydro_proj, True
+    except Exception:
+        pass
+    return hydro, False
+
+
+def dist_mapped_water_from_vector(cells: list[str], hydro_path) -> pd.DataFrame:
     """Distance (m) from each cell centre to the nearest mapped water geometry.
 
-    Column name remains ``dist_stream_m`` for schema compatibility; conceptually
-    this is distance-to-mapped-water (NHD/OSM), not necessarily inland streams.
+    Computed in EPSG:2263 (NAD83 / New York Long Island, metres) rather than
+    WGS84 + haversine, so distances are true projected metres. Conceptually this
+    is distance-to-mapped-water (NHD/OSM), not necessarily inland streams. The
+    deprecated column name ``dist_stream_m`` is also emitted as an alias.
     """
     from shapely.geometry import Point
     from shapely.ops import nearest_points
@@ -200,26 +278,46 @@ def dist_stream_from_vector(cells: list[str], hydro_path) -> pd.DataFrame:
     from pluvial_flood_risk.h3_grid import cell_centers
     from pluvial_flood_risk.vector_io import load_vector_records
 
+    if not cells:
+        return pd.DataFrame(columns=["h3_index", "dist_mapped_water_m"])
     records = load_vector_records(hydro_path)
     geoms = [g for g, _ in records if g is not None and not g.is_empty]
-    if not cells:
-        return pd.DataFrame(columns=["h3_index", "dist_stream_m"])
     if not geoms:
-        return pd.DataFrame({"h3_index": cells, "dist_stream_m": [np.nan] * len(cells)})
+        return pd.DataFrame({"h3_index": cells, "dist_mapped_water_m": [np.nan] * len(cells)})
 
-    import shapely
-
-    hydro = shapely.union_all(geoms) if len(geoms) > 1 else geoms[0]
+    hydro, is_projected = _project_hydro(geoms)
     lons, lats = cell_centers(cells)
     dists = []
-    for lon, lat in zip(lons, lats, strict=True):
-        pt = Point(float(lon), float(lat))
-        try:
-            nearest = nearest_points(pt, hydro)[1]
-            dists.append(haversine_m(float(lon), float(lat), float(nearest.x), float(nearest.y)))
-        except Exception:
-            dists.append(np.nan)
-    return pd.DataFrame({"h3_index": cells, "dist_stream_m": dists})
+    if is_projected:
+        from pluvial_flood_risk.crs_warp import area_transformer
+
+        transformer = area_transformer()
+        for lon, lat in zip(lons, lats, strict=True):
+            try:
+                x, y = transformer.transform(float(lon), float(lat))
+                pt = Point(float(x), float(y))
+                nearest = nearest_points(pt, hydro)[1]
+                dists.append(float(pt.distance(nearest)))
+            except Exception:
+                dists.append(np.nan)
+    else:
+        for lon, lat in zip(lons, lats, strict=True):
+            try:
+                pt = Point(float(lon), float(lat))
+                nearest = nearest_points(pt, hydro)[1]
+                dists.append(haversine_m(float(lon), float(lat), float(nearest.x), float(nearest.y)))
+            except Exception:
+                dists.append(np.nan)
+    return pd.DataFrame({"h3_index": cells, "dist_mapped_water_m": dists})
+
+
+def dist_stream_from_vector(cells: list[str], hydro_path) -> pd.DataFrame:
+    """Deprecated alias for :func:`dist_mapped_water_from_vector`.
+
+    Returns the ``dist_stream_m`` column name for backward compatibility.
+    """
+    out = dist_mapped_water_from_vector(cells, hydro_path)
+    return out.rename(columns={"dist_mapped_water_m": "dist_stream_m"})
 
 
 def feature_matrix(df: pd.DataFrame) -> np.ndarray:

@@ -28,11 +28,11 @@ def test_select_quantile_and_neighbor_expand():
 def test_adaptive_fewer_cells_than_uniform_fine():
     df = build_demo_dataset(bbox=TINY, resolution=8)
     df = df.copy()
-    df["predicted_risk"] = df["flood_risk"]
+    df["susceptibility_score"] = df["flood_risk"]
     mixed, metrics = run_adaptive_refinement(
         df,
         fine_res=10,
-        score_col="predicted_risk",
+        score_col="susceptibility_score",
         proba_col=None,
         score_quantile=0.8,
         expand_k=0,
@@ -43,15 +43,35 @@ def test_adaptive_fewer_cells_than_uniform_fine():
     assert len(mixed) == metrics["n_adaptive"]
 
 
-def test_hotspot_recall_vs_uniform():
+def test_hotspot_refinement_recall_vs_uniform():
     coarse = bbox_to_cells(*TINY, 8)
     fine = []
     for c in coarse:
         fine.extend(cell_children(c, 10))
     rng = np.random.default_rng(0)
     scores = rng.random(len(fine))
-    # Refine every coarse parent → recall should be 1
-    mixed = fine
-    m = adaptive_vs_uniform_metrics(mixed, fine, scores, hotspot_quantile=0.8)
-    assert m["hotspot_recall"] == 1.0
+    # Every parent refined to R10 → refinement recall should be 1.
+    refined_fine = list(fine)
+    mixed = list(fine)
+    m = adaptive_vs_uniform_metrics(
+        mixed, fine, scores, hotspot_quantile=0.8, refined_fine_cells=refined_fine
+    )
+    assert m["hotspot_refinement_recall"] == 1.0
     assert m["cell_count_ratio"] == 1.0
+
+
+def test_unrefined_hotspot_scores_zero():
+    """P0-7: a covered-but-unrefined hotspot must give refinement recall 0."""
+    coarse = bbox_to_cells(*TINY, 8)
+    fine = []
+    for c in coarse:
+        fine.extend(cell_children(c, 10))
+    rng = np.random.default_rng(1)
+    scores = rng.random(len(fine))
+    # Keep ONLY coarse parents (no fine children) → coverage is 1, refinement is 0.
+    mixed = list(coarse)
+    m = adaptive_vs_uniform_metrics(
+        mixed, fine, scores, hotspot_quantile=0.8, refined_fine_cells=[]
+    )
+    assert m["hotspot_refinement_recall"] == 0.0
+    assert m["hotspot_coverage_recall"] == 1.0

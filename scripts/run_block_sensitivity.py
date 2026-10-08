@@ -1,19 +1,26 @@
 #!/usr/bin/env python
-"""Block-size sensitivity for spatial cross-validation (reviewer M1).
+"""Block-size and buffer sensitivity for spatial cross-validation (reviewer M1/P0-5).
 
-The primary evaluation uses H3 parent blocks at k=2 (R9 -> R7). To test whether
-this coarsening is sufficient to break spatial dependence, the same spatial CV is
-re-run at k=1 (R8 blocks), k=2 (R7, primary), and k=3 (R6) where enough blocks
-exist, and Moran's I of the composite evidence score is computed at native R9
-k-ring adjacency as a measure of the target's spatial-autocorrelation scale.
+The primary evaluation uses H3 parent blocks at a parent-resolution offset of 2
+(R9 → R7). To test whether this coarsening is sufficient to break spatial
+dependence, the same spatial CV is re-run at offset 1 (R8 blocks), offset 2 (R7,
+primary), and offset 3 (R6) where enough blocks exist, and Moran's I of the
+binary evidence target is computed at native R9 adjacency as a measure of the
+target's spatial-autocorrelation scale.
+
+Major Revision 2026-10-08 (P0-5) additionally reports a **buffer sensitivity**
+table at 0/250/500/1000 m: training cells within the guard band of any held-out
+cell are purged (centroids projected to EPSG:2263), with the retained-train
+fraction and a spatial-block bootstrap 95% CI for pooled AUC/AP.
 
 Also reports:
 - leave-one-R7-block-out (LOBO) for pilots with enough blocks
-- Moran's I on OOF residuals (y_true - y_proba) from the primary k=2 CV
+- Moran's I on OOF residuals (y_true - y_proba) from the primary offset-2 CV
 
 Outputs:
 - outputs/block_sensitivity.json  (nested by pilot)
 - outputs/block_sensitivity.csv   (long format)
+- outputs/buffer_sensitivity.csv  (long format)
 """
 
 from __future__ import annotations
@@ -30,10 +37,15 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from pluvial_flood_risk.config import OUTPUTS_DIR, PROCESSED_DIR  # noqa: E402
 from pluvial_flood_risk.features import feature_matrix  # noqa: E402
-from pluvial_flood_risk.spatial_cv import block_ids_for_cells, spatial_block_cv_metrics  # noqa: E402
+from pluvial_flood_risk.spatial_cv import (  # noqa: E402
+    block_ids_for_cells,
+    buffer_sensitivity_table,
+    spatial_block_cv_metrics,
+)
 
 SPATIAL_CV_FOLDS = 5
 K_VALUES = [1, 2, 3]
+BUFFERS_M = (0, 250, 500, 1000)
 
 PILOTS = [
     ("lower_manhattan", PROCESSED_DIR / "nyc_h3_cells.parquet"),
@@ -176,8 +188,16 @@ def run_one_pilot(name: str, table_path: Path) -> dict:
     df = pd.read_parquet(table_path)
     cells = df["h3_index"].astype(str).tolist()
     X = feature_matrix(df)
-    y_class = df["flood_class"].to_numpy(dtype=int)
-    y_risk = df["flood_risk"].to_numpy(dtype=float)
+    y_class = (
+        df["evidence_positive"].to_numpy(dtype=int)
+        if "evidence_positive" in df.columns
+        else df["flood_class"].to_numpy(dtype=int)
+    )
+    y_risk = (
+        df["evidence_score"].to_numpy(dtype=float)
+        if "evidence_score" in df.columns
+        else df["flood_risk"].to_numpy(dtype=float)
+    )
 
     rows: list[dict] = []
     primary_oof: list[dict] | None = None
@@ -186,6 +206,7 @@ def run_one_pilot(name: str, table_path: Path) -> dict:
         n_blocks = int(len(np.unique(groups)))
         base = {
             "pilot": name,
+            "parent_resolution_offset": k,
             "k": k,
             "block_resolution": 9 - k,
             "n_blocks": n_blocks,
@@ -219,6 +240,9 @@ def run_one_pilot(name: str, table_path: Path) -> dict:
                 "roc_auc_pooled": _clean(m[f"block{k}_roc_auc_pooled"]),
                 "roc_auc_mean": _clean(m[f"block{k}_roc_auc_mean"]),
                 "roc_auc_std": _clean(m[f"block{k}_roc_auc_std"]),
+                "average_precision_pooled": _clean(m[f"block{k}_average_precision_pooled"]),
+                "roc_auc_ci_low": _clean(m[f"block{k}_roc_auc_ci_low"]),
+                "roc_auc_ci_high": _clean(m[f"block{k}_roc_auc_ci_high"]),
                 "accuracy_mean": _clean(m[f"block{k}_accuracy_mean"]),
                 "accuracy_std": _clean(m[f"block{k}_accuracy_std"]),
                 "f1_mean": _clean(m[f"block{k}_f1_mean"]),
@@ -230,6 +254,78 @@ def run_one_pilot(name: str, table_path: Path) -> dict:
         if k == 2:
             primary_oof = m.get(f"block{k}_oof_table")
 
+    # P0-5: buffered spatial CV at 0/250/500/1000 m (parent offset 2 blocks).
+    groups_r7 = block_ids_for_cells(cells, 2)
+    buffer_rows: list[dict] = []
+    try:
+        bdf = buffer_sensitivity_table(
+            X,
+            y_class,
+            y_risk,
+            groups_r7,
+            cells,
+            buffers=BUFFERS_M,
+            n_splits=SPATIAL_CV_FOLDS,
+        )
+        for _, r in bdf.iterrows():
+            row = {"pilot": name}
+            row.update({k: _clean(v) if isinstance(v, float) else v for k, v in r.items()})
+            buffer_rows.append(row)
+    except Exception as exc:  # pragma: no cover — diagnostics should not crash the run
+        buffer_rows.append({"pilot": name, "error": str(exc)})
+
+    # P0-5 (alternative guard band): H3 grid-disk purge. The metre buffers above
+    # are a no-op at R7 blocks because whole blocks are already >1 km apart; the
+    # grid-disk purge removes *adjacent* blocks' cells and is the guard band that
+    # actually bites. Reported as extra rows so the retained-train fraction varies.
+    for k_ring in (1, 2):
+        try:
+            m = spatial_block_cv_metrics(
+                X,
+                y_class,
+                y_risk,
+                groups_r7,
+                n_splits=SPATIAL_CV_FOLDS,
+                metric_prefix="griddisk",
+                cells=cells,
+                buffer_m=0.0,
+                purge_mode="k_ring",
+                k_ring=k_ring,
+            )
+            buffer_rows.append(
+                {
+                    "pilot": name,
+                    "buffer_m": None,
+                    "guard_band": f"h3_grid_disk_k{k_ring}",
+                    "retained_train_fraction": _clean(
+                        m["griddisk_retained_train_fraction_mean"]
+                    ),
+                    "min_train_test_distance_m": _clean(
+                        m["griddisk_min_train_test_distance_m"]
+                    ),
+                    "roc_auc_pooled": _clean(m["griddisk_roc_auc_pooled"]),
+                    "roc_auc_ci_low": _clean(m["griddisk_roc_auc_ci_low"]),
+                    "roc_auc_ci_high": _clean(m["griddisk_roc_auc_ci_high"]),
+                    "average_precision_pooled": _clean(
+                        m["griddisk_average_precision_pooled"]
+                    ),
+                    "average_precision_ci_low": _clean(
+                        m["griddisk_average_precision_ci_low"]
+                    ),
+                    "average_precision_ci_high": _clean(
+                        m["griddisk_average_precision_ci_high"]
+                    ),
+                    "accuracy_mean": _clean(m["griddisk_accuracy_mean"]),
+                    "f1_mean": _clean(m["griddisk_f1_mean"]),
+                    "n_folds": m["griddisk_n_folds"],
+                    "n_blocks": m["griddisk_n_blocks"],
+                }
+            )
+        except Exception as exc:  # pragma: no cover
+            buffer_rows.append(
+                {"pilot": name, "guard_band": f"h3_grid_disk_k{k_ring}", "error": str(exc)}
+            )
+
     mi_target = morans_i(cells, y_risk)
     mi_residual = {"morans_i": None, "note": "no primary OOF"}
     if primary_oof:
@@ -240,20 +336,29 @@ def run_one_pilot(name: str, table_path: Path) -> dict:
         )
         mi_residual = morans_i(cells, residual)
 
-    groups_r7 = block_ids_for_cells(cells, 2)
     lobo = leave_one_block_out(X, y_class, y_risk, groups_r7, cells)
 
     return {
         "rows": rows,
+        "buffer_rows": buffer_rows,
         "morans_i": mi_target,
         "morans_i_oof_residual": mi_residual,
         "lobo_r7": lobo,
+        "buffer_note": (
+            "Metre guard bands (0/250/500/1000 m, EPSG:2263) purge training cells "
+            "within the buffer of any held-out cell; at R7 blocks the block-level "
+            "separation already exceeds 1 km, so the retained-train fraction stays "
+            "1.0 and the metre buffer is a no-op (reported honestly, with the "
+            "measured min train-test distance). The h3_grid_disk_k1/k2 rows are the "
+            "guard band that actually removes adjacent-block cells."
+        ),
     }
 
 
 def main() -> None:
     payload: dict = {"spatial_cv_folds": SPATIAL_CV_FOLDS, "pilots": {}}
     all_rows: list[dict] = []
+    all_buffer_rows: list[dict] = []
     for name, path in PILOTS:
         if not path.exists():
             print(f"SKIP {name}: {path} not found", file=sys.stderr)
@@ -261,6 +366,8 @@ def main() -> None:
         res = run_one_pilot(name, path)
         payload["pilots"][name] = {
             "block_sensitivity": res["rows"],
+            "buffer_sensitivity": res["buffer_rows"],
+            "buffer_note": res["buffer_note"],
             "morans_i": res["morans_i"],
             "morans_i_oof_residual": res["morans_i_oof_residual"],
             "lobo_r7": {
@@ -276,10 +383,13 @@ def main() -> None:
                 OUTPUTS_DIR / f"lobo_r7_{name}.csv", index=False
             )
         all_rows.extend(res["rows"])
+        all_buffer_rows.extend(res["buffer_rows"])
 
     outputs = OUTPUTS_DIR
     outputs.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(all_rows).to_csv(outputs / "block_sensitivity.csv", index=False)
+    if all_buffer_rows:
+        pd.DataFrame(all_buffer_rows).to_csv(outputs / "buffer_sensitivity.csv", index=False)
     (outputs / "block_sensitivity.json").write_text(
         json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
     )

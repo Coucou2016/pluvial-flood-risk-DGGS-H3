@@ -13,8 +13,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
 from pluvial_flood_risk.config import (
+    DEFAULT_PARENT_RESOLUTION_OFFSET,
     DEFAULT_SPATIAL_CV_FOLDS,
-    DEFAULT_SPATIAL_CV_K,
     FEATURE_COLUMNS,
     RANDOM_SEED,
 )
@@ -62,7 +62,7 @@ def train_models(
     y_risk: np.ndarray,
     test_size: float = 0.2,
     cells: list[str] | None = None,
-    spatial_cv_k: int = DEFAULT_SPATIAL_CV_K,
+    parent_resolution_offset: int = DEFAULT_PARENT_RESOLUTION_OFFSET,
     spatial_cv_folds: int = DEFAULT_SPATIAL_CV_FOLDS,
     random_seed: int = RANDOM_SEED,
 ) -> TrainResult:
@@ -96,7 +96,7 @@ def train_models(
     }
 
     if cells is not None and len(cells) == len(X):
-        groups = block_ids_for_cells(cells, spatial_cv_k)
+        groups = block_ids_for_cells(cells, parent_resolution_offset)
 
         def _clf():
             return build_classifier(random_state=random_seed)
@@ -293,6 +293,11 @@ def predict(
     reg: Pipeline,
     X: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return (predicted_evidence_susceptibility, susceptibility_score, pred_class).
+
+    Terminology (P0-10): the model is uncalibrated, so ``proba`` is a
+    ``susceptibility_score`` (a rank score), not a calibrated probability.
+    """
     risk = reg.predict(X)
     proba_matrix = clf.predict_proba(X)
     classes = list(clf.classes_)

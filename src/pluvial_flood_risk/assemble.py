@@ -19,7 +19,7 @@ from pluvial_flood_risk.config import (
 )
 from pluvial_flood_risk.features import (
     building_density_from_vector,
-    dist_stream_from_vector,
+    dist_mapped_water_from_vector,
     engineer_features_for_cells,
 )
 from pluvial_flood_risk.h3_grid import bbox_to_cells, cell_centers, cell_resolution
@@ -112,10 +112,11 @@ def discover_sources(raw_dir: Path | str, assembly_mode: str | None = None) -> F
         raw_dir / "usgs_ida_hwm.geojson",
         raw_dir / "floods" / "flooding_311.geojson",
         raw_dir / "floods" / "usgs_ida_hwm.geojson",
-        raw_dir / "floodnet_sensors.geojson",
     ):
         if cand.exists():
             points.append(cand)
+    # NOTE: floodnet_sensors.geojson is deliberately NOT discovered here. It is an
+    # external-validation source (P0-3) and must never enter the training labels.
     coastal = _first_existing(
         raw_dir / "fema_sandy.geojson",
         raw_dir / "floods" / "fema_sandy.geojson",
@@ -159,17 +160,17 @@ def sources_from_config(cfg: dict) -> FeatureSources:
         flood_points = [flood_points]
     flood_points = [Path(p) for p in flood_points if p]
 
+    # P0-3: FloodNet is NEVER a training label. The legacy `labels.include_floodnet`
+    # switch is removed; external-validation / negative-control sources are declared
+    # in their own typed config blocks and are consumed by the held-out diagnostics,
+    # not by `assemble_h3_table`.
     labels_cfg = cfg.get("labels") or {}
-    include_floodnet = bool(labels_cfg.get("include_floodnet", False))
-    floodnet_cfg = _as_path(paths.get("floodnet"))
-    if include_floodnet:
-        from pluvial_flood_risk.floodnet import usable_floodnet_path
-
-        floodnet_usable = usable_floodnet_path(floodnet_cfg) or usable_floodnet_path(
-            Path(raw_dir) / "floodnet_sensors.geojson" if raw_dir else None
+    if "include_floodnet" in labels_cfg:
+        raise ValueError(
+            "config key labels.include_floodnet was removed (P0-3): FloodNet is an "
+            "external-validation source and can never be a training label. Declare it "
+            "under external_validation: instead."
         )
-        if floodnet_usable is not None and floodnet_usable not in flood_points:
-            flood_points = list(flood_points) + [floodnet_usable]
 
     mode = str(cfg.get("assembly_mode") or cfg.get("data_provenance") or ASSEMBLY_HASH)
     if mode in ("synthetic", "hash_demo"):
@@ -198,10 +199,9 @@ def _empty_feature_frame(cells: list[str], rainfall_mm_h: float) -> pd.DataFrame
     n = len(cells)
     data: dict[str, object] = {"h3_index": cells}
     for col in FEATURE_COLUMNS:
-        if col == "rainfall_mm_h":
-            data[col] = np.full(n, rainfall_mm_h, dtype=np.float64)
-        else:
-            data[col] = np.full(n, np.nan, dtype=np.float64)
+        data[col] = np.full(n, np.nan, dtype=np.float64)
+    # ``rainfall_mm_h`` is a scenario/config column only, never a trained input.
+    data["rainfall_mm_h"] = np.full(n, float(rainfall_mm_h), dtype=np.float64)
     return pd.DataFrame(data)
 
 
@@ -289,9 +289,9 @@ def assemble_feature_table(
                 pass
         try:
             flow = zonal_flow_accum_from_dem(cells, sources.dem_path)
-            df = df.drop(columns=["flow_accum_proxy"], errors="ignore")
+            df = df.drop(columns=["dem_d8_accum_proxy"], errors="ignore")
             df = df.merge(flow, on="h3_index", how="left")
-            observed.add("flow_accum_proxy")
+            observed.add("dem_d8_accum_proxy")
         except ImportError:
             pass
 
@@ -311,16 +311,28 @@ def assemble_feature_table(
         observed.add("impervious_frac")
 
     if sources.buildings_path and Path(sources.buildings_path).exists():
-        bldg = building_density_from_vector(cells, sources.buildings_path)
-        df = df.drop(columns=["building_density"], errors="ignore")
-        df = df.merge(bldg[["h3_index", "building_density"]], on="h3_index", how="left")
+        bldg = building_density_from_vector(
+            cells, sources.buildings_path, hydro_path=sources.hydro_path
+        )
+        df = df.drop(
+            columns=["building_density", "building_area_fraction", "building_count_per_land_km2"],
+            errors="ignore",
+        )
+        cols = ["h3_index", "building_density"]
+        if "building_area_fraction" in bldg.columns:
+            cols.append("building_area_fraction")
+        if "building_count_per_land_km2" in bldg.columns:
+            cols.append("building_count_per_land_km2")
+        df = df.merge(bldg[cols], on="h3_index", how="left")
         observed.add("building_density")
+        if "building_area_fraction" in bldg.columns:
+            observed.add("building_area_fraction")
 
     if sources.hydro_path and Path(sources.hydro_path).exists():
-        dist = dist_stream_from_vector(cells, sources.hydro_path)
-        df = df.drop(columns=["dist_stream_m"], errors="ignore")
+        dist = dist_mapped_water_from_vector(cells, sources.hydro_path)
+        df = df.drop(columns=["dist_mapped_water_m", "dist_stream_m"], errors="ignore")
         df = df.merge(dist, on="h3_index", how="left")
-        observed.add("dist_stream_m")
+        observed.add("dist_mapped_water_m")
 
     rainfall_source = "scenario_or_config"
     if sources.event_rainfall_path and Path(sources.event_rainfall_path).exists():
@@ -363,13 +375,22 @@ def assemble_feature_table(
     for col in (
         "elevation_m",
         "slope_deg",
-        "flow_accum_proxy",
+        "dem_d8_accum_proxy",
         "impervious_frac",
         "building_density",
-        "dist_stream_m",
+        "building_area_fraction",
+        "dist_mapped_water_m",
     ):
         if col in df.columns:
             df[col] = df[col].astype(np.float64)
+
+    # Deprecated column aliases (P1-3 / P1-5): keep older call sites resolving.
+    if "dem_d8_accum_proxy" in df.columns and "flow_accum_proxy" not in df.columns:
+        df["flow_accum_proxy"] = df["dem_d8_accum_proxy"]
+    if "dist_mapped_water_m" in df.columns and "dist_stream_m" not in df.columns:
+        df["dist_stream_m"] = df["dist_mapped_water_m"]
+    if "building_area_fraction" in df.columns and "building_area_frac" not in df.columns:
+        df["building_area_frac"] = df["building_area_fraction"]
 
     n_static_cols = [c for c in FEATURE_COLUMNS if c != "rainfall_mm_h"]
     if not observed:
@@ -440,7 +461,13 @@ def assemble_h3_table(
     label_paths.extend(Path(p) for p in sources.flood_points_paths if Path(p).exists())
 
     if label_paths:
-        df = attach_observed_labels(df, label_paths)
+        from pluvial_flood_risk.labels import EvidenceSource, attach_training_labels
+
+        training_sources = [
+            EvidenceSource(path=p, kind=Path(p).stem, role="training_label")
+            for p in label_paths
+        ]
+        df = attach_training_labels(df, training_sources)
     elif fallback_synthetic:
         df = attach_labels(df, threshold=synthetic_label_threshold)
     else:

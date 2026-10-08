@@ -1,6 +1,6 @@
 # 审查文档（Audit）：数据真实性、准确性与完整性证据
 
-> **⚠ 当前权威数字（submission-v5 / 2026-09-21 post-urban-drop recompute；散文冻结 submission-v5-1-prose-audit）：** 以 `outputs/paper_results.json`、`outputs/jaccard_by_resolution.csv`、以及重训后的 `models/nyc_smoke/` + `models/nyc_expanded/` 为准。LM Option B：n=262、正类 63.7%、acc 0.824±0.055、F1 0.861、pooled ROC-AUC **0.850**；扩展：n=956、正类 48.2%、acc 0.819±0.024、F1 0.822、pooled ROC-AUC **0.880**。尺度损失主指标为 area-weighted soft Jaccard（domain-masked R10→R9 mean **0.220**；R10→R8 mean **0.136**；n_fine=1788）。311 源为官方 SODA `76ig-c548`。下文历史对账段落中若出现 0.848/0.820/0.227/n=141-as-current 等旧值，一律视为快照，不以之为现行主表。详见 **§18–§19**。
+> **⚠ 当前权威数字（major-revision-2026-10-08 全量重算；schema v2）：** 以 `outputs/paper_results.json`、`outputs/jaccard_by_resolution.csv`、`outputs/buffer_sensitivity.csv`、`outputs/floodnet_heldout_validation.json`、以及重训后的 `models/nyc_smoke/` + `models/nyc_expanded/` 为准。LM Option B：n=262、正类 63.7%、acc **0.828±0.053**、F1 **0.868**、pooled ROC-AUC **0.849**（95% spatial-block bootstrap CI 0.728–0.951）、AP **0.850**（CI 0.778–0.965）；扩展：n=956、正类 47.9%、acc **0.824±0.036**、F1 **0.824**、pooled ROC-AUC **0.887**（CI 0.831–0.929）、AP **0.827**（CI 0.774–0.883）。主目标为二元证据并集 `evidence_positive`；跨源连续 composite 已移出主结果。尺度损失主指标为 area-weighted soft Jaccard（domain-masked R10→R9 mean **0.193**；R10→R8 mean **0.114**；n_fine=1788），真重建误差 R9 MAE **0.238**/RMSE **0.345**。自适应 **hotspot refinement recall 0.882**（legacy coverage 1.0 为同义反复）。**FloodNet 严格留出为负结果**（LM ROC-AUC 0.451 / 扩展 0.479；无事件传感器单元得分不低），已在摘要/结论作为核心发现呈现。311 源为官方 SODA `76ig-c548`。下文历史对账段落中若出现 0.848/0.850/0.220/0.136/n=141-as-current 等旧值，一律视为快照，不以之为现行主表。详见 **§20**。
 
 **用途：** 本文档用于证明手稿 `manuscript.md` 与研究报告 `report.md` 中的所有数字，均为**本仓库自身代码在本机数据上运行所得**，而非从参考文献（尤其 Svellingen et al. 2026 IJDRR 及其 PFIb / Jaccard 0.14 数字）或任何第三方论文中抄录；并证明结果**可逐条复算、可对账、无“做一半臆断一半”**。
 
@@ -1094,3 +1094,57 @@ python -c "import json; d=json.load(open('outputs/paper_results.json',encoding='
 3. Citywide evaluation  
 4. Administrative land polygon replacing NHD water proxy  
 5. Optional nested CV (explicitly declined for this submission freeze)
+
+---
+
+## 20. Major Revision 2026-10-08 — P0/P1 remediation ledger
+
+**Tag intent:** `major-revision-2026-10-08`  
+**Numeric authority unchanged in mechanism, refreshed in value:** `outputs/paper_results.json` (schema v2) after a full recompute on the current open-data stack. All numbers below are re-derived by our own scripts; where a fix *lowered* a metric it is reported as such.
+
+### 20.1 P0 items
+
+| # | P0 item | Status | Evidence |
+|---|---------|--------|----------|
+| P0-1 | Main target = binary union `evidence_positive`; cross-source continuous composite removed; DEP-only `evidence_coverage_proxy`; regressor demoted | done | `outputs/paper_results.json` (`feature_columns`, `scale_loss`); `data/processed/*.parquet` (`evidence_positive`, `evidence_coverage_proxy`) |
+| P0-2 | FloodNet surfaced as CORE negative result with exposure sensitivity 30/90/180/365 d | done | manuscript Abstract/§2/§4.5/§5.1/§6 + Table 9; `outputs/floodnet_heldout_validation.json` `exposure_sensitivity` |
+| P0-3 | Typed `EvidenceSource.role`; `attach_training_labels` raises for non-`training_label`; FloodNet → `external_validation`, Sandy → `negative_control`; `labels.include_floodnet` removed | done | `src/pluvial_flood_risk/labels.py`; `configs/nyc.yaml`; `tests/test_submission_hard_gates.py::test_gate1_*` |
+| P0-4 | FloodNet freeze ENFORCED on data (`flood_start_time < freeze`; sensors by `date_installed`) + audit counters | done | `outputs/floodnet_heldout_validation.json` `freeze_audit`; `tests/test_submission_hard_gates.py::test_gate2_*` |
+| P0-5 | Buffered spatial CV 0/250/500/1000 m (EPSG:2263) + `grid_disk` purge + spatial-block bootstrap 95% CI; buffer table with retained-train fraction | done | `outputs/buffer_sensitivity.csv`; registry `buffer_sensitivity` + `block_bootstrap_ci` (1000 draws) |
+| P0-6 | `k_ring`→`parent_resolution_offset`, `h3_block_id`→`h3_parent_block_id` | done | `src/pluvial_flood_risk/spatial_cv.py`; registry keys; manuscript §3.5/§4.8 |
+| P0-7 | Adaptive metric → `hotspot_refinement_recall` (+precision/enrichment/cost-recall + scorable/missing counts + best/worst bounds) | done | `outputs/adaptive_r11_hotspot_retention.json`; registry `adaptive.rows[0]` |
+| P0-8 | Scale tail identity metrics → true area-weighted reconstruction MAE/RMSE; identity retained as QA-only | done | `outputs/jaccard_by_resolution.csv`; `tests/test_submission_hard_gates.py::test_gate6_*` |
+| P0-9 | Terminology: `flood_probability`→`susceptibility_score`, `predicted_risk`→`predicted_evidence_susceptibility`, `flood_risk`→`evidence_score`/`susceptibility_score`, legacy `PFI_h` deleted, "risk map"→"susceptibility/evidence-screening map" | done | `tests/test_submission_hard_gates.py::test_gate4_*`; README/manuscript/report rewrites |
+| P0-10 | `rainfall_mm_h` removed from `FEATURE_COLUMNS`; scenario guard `min_unique=3`; `EVENT_FEATURE_COLUMNS` documented | done | `src/pluvial_flood_risk/config.py`; `test_gate4_scenario_guard_raises_on_zero_variance_feature` |
+
+### 20.2 P1 items
+
+| # | P1 item | Status | Evidence |
+|---|---------|--------|----------|
+| P1-1 | physics-only / reporting-only / full models | done | `outputs/source_ablation.json` (`union_physics_only` 0.851/0.862; `union_reporting_only` 0.805/0.873; `union_full` 0.849/0.887) |
+| P1-2 | building density on land-area denominator + `building_area_fraction` | done | `src/pluvial_flood_risk/features.py`; manuscript §3.3 |
+| P1-3 | `dist_stream_m`→`dist_mapped_water_m` (temp alias), nearest-water distance in EPSG:2263 | done | `feature_columns`; manuscript §3.3 |
+| P1-4 | `flow_accum_proxy`→`dem_d8_accum_proxy` (raw/filled/breached sensitivity) | done | `feature_columns`; `outputs/` reachability diagnostic |
+| P1-5 | slope nodata-safe (no `nan_to_num` 0; nearest-fill for gradient, restore + 1-ring dilate) | done | `src/pluvial_flood_risk/features.py`; manuscript §3.3 |
+| P1-6 | no `StandardScaler` before GBM | done | `src/pluvial_flood_risk/estimators.py`; manuscript §3.3/§3.4 |
+| P1-7 | HWM n=6 diagnostic-only with per-point quality ranks | done | `outputs/hwm_quality_oof_validation.json`; registry `hwm_quality_oof_validation` |
+| P1-8 | DEP provenance: "public ArcGIS mirror attributed to NYC DEP, identity unverified" | done | `data/raw/nyc/DOWNLOAD_MANIFEST.json`; manuscript §2 |
+| P1-9 | manifests regenerated from download scripts (sha256/rowcount, no absolute paths) | done | `scripts/regenerate_download_manifest.py`; `tests/test_submission_hard_gates.py::test_gate8_*` |
+| P1-10 | registry has no absolute paths; provenance split (`analysis_source_commit` vs `snapshot_repository_commit`) + `config_sha256`/`lockfile_sha256` | done | registry `provenance`; `tests/test_submission_hard_gates.py::test_gate3_*` |
+
+### 20.3 Tests
+
+| Suite | Result |
+|-------|--------|
+| `tests/test_major_revision_gates.py` (22 tests) | **22 passed** |
+| `tests/test_submission_hard_gates.py` (8 gates) | **passed** |
+| Full suite `pytest tests/` (`PAPER_RELEASE_STRICT=1`) | **117 passed, 1 skipped** (skip = `geopandas` not installed, unrelated) |
+| `scripts/check_manuscript_vs_registry.py` | **OK** (manuscript + README aligned) |
+
+### 20.4 Docs & artifacts
+
+`LICENSE` (MIT + third-party carve-out), `CITATION.cff`, registry schema v2 (`buffer_sensitivity`/`block_bootstrap_ci`/`external_validation`/`adaptive`), manuscript/report/audit updates, regenerated figures and HTML/PDF.
+
+### 20.5 Third-party PDF caveat
+
+`1-s2.0-S2212420926001032-main.pdf` (5.8 MB) and `.md` are a copy of a **third-party Elsevier/IJDRR article** retained for offline literature review. **They are NOT MIT-licensed**; this is flagged in `LICENSE` and `CITATION.cff`, and the redistribution risk is called out in the final report. Replace with a DOI link before any further redistribution.

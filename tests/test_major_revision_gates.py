@@ -235,8 +235,13 @@ def test_source_ablation_includes_complaint_no_building_density():
     payload = json.loads(path.read_text(encoding="utf-8"))
     names = {r["target"] for r in payload["pilots"]["lower_manhattan"]}
     assert "complaint_no_building_density" in names
-    assert "composite" in names
+    # P0-1: the cross-source continuous composite was REMOVED from the main
+    # result and replaced by the binary union target.
+    assert "evidence_union" in names
+    assert "composite" not in names
     assert "dep_only" in names
+    # P1-1: physics-only / reporting-only / full ablation present.
+    assert {"union_physics_only", "union_reporting_only", "union_full"} <= names
 
 
 def test_negative_control_uses_oof_score_column():

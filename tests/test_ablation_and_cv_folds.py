@@ -28,7 +28,7 @@ def test_spatial_cv_fold_table(tmp_path: Path):
     )
     y_class = df["flood_class"].to_numpy()
     y_risk = df["flood_risk"].to_numpy()
-    groups = block_ids_for_cells(df["h3_index"].astype(str).tolist(), k=2)
+    groups = block_ids_for_cells(df["h3_index"].astype(str).tolist(), parent_resolution_offset=2)
     metrics = spatial_block_cv_metrics(X, y_class, y_risk, groups, n_splits=3)
     folds = metrics["spatial_cv_fold_table"]
     assert len(folds) >= 2
@@ -44,8 +44,7 @@ def test_adaptive_vs_fixed_ablation():
     df = pd.DataFrame(
         {
             "h3_index": cells,
-            "PFI_h": np.linspace(0.1, 0.9, len(cells)),
-            "flood_probability": np.linspace(0.1, 0.9, len(cells)),
+            "susceptibility_score": np.linspace(0.1, 0.9, len(cells)),
         }
     )
     metrics = adaptive_vs_fixed_ablation(df, fine_res=10, score_quantile=0.8)

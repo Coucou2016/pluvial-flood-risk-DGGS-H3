@@ -18,5 +18,8 @@ rainfall_scenarios:
     mm_h: 60
 
 spatial_cv:
-  k_ring: 2
+  # PARENT-RESOLUTION OFFSET (offset 2 at R9 gives R7 blocks); renamed from `k_ring`.
+  parent_resolution_offset: 2
   n_folds: 5
+  buffers_m: [0, 250, 500, 1000]
+  bootstrap_n: 1000
